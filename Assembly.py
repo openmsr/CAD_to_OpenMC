@@ -8,6 +8,9 @@ from typing import List, Optional, Tuple, Union
 from paramak import Shapes
 import meshio
 
+def _replace(filename, string1, string2):
+    pass
+
 class Assembly:
     """This class encapsulates a set of geometries defined by step-files
     addtionally it provides access to meshing-utilities, and export to a DAGMC-enabled
