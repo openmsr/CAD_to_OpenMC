@@ -13,11 +13,12 @@ import re
 import os
 from pymoab import core, types
 
-
+#these are dummies that we still need to define
 def _replace(filename, string1, string2):
     pass
 
-
+def brep_to_h5m:
+    pass
 
 
 class Assembly:
@@ -264,7 +265,7 @@ class Assembly:
         self.export_brep(tmp_brep_filename)
 
         # brep file is imported
-        brep_file_part_properties = bpf.get_brep_part_properties(tmp_brep_filename)
+        brep_file_part_properties = None#bpf.get_brep_part_properties(tmp_brep_filename)
 
         if verbose:
             print("brep_file_part_properties", brep_file_part_properties)
