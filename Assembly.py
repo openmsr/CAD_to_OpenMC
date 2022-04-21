@@ -9,9 +9,16 @@ from paramak import Shapes
 import meshio
 
 import tempfile
+import re
+import os
+from pymoab import core, types
+
 
 def _replace(filename, string1, string2):
     pass
+
+
+
 
 class Assembly:
     """This class encapsulates a set of geometries defined by step-files
