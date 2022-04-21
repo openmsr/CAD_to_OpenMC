@@ -3,7 +3,7 @@ import cadquery as cq
 import OCP
 
 from paramak import Shapes
-
+import meshio
 
 class Assembly:
     """This class encapsulates a set of geometries defined by step-files
