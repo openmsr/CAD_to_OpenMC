@@ -8,6 +8,8 @@ from typing import List, Optional, Tuple, Union
 from paramak import Shapes
 import meshio
 
+import tempfile
+
 def _replace(filename, string1, string2):
     pass
 
@@ -153,7 +155,7 @@ class Assembly:
             path_filename.parents[0].mkdir(parents=True, exist_ok=True)
 
             # add an include_graveyard that add graveyard if requested
-            exporters.export(
+            cq.exporters.export(
                 self.solid,
                 str(path_filename),
                 exportType="STL",
