@@ -3,3 +3,4 @@ gmsh
 ocp-vtk
 meshio-rewrite
 trimesh
+typing
