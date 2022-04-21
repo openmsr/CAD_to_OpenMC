@@ -1,6 +1,9 @@
 import gmsh
 import cadquery as cq
 import OCP
+from collections.abc import Iterable
+from pathlib import Path
+from typing import List, Optional, Tuple, Union
 
 from paramak import Shapes
 import meshio
