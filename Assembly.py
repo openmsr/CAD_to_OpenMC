@@ -17,7 +17,7 @@ from pymoab import core, types
 def _replace(filename, string1, string2):
     pass
 
-def brep_to_h5m:
+def brep_to_h5m():
     pass
 
 
