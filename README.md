@@ -1,5 +1,5 @@
 # step_to_h5m
-This is intended ot be a python package heavily inspired by [Paramak](https://github.com/fusion_energy/paramak).
+This is intended ot be a python package heavily inspired by [Paramak](https://github.com/fusion-energy/paramak).
 It's reason d'etre is to enable a link between the online CAD-tool onShape and the neutron transport code OpenMC.
 
 We will use cadQuery and it's links to OCCT to enable import and imprinting/merging algorithms.
