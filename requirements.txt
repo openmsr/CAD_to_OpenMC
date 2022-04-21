@@ -1,0 +1,5 @@
+cadquery2
+gmsh
+ocp-vtk
+meshio-rewrite
+trimesh
