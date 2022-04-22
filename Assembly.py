@@ -8,6 +8,7 @@ from typing import List, Optional, Tuple, Union
 
 from paramak import Shapes
 import meshio
+import trimesh
 
 import tempfile
 import re
@@ -166,7 +167,7 @@ class Assembly:
 
         if isinstance(filename, str):
 
-            filename = Path(filename)
+            filename = pl.Path(filename)
 
             if filename.suffix != ".stl":
                 filename = filename.with_suffix(".stl")
@@ -444,9 +445,9 @@ class Assembly:
 
         moab_core.add_entities(file_set, all_sets)
 
-        moab_core.write_file(str(path_filename))
+        moab_core.write_file(str(h5m_p))
 
-        return str(path_filename)
+        return str(h5m_p)
 
     def add_stl_to_moab_core( moab_core: core.Core, surface_id: int, volume_id: int, material_name: str, tags: dict, stl_filename: str,
 ) -> core.Core:
@@ -556,7 +557,7 @@ class Assembly:
             filename of the brep created
         """
 
-        path_filename = Path(filename)
+        path_filename = pl.Path(filename)
 
         if path_filename.suffix != ".brep":
             msg = "When exporting a brep file the filename must end with .brep"
