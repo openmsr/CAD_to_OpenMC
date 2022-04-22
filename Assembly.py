@@ -169,7 +169,7 @@ class Assembly:
             filename = Path(filename)
 
             if filename.suffix != ".stl":
-                filename = path_filename.with_suffix(".stl")
+                filename = filename.with_suffix(".stl")
 
             filename.parents[0].mkdir(parents=True, exist_ok=True)
 
@@ -430,11 +430,11 @@ class Assembly:
         and merges them into a DAGMC h5m-file by means of the MOAB-framework.
         """
         h5m_p=pl.Path(h5m_file)
-        moab_core,moab_tags = init_moab()
+        moab_core,moab_tags = self.init_moab()
 
         sid,vid = (1,1)
         for sfn,mtag in stls:
-            moab_core = add_stl_to_moab_core(moab_core,sid,vid,mtag, moab_tags, sfn)
+            moab_core = self.add_stl_to_moab_core(moab_core,sid,vid,mtag, moab_tags, sfn)
             vid += 1
             sid += 1
         
