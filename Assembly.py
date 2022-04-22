@@ -20,6 +20,15 @@ def _replace(filename, string1, string2):
 def brep_to_h5m():
     pass
 
+class Bpf:
+    def get_dict_of_part_ids(
+            brep_part_properties,
+            shape_properties,
+            volume_atol,
+            center_atol,
+            bounding_box_atol)
+
+bpf = Bpf()
 
 class Assembly:
     """This class encapsulates a set of geometries defined by step-files
