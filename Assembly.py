@@ -1,8 +1,9 @@
 import gmsh
 import cadquery as cq
+import numpy as np
 import OCP
 from collections.abc import Iterable
-from pathlib import Path
+import from pathlib as pl
 from typing import List, Optional, Tuple, Union
 
 from paramak import Shapes
@@ -486,7 +487,7 @@ class Assembly:
         moab_core.add_parent_child(volume_set, surface_set)
 
         # set surface sense
-        #This should be fixed I think - we should know which volume comes next
+        #This should be fixed - we should know which volume comes next, instead of just setting it to be 0
         sense_data = [volume_set, np.uint64(0)]
         moab_core.tag_set_data(tags["surf_sense"], surface_set, sense_data)
 
