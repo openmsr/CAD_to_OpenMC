@@ -26,7 +26,8 @@ class Bpf:
             shape_properties,
             volume_atol,
             center_atol,
-            bounding_box_atol)
+            bounding_box_atol):
+        pass
 
 bpf = Bpf()
 
