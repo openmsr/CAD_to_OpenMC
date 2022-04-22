@@ -3,7 +3,7 @@ import cadquery as cq
 import numpy as np
 import OCP
 from collections.abc import Iterable
-import from pathlib as pl
+import pathlib as pl
 from typing import List, Optional, Tuple, Union
 
 from paramak import Shapes
