@@ -165,22 +165,22 @@ class Assembly:
 
         if isinstance(filename, str):
 
-            path_filename = Path(filename)
+            filename = Path(filename)
 
-            if path_filename.suffix != ".stl":
-                path_filename = path_filename.with_suffix(".stl")
+            if filename.suffix != ".stl":
+                filename = path_filename.with_suffix(".stl")
 
-            path_filename.parents[0].mkdir(parents=True, exist_ok=True)
+            filename.parents[0].mkdir(parents=True, exist_ok=True)
 
             # add an include_graveyard that add graveyard if requested
             cq.exporters.export(
                 self.solid,
-                str(path_filename),
+                str(filename),
                 exportType="STL",
                 tolerance=tolerance,
                 angularTolerance=angular_tolerance,
             )
-            return str(path_filename)
+            return str(filename)
 
         if filename is None:
             if None in self.name:
