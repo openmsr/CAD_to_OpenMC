@@ -413,7 +413,7 @@ class Assembly:
         healed=[]
         for stl in stls:
             vid,fn=stls
-            mesh = trimesh.load_mesh(filename)
+            mesh = trimesh.load_mesh(fn)
             if (self.verbose):
                 print("file", fn, ": mesh is watertight", mesh.is_watertight)
             trimesh.repair.fix_normals(
