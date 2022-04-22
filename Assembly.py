@@ -341,7 +341,7 @@ class Assembly:
         return filename
 
 
-    def tag_geometry_with_mats(volumes,implicit_complement_material_tag,graveyard):
+    def tag_geometry_with_mats(volumes,implicit_complement_material_tag,graveyard, default_tag='vacuum'):
         """Tag all volumes with materials coming from the step files
         """
         volume_mat_list = {}
