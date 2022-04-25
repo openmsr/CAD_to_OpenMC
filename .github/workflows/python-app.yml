@@ -51,6 +51,6 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       env:
-        PYTHON_PATH=$HOME/moab
+        PYTHON_PATH: "$HOME/moab"
       run: |
         pytest
