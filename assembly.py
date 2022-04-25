@@ -6,7 +6,7 @@ from collections.abc import Iterable
 import pathlib as pl
 from typing import List, Optional, Tuple, Union
 
-from paramak import Shapes
+#from paramak import Shapes
 import meshio
 import trimesh
 
@@ -41,6 +41,9 @@ class Assembly:
     """
     def __init__():
         pass
+
+    def import_stp_file(filename):
+        self.solid,self.wire = load_stp_file(filename,1.0)
 
     def load_stp_file(filename: str, scale_factor: float = 1.0):
         """Loads a stp file and makes the 3D solid and wires available for use.
@@ -213,18 +216,6 @@ class Assembly:
 
         return filename
 
-    def merge(self):
-        """calls the merge capabilities from OCP/OCCT to merge and imprint surfaces in a geometry
-            
-        """
-        
-    def export_brep(self,filename = None, merge=True) -> str:
-        """Export the gcurrent geometry as a brep-file.
-        
-        """
-
-
-
 #This should be separated into a few things
     def export_dagmc_h5m(
         self,
@@ -329,19 +320,22 @@ class Assembly:
                 key_and_part_id = {key: val for key, val in key_and_part_id.items() if val != name_to_remove}
 
         brep_to_h5m(
-            brep_filename=tmp_brep_filename,
-            volumes_with_tags=key_and_part_id,
-            h5m_filename=filename,
-            min_mesh_size=min_mesh_size,
-            max_mesh_size=max_mesh_size,
-            delete_intermediate_stl_files=True,
-        )
+            brep_filename=tmp_brep_filename, volumes_with_tags=key_and_part_id,
+            h5m_filename=filename, min_mesh_size=min_mesh_size, max_mesh_size=max_mesh_size,
+            delete_intermediate_stl_files=True)
 
         # temporary brep is deleted
         os.remove(tmp_brep_filename)
 
         return filename
 
+    def brep_to_h5m(brep_filename, volumes_with_tags=None, h5m_filename="dagmc.h5m", min_mesh_size=0.1, max_mesh_size=1.0,delete_intermediate_stl_files=False):
+        """calls the lower level gmsh functions in order"""
+        self.gmsh_init(brep_filename, samples=20,min_mesh_size=min_mesh_size, max_mesh_size=max_mesh_size,mesh_algorithm=1)
+        self.gmsh_generate_mesh()
+        stl_list=self.gmsh_export_stls()
+        stl_list=self.heal_stls(stl_list)
+        self.stl2h5m(stl_list,h5m_file=h5m_filename)
 
     def tag_geometry_with_mats(volumes,implicit_complement_material_tag,graveyard, default_tag='vacuum'):
         """Tag all volumes with materials coming from the step files
@@ -374,55 +368,6 @@ class Assembly:
             except:
                 volume_mat_list[tagid]=default_tag
         return volume_mat_list
-
-    #gmsh interface function
-    def gmsh_gy_meshsize(graveyard,divisions=5, field=1):
-        """set the mesh size field close (and outside) to the graveyard to something coarse(r)"""
-        gmsh.model.mesh.field.add("Box",field)
-        gmsh.model.mesh.field.setNumber(field,"VIn",10)
-        gmsh.model.mesh.field.setNumber(field,"VOut",graveyard/divisions)
-        
-        gmsh.model.mesh.field.setNumber(field,"XMin",-(graveyard*0.99)/2.0)
-        gmsh.model.mesh.field.setNumber(field,"XMax", (graveyard*0.99)/2.0)
-        gmsh.model.mesh.field.setNumber(field,"YMin",-(graveyard*0.99)/2.0)
-        gmsh.model.mesh.field.setNumber(field,"YMax", (graveyard*0.99)/2.0)
-        gmsh.model.mesh.field.setNumber(field,"ZMin",-(graveyard*0.99)/2.0)
-        gmsh.model.mesh.field.setNumber(field,"ZMax", (graveyard*0.99)/2.0)
-        return field
-
-    def export_stls(self):
-        """export all the optionally merged volumes as stl-files
-        and returns the list of files. This list may subsequently be iterated upon
-        to merge into a h5m-file. Expects that the geometry has been surface-mesh by gmsh
-        so we have a list of volumes to operate on.
-        We do this be greating gmsh physical groups and we may export only 1 group."""
-        stls=[]
-        for dim,vid in self.meshed_volumes:
-           if (dim!=3):
-               #appears not to be a volume - skip
-               continue
-           ents = gmsh.model.getAdjancencies(dim,vid)
-           ps = gmsh.model.setPhysicalName(2,ents[1],f'surfaces_on_volume_{vid}')
-           filename=f'volume_{vid}.stl'
-           gmsh.write(filename)
-           stls.append((vid,filename))
-           gmsh.model.removePhysicalGroups([]) # remove group again
-        return stls
-    
-    def heal_stls(self,stls):
-        healed=[]
-        for stl in stls:
-            vid,fn=stls
-            mesh = trimesh.load_mesh(fn)
-            if (self.verbose):
-                print("file", fn, ": mesh is watertight", mesh.is_watertight)
-            trimesh.repair.fix_normals(
-                mesh
-            )  # reqired as gmsh stl export from brep can get the inside outside mixed up
-            new_filename = fn[:-4] + "_with_corrected_face_normals.stl"
-            mesh.export(new_filename)
-            healed.append((vid,new_filename))
-        return healed
 
     #this bit is picked from stl_to_h5m
 
@@ -604,3 +549,86 @@ class Assembly:
         """Import geometry to the shape list through ocp/occt from the
            given filename"""
          
+    def gmsh_init(brep_fn="gemetry.brep",samples=20, min_mesh_size=0.1, max_mesh_size=10,volumes_with_tags=None, mesh_algorithm):
+        gmsh.initialize()
+        gmsh.option.setNumber("General.Terminal",1)
+        gmsh.model.add(f"model from Assembly.py {self.brep_fn}")
+        gmsh.option.setString("Geometry.OCCTargetUnit","M")
+        #do this by means of properties instead
+        if(threads is not None):
+           gmsh.option.setNumber("General.NumThreads",threads)
+        self.volumes = gmsh.model.occ.importShapes(brep_filename)
+        gmsh.model.occ.synchronize()
+        if volumes_with_tags is None:
+            self.volumes_with_tags
+
+        gmsh.option.setNumber("Mesh.Algorithm", mesh_algorithm)
+        gmsh.option.setNumber("Mesh.MeshSizeMin", min_mesh_size)
+        gmsh.option.setNumber("Mesh.MeshSizeMax", max_mesh_size)
+
+        gmsh.option.setNumber("Mesh.MaxRetries",3)
+        gmsh.option.setNumber("Mesh.MeshSizeFromPoints",0)
+        gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
+
+    def gmsh_set_graveyard(self,graveyard_side=100, graveyard_radius=None, division=2):
+        """Method sets up a graveyard box and a rough mesh_field there"""
+        gs=graveyard_side/2.0
+        final_volume_number=self.volumes[-1][1]
+        gmsh.model.occ.addBox(-gs,-gs,-gs,2*gs,2*gs,2*gs,final_volume_number+2)
+        gmsh.model.occ.addBox(-gs-2.5,-gs-2.5,-gs-2.5,2*gs+5.,2*gs+5.,2*gs+5.,final_volume_number+3)
+        gy_tag=gmsh.model.occ.cut([(3,final_volume_number+3)],[(3,final_volume_number+2)],final_volume_number+1)
+        gmsh.model.occ.synchronize()
+        self.graveyard_size=graveyard_side;
+        self.volumes=gmsh.model.getEntities(3)
+        self._set_graveyard_box_field()
+
+    def _gmsh_set_graveyard_box_field(self,division=2,field=0)
+        """set the mesh size field close (and outside) to the graveyard to something coarse(r)"""
+        gmsh.model.mesh.field.add("Box",field)
+        gmsh.model.mesh.field.setNumber(field,"VIn",10)
+        gmsh.model.mesh.field.setNumber(field,"VOut",self.graveyard_size/divisions)
+
+        gmsh.model.mesh.field.setNumber(field,"XMin",-(self.graveyard_size*0.99)/2.0)
+        gmsh.model.mesh.field.setNumber(field,"XMax", (self.graveyard_size*0.99)/2.0)
+        gmsh.model.mesh.field.setNumber(field,"YMin",-(self.graveyard_size*0.99)/2.0)
+        gmsh.model.mesh.field.setNumber(field,"YMax", (self.graveyard_size*0.99)/2.0)
+        gmsh.model.mesh.field.setNumber(field,"ZMin",-(self.graveyard_size*0.99)/2.0)
+        gmsh.model.mesh.field.setNumber(field,"ZMax", (self.graveyard_size*0.99)/2.0)
+        return field
+
+    def gmsh_generate_mesh(self):
+        gmsh.model.mesh.generate(2)
+
+    def gmsh_export_stls(self):
+        """export all the optionally merged volumes as stl-files
+        and returns the list of files. This list may subsequently be iterated upon
+        to merge into a h5m-file. Expects that the geometry has been surface-mesh by gmsh
+        so we have a list of volumes to operate on.
+        We do this be greating gmsh physical groups and we may export only 1 group."""
+        stls=[]
+        for dim,vid in self.meshed_volumes:
+           if (dim!=3):
+               #appears not to be a volume - skip
+               continue
+           ents = gmsh.model.getAdjancencies(dim,vid)
+           ps = gmsh.model.setPhysicalName(2,ents[1],f'surfaces_on_volume_{vid}')
+           filename=f'volume_{vid}.stl'
+           gmsh.write(filename)
+           stls.append((vid,filename))
+           gmsh.model.removePhysicalGroups([]) # remove group again
+        return stls
+
+    def heal_stls(self,stls):
+        healed=[]
+        for stl in stls:
+            vid,fn=stls
+            mesh = trimesh.load_mesh(fn)
+            if (self.verbose):
+                print("file", fn, ": mesh is watertight", mesh.is_watertight)
+            trimesh.repair.fix_normals(
+                mesh
+            )  # reqired as gmsh stl export from brep can get the inside outside mixed up
+            new_filename = fn[:-4] + "_with_corrected_face_normals.stl"
+            mesh.export(new_filename)
+            healed.append((vid,new_filename))
+        return healed
