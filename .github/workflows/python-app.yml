@@ -31,11 +31,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: install and build moab
+    - name: checkout moab source 
       uses: actions/checkout@v3
       with:
         repository: https://bitbucket.org/fathomteam/moab.git
         ref: 5.3.0
+    - name: build and install moab
       run: |
         cd moab
         mkdir build
