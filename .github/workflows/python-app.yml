@@ -31,7 +31,17 @@ jobs:
         python -m pip install --upgrade pip
         pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        
+    - name: install and build moab
+      uses: actions/checkout@v3
+      with:
+        repository: https://bitbucket.org/fathomteam/moab.git
+        ref: 5.3.0
+      run: |
+        cd moab
+        mkdir build
+        cmake -DENABLE_HDF5=ON -DENABLE_PYMOAB=ON -DBUILD_SHARED_LIBS=ON -DENABLE_FORTRAN=OFF -DCMAKE_INSTALL_PREFIX=$HOME/moab
+        make
+        make install
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -39,5 +49,7 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
+      env:
+        PYTHON_PATH=$HOME/moab
       run: |
         pytest
