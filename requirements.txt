@@ -4,3 +4,7 @@ ocp-vtk
 meshio-rewrite
 trimesh
 typing
+typish
+nptyping
+numpy
+pytest
