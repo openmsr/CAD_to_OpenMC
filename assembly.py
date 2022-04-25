@@ -1,5 +1,5 @@
 import gmsh
-import cadquery as cq
+import cadquery2 as cq
 import numpy as np
 import OCP
 from collections.abc import Iterable
