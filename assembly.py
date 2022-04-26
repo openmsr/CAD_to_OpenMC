@@ -278,7 +278,7 @@ class Assembly:
             moab_core = self.add_stl_to_moab_core(moab_core,sid,vid,mtag, moab_tags, sfn)
             vid += 1
             sid += 1
-        
+
         all_sets = moab_core.get_entities_by_handle(0)
 
         file_set = moab_core.create_meshset()
@@ -440,14 +440,14 @@ class Assembly:
         self.merged = cq.Compound(bldr.Shape())
 
         return merged
-    
+
     def export_h5m(self, merge_surfaces=False):
         pass
 
     def import_from_step(self,filename="in.step"):
         """Import geometry to the shape list through ocp/occt from the
            given filename"""
-         
+
     def gmsh_init(self,brep_fn="gemetry.brep",samples=20, min_mesh_size=0.1, max_mesh_size=10,volumes_with_tags=None, mesh_algorithm=1, threads=None):
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal",1)
