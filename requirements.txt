@@ -8,3 +8,4 @@ typish
 nptyping
 numpy
 pytest
+cython
