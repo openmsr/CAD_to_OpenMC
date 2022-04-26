@@ -202,7 +202,7 @@ class Assembly:
 
         return filename
 
-    def brep_to_h5m(brep_filename, volumes_with_tags=None, h5m_filename="dagmc.h5m", min_mesh_size=0.1, max_mesh_size=1.0,delete_intermediate_stl_files=False):
+    def brep_to_h5m(self,brep_filename, volumes_with_tags=None, h5m_filename="dagmc.h5m", min_mesh_size=0.1, max_mesh_size=1.0,delete_intermediate_stl_files=False):
         """calls the lower level gmsh functions in order"""
         self.gmsh_init(brep_filename, samples=20,min_mesh_size=min_mesh_size, max_mesh_size=max_mesh_size,mesh_algorithm=1)
         self.gmsh_generate_mesh()
@@ -210,7 +210,7 @@ class Assembly:
         stl_list=self.heal_stls(stl_list)
         self.stl2h5m(stl_list,h5m_file=h5m_filename)
 
-    def tag_geometry_with_mats(volumes,implicit_complement_material_tag,graveyard, default_tag='vacuum'):
+    def tag_geometry_with_mats(self,volumes,implicit_complement_material_tag,graveyard, default_tag='vacuum'):
         """Tag all volumes with materials coming from the step files
         """
         volume_mat_list = {}
@@ -422,7 +422,7 @@ class Assembly:
         """Import geometry to the shape list through ocp/occt from the
            given filename"""
          
-    def gmsh_init(brep_fn="gemetry.brep",samples=20, min_mesh_size=0.1, max_mesh_size=10,volumes_with_tags=None, mesh_algorithm=1):
+    def gmsh_init(self,brep_fn="gemetry.brep",samples=20, min_mesh_size=0.1, max_mesh_size=10,volumes_with_tags=None, mesh_algorithm=1, threads=None):
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal",1)
         gmsh.model.add(f"model from Assembly.py {self.brep_fn}")
@@ -459,7 +459,7 @@ class Assembly:
         """set the mesh size field close (and outside) to the graveyard to something coarse(r)"""
         gmsh.model.mesh.field.add("Box",field)
         gmsh.model.mesh.field.setNumber(field,"VIn",10)
-        gmsh.model.mesh.field.setNumber(field,"VOut",self.graveyard_size/divisions)
+        gmsh.model.mesh.field.setNumber(field,"VOut",self.graveyard_size/division)
 
         gmsh.model.mesh.field.setNumber(field,"XMin",-(self.graveyard_size*0.99)/2.0)
         gmsh.model.mesh.field.setNumber(field,"XMax", (self.graveyard_size*0.99)/2.0)
