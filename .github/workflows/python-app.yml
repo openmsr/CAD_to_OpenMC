@@ -33,8 +33,8 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: build and install moab
       run: |
-        sudo apt-get -y install gcc cmake make build-essential libeigen3-dev libnetcdf-dev libnetcdf15 libnetcdf-mpi-dev libnetcdf-mpi-13 python3-netcdf4 libhdf5-103 libhdf5-cpp-103 libhdf5-dev python3-setuptools cython3
-        git clone --single-branch --branch 5.3.0 --depth 1 https://bitbucket.org/fathomteam/moab.git
+        sudo apt-get -y install gcc cmake make build-essential libeigen3-dev libnetcdf-dev libnetcdf15 libnetcdf-mpi-dev libnetcdf-mpi-13 python3-netcdf4 libhdf5-103 libhdf5-cpp-103 libhdf5-dev python3-setuptools
+        git clone --single-branch --branch 5.3.1 --depth 1 https://bitbucket.org/fathomteam/moab.git
         cd moab
         mkdir build
         cmake -DENABLE_HDF5=ON -DENABLE_PYMOAB=ON -DBUILD_SHARED_LIBS=ON -DENABLE_FORTRAN=OFF -DCMAKE_INSTALL_PREFIX=$HOME/moab
