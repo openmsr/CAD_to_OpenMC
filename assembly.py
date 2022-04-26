@@ -29,7 +29,7 @@ class Assembly:
         pass
 
     def import_stp_file(self,filename):
-        self.solid,self.wire = load_stp_file(filename,1.0)
+        self.solid,self.wire = self.load_stp_file(filename,1.0)
 
     def load_stp_file(self,filename: str, scale_factor: float = 1.0):
         """Loads a stp file and makes the 3D solid and wires available for use.
@@ -430,7 +430,7 @@ class Assembly:
         #do this by means of properties instead
         if(threads is not None):
            gmsh.option.setNumber("General.NumThreads",threads)
-        self.volumes = gmsh.model.occ.importShapes(brep_filename)
+        self.volumes = gmsh.model.occ.importShapes(brep_fn)
         gmsh.model.occ.synchronize()
         if volumes_with_tags is None:
             self.volumes_with_tags
