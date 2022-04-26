@@ -28,10 +28,10 @@ class Assembly:
     def __init__():
         pass
 
-    def import_stp_file(filename):
+    def import_stp_file(self,filename):
         self.solid,self.wire = load_stp_file(filename,1.0)
 
-    def load_stp_file(filename: str, scale_factor: float = 1.0):
+    def load_stp_file(self,filename: str, scale_factor: float = 1.0):
         """Loads a stp file and makes the 3D solid and wires available for use.
 
         Args:
