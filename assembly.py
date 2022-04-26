@@ -19,17 +19,42 @@ from pymoab import core, types
 def _replace(filename, string1, string2):
     pass
 
+class Entity:
+    """This class is similar to the paramak shape class. At some point it should be able to import also Shapes.
+       For now it can just get a step a"""
+    def __init__(self,solid=None,idx=0):
+        if solid is not None:
+            self.solid=solid
+            self.idx=idx
+    def export_stl(filename:str = None):
+        if filename is None:
+            filename=f'{self.idx}.stl'
+
+    
+
 class Assembly:
     """This class encapsulates a set of geometries defined by step-files
     addtionally it provides access to meshing-utilities, and export to a DAGMC-enabled
     h5m scene, which may be used for neutronics.
     This class is based on (and borrows heavily from) the paramak package. 
     """
-    def __init__():
-        pass
+    def __init__(self, stp_files=[], stl_files=[]):
+        self.stp_files=stp_files
+        self.stl_files=stl_files
+        self.entities=[]
 
-    def import_stp_file(self,filename):
-        self.solid,self.wire = self.load_stp_file(filename,1.0)
+    def import_stp_files(self):
+        #need top be able to separate objects when there are multiple in one step-file
+        for s in self.stp_files:
+            solid = self.load_stp_file(s,1.0)
+            #try if solid is iterable
+            try:
+                for s in solid:    
+                    e = Entity(solid=s)
+                    self.entities.append(e)
+            except:
+                e = Entity(solid=solid)
+                self.entities.append(e)
 
     def load_stp_file(self,filename: str, scale_factor: float = 1.0):
         """Loads a stp file and makes the 3D solid and wires available for use.
@@ -44,15 +69,18 @@ class Assembly:
         Returns:
             CadQuery.solid, CadQuery.Wires: solid and wires belonging to the object
         """
+        #import _all_ the shapes in the file - i.e. may return a list
+        part = cq.importers.importStep(str(filename)).vals()
+        try:
+            scaled_part = [p.scale(scale_factor) for p in part]
+        except:
+            scaled_part=part.scale(scale_factor)
 
-        part = cq.importers.importStep(str(filename)).val()
-
-        scaled_part = part.scale(scale_factor)
+        #is this a compound object
         solid = scaled_part
-        wire = scaled_part.Wires()
-        return solid, wire
+        return solid
 
-    #export reactor to stp
+    #export entire assembly to stp
     def export_stp(
         self,
         filename: Union[List[str], str] = None,
@@ -82,7 +110,7 @@ class Assembly:
 
             # exports a single file for the whole model
             assembly = cq.Assembly(name="reactor")
-            for entry in self.shapes_and_components:
+            for entry in self.entities:
                 if entry.color is None:
                     assembly.add(entry.solid)
                 else:
@@ -105,8 +133,8 @@ class Assembly:
                 raise ValueError(msg)
             filename = [f"{name}.stp" for name in self.name]
 
-        # exports the reactor solid as a separate stp files
-        if len(filename) != len(self.shapes_and_components):
+        # exports the assembly solid as a separate stp files
+        if len(filename) != len(self.entities):
             msg = (
                 f"The Assembly contains {len(self.shapes_and_components)} "
                 f"Shapes and {len(filename)} filenames have be provided. "
@@ -114,7 +142,7 @@ class Assembly:
             )
             raise ValueError(msg)
 
-        for stp_filename, entry in zip(filename, self.shapes_and_components):
+        for stp_filename, entry in zip(filename, self.entities):
 
             entry.export_stp(
                 filename=stp_filename,
@@ -133,6 +161,7 @@ class Assembly:
         filename: Union[List[str], str] = None,
         tolerance: float = 0.001,
         angular_tolerance: float = 0.1,
+        idx: int =0
     ) -> Union[str, List[str]]:
         """Writes stl files (CAD geometry) for each Shape object in the reactor
 
@@ -165,7 +194,7 @@ class Assembly:
 
             # add an include_graveyard that add graveyard if requested
             cq.exporters.export(
-                self.solid,
+                self.entities[idx].solid,
                 str(filename),
                 exportType="STL",
                 tolerance=tolerance,
@@ -174,26 +203,19 @@ class Assembly:
             return str(filename)
 
         if filename is None:
-            if None in self.name:
-                msg = (
-                    "Shape.name is None and therefore it can't be used "
-                    "to name a stl file. Try setting Shape.name for all "
-                    "shapes in the reactor"
-                )
-                raise ValueError()
-            filename = [f"{name}.stl" for name in self.name]
+            #construct stl_file names from stp_files
+            self.stl_files=[str(pl.Path(f).with_suffix('.stl')) for f in self.stp_files]
 
         # exports the reactor solid as a separate stl files
-        if len(filename) != len(self.shapes_and_components):
+        if len(filename) != len(self.entities):
             msg = (
                 f"The Reactor contains {len(self.shapes_and_components)} "
                 f"Shapes and {len(filename)} filenames have be provided. "
                 f"The names of the shapes are {self.name}"
             )
             raise ValueError(msg)
-
+        #needs to be fixed
         for stl_filename, entry in zip(filename, self.shapes_and_components):
-
             entry.export_stl(
                 filename=stl_filename,
                 tolerance=tolerance,
@@ -245,7 +267,7 @@ class Assembly:
     #this bit is picked from stl_to_h5m
 
     def stl2h5m(self,stls,h5m_file='dagmc.h5m') -> str:
-        """function that export the lits of stls that we have presumably generated somehow
+        """function that export the list of stls that we have presumably generated somehow
         and merges them into a DAGMC h5m-file by means of the MOAB-framework.
         """
         h5m_p=pl.Path(h5m_file)
@@ -365,7 +387,8 @@ class Assembly:
 ##########from paramak
 
     def export_brep(self, filename: str, merge: bool = True):
-        """Exports a brep file for the Reactor.solid.
+        """Exports a brep file for the Assembly
+        This requires serializing the assembly 
 
         Args:
             filename: the filename of exported the brep file.
@@ -398,12 +421,15 @@ class Assembly:
         bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
         #loop trough all objects in geometry and split and merge them accordingly
         #shapes should be a compund cq object or a list thereof
-        for shape in self.shapes:
+        for shape in self.entities:
           # checks if solid is a compound as .val() is not needed for compunds
           if isinstance(shape.solid, cq.occ_impl.shapes.Compound):
             bldr.AddArgument(shape.solid.wrapped)
           else:
-            bldr.AddArgument(shape.solid.val().wrapped)
+              try:
+                  bldr.AddArgument(shape.solid.val().wrapped)
+              except:
+                  bldr.AddArgument(shape.solid.wrapped)
 
         bldr.SetNonDestructive(True)
 
@@ -411,7 +437,7 @@ class Assembly:
 
         bldr.Images()
 
-        merged = cq.Compound(bldr.Shape())
+        self.merged = cq.Compound(bldr.Shape())
 
         return merged
     
