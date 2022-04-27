@@ -20,17 +20,21 @@ def _replace(filename, string1, string2):
     pass
 
 class Entity:
-    """This class is similar to the paramak shape class. At some point it should be able to import also Shapes.
-       For now it can just get a step a"""
-    def __init__(self,solid=None,idx=0):
+    """This class is a shallow container simply to allow iterating of the geometry model
+    where each object is merely a solid and a material tag.
+    This is to emulate some properties of the paramak shape class, but avoid depending on that.
+    At some point it should be able to import also Shapes.
+    For now it can just get a solid as input
+    """
+    def __init__(self,solid=None,idx=0, tag: str ='vacuum'):
         if solid is not None:
             self.solid=solid
             self.idx=idx
-    def export_stl(filename:str = None):
+            self.tag=tag
+
+    def export_stl(self,filename:str = None):
         if filename is None:
             filename=f'{self.idx}.stl'
-
-    
 
 class Assembly:
     """This class encapsulates a set of geometries defined by step-files
@@ -38,23 +42,68 @@ class Assembly:
     h5m scene, which may be used for neutronics.
     This class is based on (and borrows heavily from) the paramak package. 
     """
-    def __init__(self, stp_files=[], stl_files=[]):
+    def __init__(self, stp_files=[], stl_files=[], verbose:int = 1, default_tag='vacuum'):
         self.stp_files=stp_files
         self.stl_files=stl_files
         self.entities=[]
+        self.verbose=verbose
 
-    def import_stp_files(self):
+        self.default_tag=default_tag
+
+    def import_stp_files(self,tags:dict=None,default_tag:str='vacuum'):
         #need top be able to separate objects when there are multiple in one step-file
-        for s in self.stp_files:
-            solid = self.load_stp_file(s,1.0)
+        for stp in self.stp_files:
+            solid = self.load_stp_file(stp,1.0)
+
+            ents=[]
             #try if solid is iterable
             try:
                 for s in solid:    
                     e = Entity(solid=s)
-                    self.entities.append(e)
+                    ents.append(e)
             except:
                 e = Entity(solid=solid)
-                self.entities.append(e)
+                ents.append(e)
+
+            if(tags is None):
+                #also import using gmsh to extract the material tags from the labels in the step files
+                gmsh.initialize()
+                vols=gmsh.model.occ.importShapes(stp)
+                gmsh.model.occ.synchronize()
+                for (e,v) in zip(ents,vols):
+                    vid=v[1]
+                    try:
+                        s=gmsh.model.getEntityName(3,vid)
+                        part=s.split('/')[-1]
+                        g=re.match("^([^\s_@]+)",part)
+                        tag=g[0]
+                    except:
+                        tag=default_tag
+                    e.tag=tag
+                gmsh.finalize()
+            elif (tags):
+                #tag objects according to the tags dictionary.
+                gmsh.initialize()
+                vols=gmsh.model.occ.importShapes(stp)
+                gmsh.model.occ.synchronize()
+                for (e,v) in zip(ents,vols):
+                    vid=v[1]
+                    try:
+                        s=gmsh.model.getEntityName(3,vid)
+                        tag=None
+                        for k in tags.keys():
+                            g=re.match(k,s)
+                            if (g):
+                                tag=tags[k]
+                                break
+                        if tag is None:
+                            tag=self.default_tag
+                    except:
+                        tag=default_tag
+                    e.tag=tag
+                gmsh.finalize()
+
+            self.entities.extend(ents)
 
     def load_stp_file(self,filename: str, scale_factor: float = 1.0):
         """Loads a stp file and makes the 3D solid and wires available for use.
@@ -76,8 +125,15 @@ class Assembly:
         except:
             scaled_part=part.scale(scale_factor)
 
-        #is this a compound object
-        solid = scaled_part
+        solid=[]
+        #serialize
+        #Solids returns a list even if the part is not a Compund object
+        try:
+            for p in scaled_part:
+                solid.extend(p.Solids())
+        except:
+            solid.extend(scaled_part.Solids())
+
         return solid
 
     #export entire assembly to stp
@@ -224,13 +280,18 @@ class Assembly:
 
         return filename
 
-    def brep_to_h5m(self,brep_filename, volumes_with_tags=None, h5m_filename="dagmc.h5m", min_mesh_size=0.1, max_mesh_size=1.0,delete_intermediate_stl_files=False):
+    #See issue 4 - we should clean up the parameter-interface to gmsh (and friends)
+    def brep_to_h5m(self,brep_filename, volumes_with_tags=None, h5m_filename="dagmc.h5m", samples=100, min_mesh_size=0.1, max_mesh_size=1.0,delete_intermediate_stl_files=False):
         """calls the lower level gmsh functions in order"""
-        self.gmsh_init(brep_filename, samples=20,min_mesh_size=min_mesh_size, max_mesh_size=max_mesh_size,mesh_algorithm=1)
+        self.gmsh_init(brep_filename, samples=samples,min_mesh_size=min_mesh_size, max_mesh_size=max_mesh_size,mesh_algorithm=1)
         self.gmsh_generate_mesh()
         stl_list=self.gmsh_export_stls()
         stl_list=self.heal_stls(stl_list)
-        self.stl2h5m(stl_list,h5m_file=h5m_filename)
+        #add the material tags to the stl_list
+        stl_tagged=[]
+        for (stl,e) in zip(stl_list,self.entities):
+            stl_tagged.append((stl[0],stl[1],e.tag))
+        self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
 
     def tag_geometry_with_mats(self,volumes,implicit_complement_material_tag,graveyard, default_tag='vacuum'):
         """Tag all volumes with materials coming from the step files
@@ -270,11 +331,16 @@ class Assembly:
         """function that export the list of stls that we have presumably generated somehow
         and merges them into a DAGMC h5m-file by means of the MOAB-framework.
         """
+        
+        if(self.verbose>0):
+            print("INFO: reassembling stl-files into h5m structure")
         h5m_p=pl.Path(h5m_file)
         moab_core,moab_tags = self.init_moab()
 
         sid,vid = (1,1)
-        for sfn,mtag in stls:
+        for sid,sfn,mtag in stls:
+            if (self.verbose>1):
+                print(f"INFO: add stl-file \"{sfn}\" with tag \"{mtag}\" to MOAB structure")
             moab_core = self.add_stl_to_moab_core(moab_core,sid,vid,mtag, moab_tags, sfn)
             vid += 1
             sid += 1
@@ -284,12 +350,13 @@ class Assembly:
         file_set = moab_core.create_meshset()
 
         moab_core.add_entities(file_set, all_sets)
-
+        if(self.verbose>0):
+            print(f"INFO: writing geometry to h5m \"{h5m_file}.") 
         moab_core.write_file(str(h5m_p))
-
+        
         return str(h5m_p)
 
-    def add_stl_to_moab_core( moab_core: core.Core, surface_id: int, volume_id: int, material_name: str, tags: dict, stl_filename: str,
+    def add_stl_to_moab_core(self, moab_core: core.Core, surface_id: int, volume_id: int, material_name: str, tags: dict, stl_filename: str,
 ) -> core.Core:
         """
         Appends a set of surfaces (comprising a volume) from an stl-file to a moab.Core object and returns the updated object
@@ -352,7 +419,7 @@ class Assembly:
 
         return moab_core
 
-    def init_moab():
+    def init_moab(self):
         """Creates a MOAB Core instance which can be built up by adding sets of
         triangles to the instance
         Returns:
@@ -407,13 +474,13 @@ class Assembly:
         path_filename.parents[0].mkdir(parents=True, exist_ok=True)
 
         if not merge:
-            self.solid.exportBrep(str(path_filename))
+            rval=self.solid.exportBrep(str(path_filename))
         else:
             #the merge surface returns a cq-compound object.
             merged = self.merge_surfaces()
-            merged.exportBrep(str(path_filename))
+            rval=merged.exportBrep(str(path_filename))
 
-        return str(path_filename)
+        return rval
 
     def merge_surfaces(self):
         """Run through the assembly and merge concurrent surfaces.
@@ -439,27 +506,29 @@ class Assembly:
 
         self.merged = cq.Compound(bldr.Shape())
 
-        return merged
-
+        return self.merged
+    
     def export_h5m(self, merge_surfaces=False):
         pass
 
     def import_from_step(self,filename="in.step"):
         """Import geometry to the shape list through ocp/occt from the
            given filename"""
-
-    def gmsh_init(self,brep_fn="gemetry.brep",samples=20, min_mesh_size=0.1, max_mesh_size=10,volumes_with_tags=None, mesh_algorithm=1, threads=None):
+         
+    def gmsh_init(self,brep_fn="gemetry.brep",samples=20, min_mesh_size=0.1, max_mesh_size=10, mesh_algorithm=1, threads=None):
         gmsh.initialize()
-        gmsh.option.setNumber("General.Terminal",1)
-        gmsh.model.add(f"model from Assembly.py {self.brep_fn}")
+        if (self.verbose>1):
+            gmsh.option.setNumber("General.Terminal",1)
+        else:
+            gmsh.option.setNumber("General.Terminal",0)
+
+        gmsh.model.add(f"model from Assembly.py {brep_fn}")
         gmsh.option.setString("Geometry.OCCTargetUnit","M")
         #do this by means of properties instead
         if(threads is not None):
            gmsh.option.setNumber("General.NumThreads",threads)
         self.volumes = gmsh.model.occ.importShapes(brep_fn)
         gmsh.model.occ.synchronize()
-        if volumes_with_tags is None:
-            self.volumes_with_tags
 
         gmsh.option.setNumber("Mesh.Algorithm", mesh_algorithm)
         gmsh.option.setNumber("Mesh.MeshSizeMin", min_mesh_size)
@@ -468,6 +537,10 @@ class Assembly:
         gmsh.option.setNumber("Mesh.MaxRetries",3)
         gmsh.option.setNumber("Mesh.MeshSizeFromPoints",0)
         gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
+        gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", samples)
+
+    def gmsh_deinit(self):
+        gmsh.finalize()
 
     def gmsh_set_graveyard(self,graveyard_side=100, graveyard_radius=None, division=2):
         """Method sets up a graveyard box and a rough mesh_field there"""
@@ -496,6 +569,8 @@ class Assembly:
         return field
 
     def gmsh_generate_mesh(self):
+        if(self.verbose>0):
+            print("INFO: Meshing surfaces")
         gmsh.model.mesh.generate(2)
 
     def gmsh_export_stls(self):
@@ -505,12 +580,13 @@ class Assembly:
         so we have a list of volumes to operate on.
         We do this be greating gmsh physical groups and we may export only 1 group."""
         stls=[]
-        for dim,vid in self.meshed_volumes:
+        for dim,vid in self.volumes:
            if (dim!=3):
                #appears not to be a volume - skip
                continue
-           ents = gmsh.model.getAdjancencies(dim,vid)
-           ps = gmsh.model.setPhysicalName(2,ents[1],f'surfaces_on_volume_{vid}')
+           ents = gmsh.model.getAdjacencies(dim,vid)
+           pg = gmsh.model.addPhysicalGroup(2,ents[1])
+           ps = gmsh.model.setPhysicalName(2,pg,f'surfaces_on_volume_{vid}')
            filename=f'volume_{vid}.stl'
            gmsh.write(filename)
            stls.append((vid,filename))
@@ -518,12 +594,15 @@ class Assembly:
         return stls
 
     def heal_stls(self,stls):
+        if(self.verbose>0):
+            print("INFO: checking surfaces and reparing normals")
+
         healed=[]
         for stl in stls:
-            vid,fn=stls
+            vid,fn=stl
             mesh = trimesh.load_mesh(fn)
-            if (self.verbose):
-                print("file", fn, ": mesh is watertight", mesh.is_watertight)
+            if (self.verbose>1):
+                print("INFO: stl-file", fn, ": mesh is watertight", mesh.is_watertight)
             trimesh.repair.fix_normals(
                 mesh
             )  # reqired as gmsh stl export from brep can get the inside outside mixed up

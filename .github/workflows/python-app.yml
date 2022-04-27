@@ -33,7 +33,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: build and install moab
       run: |
-        sudo apt-get -y install gcc cmake make build-essential libeigen3-dev libnetcdf-dev libnetcdf15 libnetcdf-mpi-dev libnetcdf-mpi-13 python3-netcdf4 libhdf5-103 libhdf5-cpp-103 libhdf5-dev python3-setuptools
+        sudo apt-get -y install gcc cmake make build-essential libeigen3-dev libnetcdf-dev libnetcdf15 libnetcdf-mpi-dev libnetcdf-mpi-13 python3-netcdf4 libhdf5-103 libhdf5-cpp-103 libhdf5-dev python3-setuptools libglu1-mesa
         git clone --single-branch --branch 5.3.1 --depth 1 https://bitbucket.org/fathomteam/moab.git
         cd moab
         mkdir build
@@ -43,11 +43,12 @@ jobs:
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=moab
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=moab
     - name: Test with pytest
       env:
-        PYTHON_PATH: "$HOME/moab"
+        PYTHONPATH: "$HOME/moab/lib"
       run: |
-        pytest
+        ls $HOME/moab/lib
+        pytest -o norecursedirs=moab
