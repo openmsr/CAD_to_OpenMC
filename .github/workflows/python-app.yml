@@ -50,4 +50,4 @@ jobs:
       env:
         PYTHONPATH: "$HOME/moab"
       run: |
-        pytest
+        pytest -o norecuresdirs=moab
