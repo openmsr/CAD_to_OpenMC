@@ -125,8 +125,15 @@ class Assembly:
         except:
             scaled_part=part.scale(scale_factor)
 
-        #is this a compound object
-        solid = scaled_part
+        solid=[]
+        #serialize
+        #Solids returns a list even if the part is not a Compund object
+        try:
+            for p in scaled_part:
+                solid.extend(p.Solids())
+        except:
+            solid.extend(scaled_part.Solids())
+
         return solid
 
     #export entire assembly to stp
