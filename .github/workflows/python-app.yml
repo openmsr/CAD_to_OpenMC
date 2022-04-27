@@ -48,7 +48,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=moab
     - name: Test with pytest
       env:
-        PYTHONPATH: "$HOME/moab/lib/python3.9"
+        PYTHONPATH: "$HOME/moab/lib/python${{matrix.pyv}}"
       run: |
-        ls $HOME/moab/lib/python3.9
+        ls $HOME/moab/lib/python${{matrix.pyv}}
         pytest -o norecursedirs=moab
