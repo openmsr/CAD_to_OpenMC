@@ -75,9 +75,31 @@ class Assembly:
                         g=re.match("^([^\s_@]+)",part)
                         tag=g[0]
                     except:
-                        volume_mat_list[tagid]=default_tag
+                        tag=default_tag
                     e.tag=tag
                 gmsh.finalize()
+            else:
+                #tag objects according to the tags dictionary.
+                gmsh.initialize()
+                vols=gmsh.model.occ.importShapes(stp)
+                gmsh.model.occ.synchronize()
+                for (e,v) in zip(ents,vols):
+                    vid=v[1]
+                    try:
+                        s=gmsh.model.getEntityName(3,vid)
+                        tag=None
+                        for k in tags.keys():
+                            g=re.match(k,s)
+                            if (g):
+                                tag=tags[k]
+                                break
+                        if tag is None
+                            tag=default_tag
+                    except:
+                        tag=default_tag
+                    e.tag=tag
+                gmsh.finalize()
+
             self.entities.extend(ents)
 
     def load_stp_file(self,filename: str, scale_factor: float = 1.0):
