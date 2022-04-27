@@ -48,8 +48,8 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=moab
     - name: Test with pytest
       env:
-        PYTHONPATH: "moab/build"
+        PYTHONPATH: "$HOME/moab/build"
       run: |
         pwd
-        ls moab/build
+        ls $HOME/moab/build
         pytest -o norecursedirs=moab
