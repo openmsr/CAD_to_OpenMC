@@ -9,3 +9,4 @@ nptyping
 numpy
 pytest
 cython
+networkx
