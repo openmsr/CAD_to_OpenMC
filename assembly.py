@@ -42,16 +42,19 @@ class Assembly:
     h5m scene, which may be used for neutronics.
     This class is based on (and borrows heavily from) the paramak package. 
     """
-    def __init__(self, stp_files=[], stl_files=[], verbose:int = 1):
+    def __init__(self, stp_files=[], stl_files=[], verbose:int = 1, default_tag='vacuum'):
         self.stp_files=stp_files
         self.stl_files=stl_files
         self.entities=[]
         self.verbose=verbose
 
-    def import_stp_files(self,tags:dict=None):
+        self.default_tag=default_tag
+
+    def import_stp_files(self,tags:dict=None,default_tag:str='vacuum'):
         #need top be able to separate objects when there are multiple in one step-file
         for stp in self.stp_files:
             solid = self.load_stp_file(stp,1.0)
+
             ents=[]
             #try if solid is iterable
             try:
@@ -78,7 +81,7 @@ class Assembly:
                         tag=default_tag
                     e.tag=tag
                 gmsh.finalize()
-            else:
+            elif (tags):
                 #tag objects according to the tags dictionary.
                 gmsh.initialize()
                 vols=gmsh.model.occ.importShapes(stp)
@@ -94,7 +97,7 @@ class Assembly:
                                 tag=tags[k]
                                 break
                         if tag is None:
-                            tag=default_tag
+                            tag=self.default_tag
                     except:
                         tag=default_tag
                     e.tag=tag
