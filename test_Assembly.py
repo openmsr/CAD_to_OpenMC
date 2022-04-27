@@ -2,11 +2,8 @@ import pytest
 import assembly as asmb
 import pathlib as pl
 
-def test_test():
-    assert 1==1
-
-@pytest.mark.parametrize("infile",['examples/7pins.step'])
-def test_brep_export(infile: str="in.step"):
+def test_brep_export():
+    infile='examples/7pins.step'
     file=pl.Path(infile)
     a=asmb.Assembly(verbose=2)
     a.stp_files=[infile]
