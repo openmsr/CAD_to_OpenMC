@@ -20,17 +20,21 @@ def _replace(filename, string1, string2):
     pass
 
 class Entity:
-    """This class is similar to the paramak shape class. At some point it should be able to import also Shapes.
-       For now it can just get a step a"""
-    def __init__(self,solid=None,idx=0):
+    """This class is a shallow container simply to allow iterating of the geometry model
+    where each object is merely a solid and a material tag.
+    This is to emulate some properties of the paramak shape class, but avoid depending on that.
+    At some point it should be able to import also Shapes.
+    For now it can just get a solid as input
+    """
+    def __init__(self,solid=None,idx=0, tag: str ='vacuum'):
         if solid is not None:
             self.solid=solid
             self.idx=idx
-    def export_stl(filename:str = None):
+            self.tag=tag
+
+    def export_stl(self,filename:str = None):
         if filename is None:
             filename=f'{self.idx}.stl'
-
-    
 
 class Assembly:
     """This class encapsulates a set of geometries defined by step-files
@@ -43,18 +47,37 @@ class Assembly:
         self.stl_files=stl_files
         self.entities=[]
 
-    def import_stp_files(self):
+    def import_stp_files(self,tags:dict=None):
         #need top be able to separate objects when there are multiple in one step-file
-        for s in self.stp_files:
-            solid = self.load_stp_file(s,1.0)
+        for stp in self.stp_files:
+            solid = self.load_stp_file(stp,1.0)
+            ents=[]
             #try if solid is iterable
             try:
                 for s in solid:    
                     e = Entity(solid=s)
-                    self.entities.append(e)
+                    ents.append(e)
             except:
                 e = Entity(solid=solid)
-                self.entities.append(e)
+                ents.append(e)
+
+            if(tags is None):
+                #also import using gmsh to extract the material tags from the labels in the step files
+                gmsh.initialize()
+                vols=gmsh.model.occ.importShapes(stp)
+                gmsh.model.occ.synchronize()
+                for (e,v) in zip(ents,vols):
+                    vid=v[1]
+                    try:
+                        s=gmsh.model.getEntityName(3,vid)
+                        part=s.split('/')[-1]
+                        g=re.match("^([^\s_@]+)",part)
+                        tag=g[0]
+                    except:
+                        volume_mat_list[tagid]=default_tag
+                    e.tag=tag
+                gmsh.finalize()
+            self.entities.extend(ents)
 
     def load_stp_file(self,filename: str, scale_factor: float = 1.0):
         """Loads a stp file and makes the 3D solid and wires available for use.
