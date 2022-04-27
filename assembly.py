@@ -93,7 +93,7 @@ class Assembly:
                             if (g):
                                 tag=tags[k]
                                 break
-                        if tag is None
+                        if tag is None:
                             tag=default_tag
                     except:
                         tag=default_tag
