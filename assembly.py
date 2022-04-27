@@ -248,13 +248,18 @@ class Assembly:
 
         return filename
 
-    def brep_to_h5m(self,brep_filename, volumes_with_tags=None, h5m_filename="dagmc.h5m", min_mesh_size=0.1, max_mesh_size=1.0,delete_intermediate_stl_files=False):
+    #See issue 4 - we should clean up the parameter-interface to gmsh (and friends)
+    def brep_to_h5m(self,brep_filename, volumes_with_tags=None, h5m_filename="dagmc.h5m", samples=100, min_mesh_size=0.1, max_mesh_size=1.0,delete_intermediate_stl_files=False):
         """calls the lower level gmsh functions in order"""
-        self.gmsh_init(brep_filename, samples=20,min_mesh_size=min_mesh_size, max_mesh_size=max_mesh_size,mesh_algorithm=1)
+        self.gmsh_init(brep_filename, samples=samples,min_mesh_size=min_mesh_size, max_mesh_size=max_mesh_size,mesh_algorithm=1)
         self.gmsh_generate_mesh()
         stl_list=self.gmsh_export_stls()
         stl_list=self.heal_stls(stl_list)
-        self.stl2h5m(stl_list,h5m_file=h5m_filename)
+        #add the material tags to the stl_list
+        stl_tagged=[]
+        for (stl,e) in zip(stl_list,self.entities):
+            stl_tagged.append((stl[0],stl[1],e.tag))
+        self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
 
     def tag_geometry_with_mats(self,volumes,implicit_complement_material_tag,graveyard, default_tag='vacuum'):
         """Tag all volumes with materials coming from the step files
@@ -316,10 +321,10 @@ class Assembly:
         if(self.verbose>0):
             print(f"INFO: writing geometry to h5m \"{h5m_file}.") 
         moab_core.write_file(str(h5m_p))
-
+        
         return str(h5m_p)
 
-    def add_stl_to_moab_core( moab_core: core.Core, surface_id: int, volume_id: int, material_name: str, tags: dict, stl_filename: str,
+    def add_stl_to_moab_core(self, moab_core: core.Core, surface_id: int, volume_id: int, material_name: str, tags: dict, stl_filename: str,
 ) -> core.Core:
         """
         Appends a set of surfaces (comprising a volume) from an stl-file to a moab.Core object and returns the updated object
@@ -382,7 +387,7 @@ class Assembly:
 
         return moab_core
 
-    def init_moab():
+    def init_moab(self):
         """Creates a MOAB Core instance which can be built up by adding sets of
         triangles to the instance
         Returns:
@@ -437,13 +442,13 @@ class Assembly:
         path_filename.parents[0].mkdir(parents=True, exist_ok=True)
 
         if not merge:
-            self.solid.exportBrep(str(path_filename))
+            rval=self.solid.exportBrep(str(path_filename))
         else:
             #the merge surface returns a cq-compound object.
             merged = self.merge_surfaces()
-            merged.exportBrep(str(path_filename))
+            rval=merged.exportBrep(str(path_filename))
 
-        return str(path_filename)
+        return rval
 
     def merge_surfaces(self):
         """Run through the assembly and merge concurrent surfaces.
@@ -469,7 +474,7 @@ class Assembly:
 
         self.merged = cq.Compound(bldr.Shape())
 
-        return merged
+        return self.merged
     
     def export_h5m(self, merge_surfaces=False):
         pass
@@ -478,7 +483,7 @@ class Assembly:
         """Import geometry to the shape list through ocp/occt from the
            given filename"""
          
-    def gmsh_init(self,brep_fn="gemetry.brep",samples=20, min_mesh_size=0.1, max_mesh_size=10,volumes_with_tags=None, mesh_algorithm=1, threads=None):
+    def gmsh_init(self,brep_fn="gemetry.brep",samples=20, min_mesh_size=0.1, max_mesh_size=10, mesh_algorithm=1, threads=None):
         gmsh.initialize()
         if (self.verbose>1):
             gmsh.option.setNumber("General.Terminal",1)
@@ -492,8 +497,6 @@ class Assembly:
            gmsh.option.setNumber("General.NumThreads",threads)
         self.volumes = gmsh.model.occ.importShapes(brep_fn)
         gmsh.model.occ.synchronize()
-        if volumes_with_tags is None:
-            self.volumes_with_tags
 
         gmsh.option.setNumber("Mesh.Algorithm", mesh_algorithm)
         gmsh.option.setNumber("Mesh.MeshSizeMin", min_mesh_size)
@@ -502,6 +505,10 @@ class Assembly:
         gmsh.option.setNumber("Mesh.MaxRetries",3)
         gmsh.option.setNumber("Mesh.MeshSizeFromPoints",0)
         gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
+        gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", samples)
+
+    def gmsh_deinit(self):
+        gmsh.finalize()
 
     def gmsh_set_graveyard(self,graveyard_side=100, graveyard_radius=None, division=2):
         """Method sets up a graveyard box and a rough mesh_field there"""
@@ -546,7 +553,7 @@ class Assembly:
                #appears not to be a volume - skip
                continue
            ents = gmsh.model.getAdjacencies(dim,vid)
-           pg = gmsh.model.addPhysicalGroup(2,ents)
+           pg = gmsh.model.addPhysicalGroup(2,ents[1])
            ps = gmsh.model.setPhysicalName(2,pg,f'surfaces_on_volume_{vid}')
            filename=f'volume_{vid}.stl'
            gmsh.write(filename)
@@ -560,7 +567,7 @@ class Assembly:
 
         healed=[]
         for stl in stls:
-            vid,fn=stls
+            vid,fn=stl
             mesh = trimesh.load_mesh(fn)
             if (self.verbose>1):
                 print("INFO: stl-file", fn, ": mesh is watertight", mesh.is_watertight)
