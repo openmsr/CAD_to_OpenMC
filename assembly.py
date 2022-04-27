@@ -474,7 +474,7 @@ class Assembly:
     def gmsh_init(self,brep_fn="gemetry.brep",samples=20, min_mesh_size=0.1, max_mesh_size=10,volumes_with_tags=None, mesh_algorithm=1, threads=None):
         gmsh.initialize()
         gmsh.option.setNumber("General.Terminal",1)
-        gmsh.model.add(f"model from Assembly.py {self.brep_fn}")
+        gmsh.model.add(f"model from Assembly.py {brep_fn}")
         gmsh.option.setString("Geometry.OCCTargetUnit","M")
         #do this by means of properties instead
         if(threads is not None):
@@ -528,12 +528,13 @@ class Assembly:
         so we have a list of volumes to operate on.
         We do this be greating gmsh physical groups and we may export only 1 group."""
         stls=[]
-        for dim,vid in self.meshed_volumes:
+        for dim,vid in self.volumes:
            if (dim!=3):
                #appears not to be a volume - skip
                continue
-           ents = gmsh.model.getAdjancencies(dim,vid)
-           ps = gmsh.model.setPhysicalName(2,ents[1],f'surfaces_on_volume_{vid}')
+           ents = gmsh.model.getAdjacencies(dim,vid)
+           pg = gmsh.model.addPhysicalGroup(2,ents)
+           ps = gmsh.model.setPhysicalName(2,pg,f'surfaces_on_volume_{vid}')
            filename=f'volume_{vid}.stl'
            gmsh.write(filename)
            stls.append((vid,filename))
