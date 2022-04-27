@@ -42,10 +42,11 @@ class Assembly:
     h5m scene, which may be used for neutronics.
     This class is based on (and borrows heavily from) the paramak package. 
     """
-    def __init__(self, stp_files=[], stl_files=[]):
+    def __init__(self, stp_files=[], stl_files=[], verbose:int = 1):
         self.stp_files=stp_files
         self.stl_files=stl_files
         self.entities=[]
+        self.verbose=verbose
 
     def import_stp_files(self,tags:dict=None):
         #need top be able to separate objects when there are multiple in one step-file
@@ -293,11 +294,16 @@ class Assembly:
         """function that export the list of stls that we have presumably generated somehow
         and merges them into a DAGMC h5m-file by means of the MOAB-framework.
         """
+        
+        if(self.verbose>0):
+            print("INFO: reassembling stl-files into h5m structure")
         h5m_p=pl.Path(h5m_file)
         moab_core,moab_tags = self.init_moab()
 
         sid,vid = (1,1)
-        for sfn,mtag in stls:
+        for sid,sfn,mtag in stls:
+            if (self.verbose>1):
+                print(f"INFO: add stl-file \"{sfn}\" with tag \"{mtag}\" to MOAB structure")
             moab_core = self.add_stl_to_moab_core(moab_core,sid,vid,mtag, moab_tags, sfn)
             vid += 1
             sid += 1
@@ -307,7 +313,8 @@ class Assembly:
         file_set = moab_core.create_meshset()
 
         moab_core.add_entities(file_set, all_sets)
-
+        if(self.verbose>0):
+            print(f"INFO: writing geometry to h5m \"{h5m_file}.") 
         moab_core.write_file(str(h5m_p))
 
         return str(h5m_p)
@@ -473,7 +480,11 @@ class Assembly:
          
     def gmsh_init(self,brep_fn="gemetry.brep",samples=20, min_mesh_size=0.1, max_mesh_size=10,volumes_with_tags=None, mesh_algorithm=1, threads=None):
         gmsh.initialize()
-        gmsh.option.setNumber("General.Terminal",1)
+        if (self.verbose>1):
+            gmsh.option.setNumber("General.Terminal",1)
+        else:
+            gmsh.option.setNumber("General.Terminal",0)
+
         gmsh.model.add(f"model from Assembly.py {brep_fn}")
         gmsh.option.setString("Geometry.OCCTargetUnit","M")
         #do this by means of properties instead
@@ -519,6 +530,8 @@ class Assembly:
         return field
 
     def gmsh_generate_mesh(self):
+        if(self.verbose>0):
+            print("INFO: Meshing surfaces")
         gmsh.model.mesh.generate(2)
 
     def gmsh_export_stls(self):
@@ -542,12 +555,15 @@ class Assembly:
         return stls
 
     def heal_stls(self,stls):
+        if(self.verbose>0):
+            print("INFO: checking surfaces and reparing normals")
+
         healed=[]
         for stl in stls:
             vid,fn=stls
             mesh = trimesh.load_mesh(fn)
-            if (self.verbose):
-                print("file", fn, ": mesh is watertight", mesh.is_watertight)
+            if (self.verbose>1):
+                print("INFO: stl-file", fn, ": mesh is watertight", mesh.is_watertight)
             trimesh.repair.fix_normals(
                 mesh
             )  # reqired as gmsh stl export from brep can get the inside outside mixed up
