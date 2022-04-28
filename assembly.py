@@ -6,7 +6,6 @@ from collections.abc import Iterable
 import pathlib as pl
 from typing import List, Optional, Tuple, Union
 
-#from paramak import Shapes
 import meshio
 import trimesh
 
@@ -221,7 +220,7 @@ class Assembly:
 
         return filename
 
-    def cq_export_stls(self,angular_tolerance,tolerance):
+    def cq_export_stls(self,angular_tolerance=0.1,tolerance=0.001):
         stls=[]
         #If not merged we should operate directly on the entities objects
         #For now this is a hack relying on the fact that merged is a compund object.
@@ -236,6 +235,7 @@ class Assembly:
             if(verbose>1):
                 print(f"INFO: export to file {filename}")
             stls.append((j,filename))
+        return stls
 
     def export_stl(
         self,
@@ -319,7 +319,7 @@ class Assembly:
                 stl_tagged.append((stl[0],stl[1],e.tag))
             self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
         elif(backend=="stl"):
-            stl_list=self.cq_export_stls()
+            stl_list=self.cq_export_stls(tolerance=0.1,angular_tolerance=0.2)
             stl_list=self.heal_stls(stl_list)
             stl_tagged=[]
             for (stl,e) in zip(stl_list,self.entities):
