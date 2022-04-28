@@ -78,7 +78,7 @@ class Assembly:
                         g=re.match("^([^\s_@]+)",part)
                         tag=g[0]
                         if(self.verbose>1):
-                            print("INFO: Tagging volume #{vid} label:{s} with {tag}")
+                            print(f"INFO: Tagging volume #{vid} label:{s} with material {tag}")
                     except:
                         tag=default_tag
                     e.tag=tag
@@ -102,7 +102,7 @@ class Assembly:
                         if tag is None:
                             tag=self.default_tag
                         if(self.verbose>1):
-                            print("INFO: Tagging volume #{vid} label:{s} with {tag}")
+                            print(f"INFO: Tagging volume #{vid} label:{s} with material {tag}")
                     except:
                         tag=default_tag
                     e.tag=tag
@@ -110,7 +110,7 @@ class Assembly:
                 gmsh.finalize()
 
             self.entities.extend(ents)
-       if(tags_set!=len(self.entities)):
+        if(tags_set!=len(self.entities)):
            print(f"WARNING: {len(self.entities)-tags_set} volumes were tagged with the default ({default_tag}) material.")
 
     def load_stp_file(self,filename: str, scale_factor: float = 1.0):
@@ -228,11 +228,11 @@ class Assembly:
         if(len(msolids)!=len(self.entities)):
             print("ERROR: the number of merged solids does not match the original number")
             return
-        for i,s in enumerate(solids):
+        for i,s in enumerate(msolids):
             j=i+1
             filename=f"volume_{j}.stl"
             cq.exporters.export(s,filename,exportType="STL",tolerance=tolerance,angularTolerance=angular_tolerance)
-            if(verbose>1):
+            if(self.verbose>1):
                 print(f"INFO: export to file {filename}")
             stls.append((j,filename))
         return stls
@@ -308,7 +308,7 @@ class Assembly:
     #See issue 4 - we should clean up the parameter-interface to gmsh (and friends)
     def brep_to_h5m(self,brep_filename, volumes_with_tags=None, h5m_filename="dagmc.h5m", samples=100, min_mesh_size=0.1, max_mesh_size=1.0,delete_intermediate_stl_files=False, backend:str="gmsh"):
         """calls the lower level gmsh functions in order"""
-        if(backend ="gmsh"):
+        if(backend=="gmsh"):
             self.gmsh_init(brep_filename, samples=samples,min_mesh_size=min_mesh_size, max_mesh_size=max_mesh_size,mesh_algorithm=1)
             self.gmsh_generate_mesh()
             stl_list=self.gmsh_export_stls()
