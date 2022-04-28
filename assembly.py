@@ -221,6 +221,22 @@ class Assembly:
 
         return filename
 
+    def cq_export_stls(self,angular_tolerance,tolerance):
+        stls=[]
+        #If not merged we should operate directly on the entities objects
+        #For now this is a hack relying on the fact that merged is a compund object.
+        msolids=self.merged.Solids()
+        if(len(msolids)!=len(self.entities)):
+            print("ERROR: the number of merged solids does not match the original number")
+            return
+        for i,s in enumerate(solids):
+            j=i+1
+            filename=f"volume_{j}.stl"
+            cq.exporters.export(s,filename,exportType="STL",tolerance=tolerance,angularTolerance=angular_tolerance)
+            if(verbose>1):
+                print(f"INFO: export to file {filename}")
+            stls.append((j,filename))
+
     def export_stl(
         self,
         filename: Union[List[str], str] = None,
@@ -290,17 +306,25 @@ class Assembly:
         return filename
 
     #See issue 4 - we should clean up the parameter-interface to gmsh (and friends)
-    def brep_to_h5m(self,brep_filename, volumes_with_tags=None, h5m_filename="dagmc.h5m", samples=100, min_mesh_size=0.1, max_mesh_size=1.0,delete_intermediate_stl_files=False):
+    def brep_to_h5m(self,brep_filename, volumes_with_tags=None, h5m_filename="dagmc.h5m", samples=100, min_mesh_size=0.1, max_mesh_size=1.0,delete_intermediate_stl_files=False, backend:str="gmsh"):
         """calls the lower level gmsh functions in order"""
-        self.gmsh_init(brep_filename, samples=samples,min_mesh_size=min_mesh_size, max_mesh_size=max_mesh_size,mesh_algorithm=1)
-        self.gmsh_generate_mesh()
-        stl_list=self.gmsh_export_stls()
-        stl_list=self.heal_stls(stl_list)
-        #add the material tags to the stl_list
-        stl_tagged=[]
-        for (stl,e) in zip(stl_list,self.entities):
-            stl_tagged.append((stl[0],stl[1],e.tag))
-        self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
+        if(backend ="gmsh"):
+            self.gmsh_init(brep_filename, samples=samples,min_mesh_size=min_mesh_size, max_mesh_size=max_mesh_size,mesh_algorithm=1)
+            self.gmsh_generate_mesh()
+            stl_list=self.gmsh_export_stls()
+            stl_list=self.heal_stls(stl_list)
+            #add the material tags to the stl_list
+            stl_tagged=[]
+            for (stl,e) in zip(stl_list,self.entities):
+                stl_tagged.append((stl[0],stl[1],e.tag))
+            self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
+        elif(backend=="stl"):
+            stl_list=self.cq_export_stls()
+            stl_list=self.heal_stls(stl_list)
+            stl_tagged=[]
+            for (stl,e) in zip(stl_list,self.entities):
+                stl_tagged.append((stl[0],stl[1],e.tag))
+            self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
 
     def tag_geometry_with_mats(self,volumes,implicit_complement_material_tag,graveyard, default_tag='vacuum'):
         """Tag all volumes with materials coming from the step files
@@ -486,8 +510,8 @@ class Assembly:
             rval=self.solid.exportBrep(str(path_filename))
         else:
             #the merge surface returns a cq-compound object.
-            merged = self.merge_surfaces()
-            rval=merged.exportBrep(str(path_filename))
+            self.merged = self.merge_surfaces()
+            rval=self.merged.exportBrep(str(path_filename))
 
         return rval
 
