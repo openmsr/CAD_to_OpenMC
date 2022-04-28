@@ -48,15 +48,11 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=moab
     - name: check paths
-      env:
-        PYTHONPATH: "$HOME/moab/lib/python${{matrix.pyv}}"
       run: |
         export PYTHONPATH="$HOME/moab/lib/python${{matrix.pyv}}"
         sudo find / -name pymoab\*
         python -c 'import sys; print(sys.path)'
     - name: Test with pytest
-      env:
-        PYTHONPATH: "$HOME/moab/lib/python${{matrix.pyv}}"
       run: |
-        ls $HOME/moab/lib/python${{matrix.pyv}}
+        export PYTHONPATH="$HOME/moab/lib/python${{matrix.pyv}}"
         pytest -o norecursedirs=moab
