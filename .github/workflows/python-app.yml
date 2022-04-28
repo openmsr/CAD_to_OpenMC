@@ -40,7 +40,7 @@ jobs:
         cmake -DENABLE_HDF5=ON -DENABLE_PYMOAB=ON -DBUILD_SHARED_LIBS=ON -DENABLE_FORTRAN=OFF -DCMAKE_INSTALL_PREFIX=$HOME/moab
         make
         make install
-        pip install pymoab
+        pip install $HOME/moab/pymoab
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
