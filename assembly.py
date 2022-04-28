@@ -51,7 +51,8 @@ class Assembly:
         self.default_tag=default_tag
 
     def import_stp_files(self,tags:dict=None,default_tag:str='vacuum'):
-        #need top be able to separate objects when there are multiple in one step-file
+        tags_set=0
+
         for stp in self.stp_files:
             solid = self.load_stp_file(stp,1.0)
 
@@ -77,9 +78,12 @@ class Assembly:
                         part=s.split('/')[-1]
                         g=re.match("^([^\s_@]+)",part)
                         tag=g[0]
+                        if(self.verbose>1):
+                            print("INFO: Tagging volume #{vid} label:{s} with {tag}")
                     except:
                         tag=default_tag
                     e.tag=tag
+                    tags_set=tags_set+1
                 gmsh.finalize()
             elif (tags):
                 #tag objects according to the tags dictionary.
@@ -98,12 +102,17 @@ class Assembly:
                                 break
                         if tag is None:
                             tag=self.default_tag
+                        if(self.verbose>1):
+                            print("INFO: Tagging volume #{vid} label:{s} with {tag}")
                     except:
                         tag=default_tag
                     e.tag=tag
+                    tags_set=tags_set+1
                 gmsh.finalize()
 
             self.entities.extend(ents)
+       if(tags_set!=len(self.entities)):
+           print(f"WARNING: {len(self.entities)-tags_set} volumes were tagged with the default ({default_tag}) material.")
 
     def load_stp_file(self,filename: str, scale_factor: float = 1.0):
         """Loads a stp file and makes the 3D solid and wires available for use.
@@ -500,14 +509,20 @@ class Assembly:
 
         bldr.SetNonDestructive(True)
 
+        if(self.verbose>1):
+            print("INFO: Commence perform step of merge")
         bldr.Perform()
 
+        if(self.verbose>1):
+            print("INFO: Commence image step of merge")
         bldr.Images()
 
+        if(self.verbose>1):
+            print("INFO: Generate compound shape")
         self.merged = cq.Compound(bldr.Shape())
-
-        return self.merged
     
+        return self.merged
+
     def export_h5m(self, merge_surfaces=False):
         pass
 
