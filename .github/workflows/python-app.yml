@@ -54,5 +54,5 @@ jobs:
         python -c 'import sys; print(sys.path)'
     - name: Test with pytest
       run: |
-        export PYTHONPATH="$HOME/moab/lib/python${{matrix.pyv}}"
+        export PYTHONPATH="$HOME/moab/lib"
         pytest -o norecursedirs=moab
