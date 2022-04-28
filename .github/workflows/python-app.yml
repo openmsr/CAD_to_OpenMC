@@ -51,7 +51,7 @@ jobs:
       env:
         PYTHONPATH: "$HOME/moab/lib/python${{matrix.pyv}}"
       run: |
-        echo $PYTHONPATH
+        export PYTHONPATH="$HOME/moab/lib/python${{matrix.pyv}}"
         sudo find / -name pymoab\*
         python -c 'import sys; print(sys.path)'
     - name: Test with pytest
