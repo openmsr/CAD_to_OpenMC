@@ -51,7 +51,6 @@ jobs:
         PYTHONPATH: "$HOME/moab/lib/python${{matrix.pyv}}"
       run: |
         echo $PYTHONPATH
-        ls $PYTHONPATH
         find / -name pymoab.py
     - name: Test with pytest
       env:
