@@ -33,21 +33,26 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: build and install moab
       run: |
-        sudo apt-get -y install gcc cmake make build-essential libeigen3-dev libnetcdf-dev libnetcdf15 libnetcdf-mpi-dev libnetcdf-mpi-13 python3-netcdf4 libhdf5-103 libhdf5-cpp-103 libhdf5-dev python3-setuptools
+        sudo apt-get -y install gcc cmake make build-essential libeigen3-dev libnetcdf-dev libnetcdf15 libnetcdf-mpi-dev libnetcdf-mpi-13 python3-netcdf4 libhdf5-103 libhdf5-cpp-103 libhdf5-dev python3-setuptools libglu1-mesa
         git clone --single-branch --branch 5.3.1 --depth 1 https://bitbucket.org/fathomteam/moab.git
         cd moab
         mkdir build
         cmake -DENABLE_HDF5=ON -DENABLE_PYMOAB=ON -DBUILD_SHARED_LIBS=ON -DENABLE_FORTRAN=OFF -DCMAKE_INSTALL_PREFIX=$HOME/moab
         make
         make install
+        cat /home/runner/moab/lib/python${{matrix.pyv}}/site-packages/install_files.txt
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=moab
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
-      env:
-        PYTHON_PATH: "$HOME/moab"
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=moab
+    - name: check paths
       run: |
-        pytest
+        export PYTHONPATH="$HOME/moab/lib/python${{matrix.pyv}}"
+        sudo find / -name pymoab\*
+        python -c 'import sys; print(sys.path)'
+    - name: Test with pytest
+      run: |
+        export PYTHONPATH="$HOME/moab"
+        pytest -o norecursedirs=moab
