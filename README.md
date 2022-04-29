@@ -9,7 +9,7 @@ We then use gmsh to generate a surface mesh which may be used by OpenMC through 
 
 # To install/set up in a virtual python environment
 1. Clone the github repository as you'd normally do
-2. In the idrectory where you want your environment to reside do: ```python -m venv <name>```
+2. In the directory where you want your environment to reside do: ```python -m venv <name>```
 3. Activate the environment: ```source <name>/bin/activate```
 4. install the requirements: ```pip install -r requirements.txt```
 5. Build and install moab (if not already installed).
