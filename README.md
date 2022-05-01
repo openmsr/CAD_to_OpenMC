@@ -8,6 +8,7 @@ The code structure we intend is a main class Assembly which contains the geometr
 We then use gmsh to generate a surface mesh which may be used by OpenMC through DAGMC/MOAB (i.e. .h5m-files)
 
 # To install/set up in a virtual python environment
+_replace \<name\> with an arbitrary name for your virtual environment_
 1. Clone the github repository as you'd normally do
 2. In the directory where you want your environment to reside do: ```python -m venv <name>```
 3. Activate the environment: ```source <name>/bin/activate```
