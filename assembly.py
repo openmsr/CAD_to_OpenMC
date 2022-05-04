@@ -302,12 +302,15 @@ class Assembly:
                 tolerance=tolerance,
                 verbose=False,
             )
-
         return filename
 
     #See issue 4 - we should clean up the parameter-interface to gmsh (and friends)
-    def brep_to_h5m(self,brep_filename, volumes_with_tags=None, h5m_filename="dagmc.h5m", samples=100, min_mesh_size=0.1, max_mesh_size=1.0,delete_intermediate_stl_files=False, backend:str="gmsh"):
+    def brep_to_h5m(self,brep_filename: str = None, h5m_filename="dagmc.h5m", samples=100, min_mesh_size=0.1, max_mesh_size=1.0,delete_intermediate_stl_files=False, backend:str="gmsh"):
         """calls the lower level gmsh functions in order"""
+        if (brep_filenemae is None):
+            brep_filename='temp_name.brep'
+            self.export_brep(brep_filename)
+
         if(backend=="gmsh"):
             self.gmsh_init(brep_filename, samples=samples,min_mesh_size=min_mesh_size, max_mesh_size=max_mesh_size,mesh_algorithm=1)
             self.gmsh_generate_mesh()
