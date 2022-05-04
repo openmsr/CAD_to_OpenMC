@@ -508,12 +508,13 @@ class Assembly:
         path_filename.parents[0].mkdir(parents=True, exist_ok=True)
 
         if not merge:
-            rval=self.solid.exportBrep(str(path_filename))
+            #This shoud make a compound of list of solids and export that
+            self.merged=cq.Compound.makeCompound([e.solid for e in self.entities])
+            rval=self.merged.exportBrep(str(path_filename))
         else:
             #the merge surface returns a cq-compound object.
             self.merged = self.merge_surfaces()
             rval=self.merged.exportBrep(str(path_filename))
-
         return rval
 
     def merge_surfaces(self):
