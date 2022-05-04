@@ -49,11 +49,11 @@ class Assembly:
 
         self.default_tag=default_tag
 
-    def import_stp_files(self,tags:dict=None,default_tag:str='vacuum'):
+    def import_stp_files(self,tags:dict=None,default_tag:str='vacuum', scale=1.0):
         tags_set=0
 
         for stp in self.stp_files:
-            solid = self.load_stp_file(stp,1.0)
+            solid = self.load_stp_file(stp,scale)
 
             ents=[]
             #try if solid is iterable
