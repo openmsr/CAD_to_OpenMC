@@ -124,7 +124,7 @@ class Assembly:
                 simulations.
 
         Returns:
-            CadQuery.solid, CadQuery.Wires: solid and wires belonging to the object
+            CadQuery.solid
         """
         #import _all_ the shapes in the file - i.e. may return a list
         part = cq.importers.importStep(str(filename)).vals()
@@ -487,8 +487,6 @@ class Assembly:
         tags["global_id"] = moab_core.tag_get_handle(types.GLOBAL_ID_TAG_NAME)
         return moab_core, tags
 
-##########from paramak
-
     def export_brep(self, filename: str, merge: bool = True):
         """Exports a brep file for the Assembly
         This requires serializing the assembly 
@@ -550,13 +548,6 @@ class Assembly:
     
         return self.merged
 
-    def export_h5m(self, merge_surfaces=False):
-        pass
-
-    def import_from_step(self,filename="in.step"):
-        """Import geometry to the shape list through ocp/occt from the
-           given filename"""
-         
     def gmsh_init(self,brep_fn="gemetry.brep",samples=20, min_mesh_size=0.1, max_mesh_size=10, mesh_algorithm=1, threads=None):
         gmsh.initialize()
         if (self.verbose>1):
