@@ -13,7 +13,9 @@ _replace \<name\> with an arbitrary name for your virtual environment_
 2. In the directory where you want your environment to reside do: ```python -m venv <name>```
 3. Activate the environment: ```source <name>/bin/activate```
 4. install the requirements: ```pip install -r requirements.txt```
-5. Build and install moab (if not already installed).
+5. Build and install moab (if not already installed). The moab team relies on conda for standard installation but are working on a pip-based solution. Once that is done moab would simply be added to the requirements-file instead.
+  1. Clone the moab code-repository: e.g. ```git clone git@bitbucket.org:fathomteam/moab.git```
+  2. Configure and build the code: ```mkdir build; cd build; cmake .. -DENABLE_PYMOAB=1; make; make install```
 
 # Run a test case:
 The follwing code-snippet can now be run to explore the capabilities of Assembly/step_to_h5m
