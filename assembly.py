@@ -315,7 +315,7 @@ class Assembly:
         return filename
 
     #See issue 4 - we should clean up the parameter-interface to gmsh (and friends)
-    def brep_to_h5m(self,brep_filename: str = None, h5m_filename="dagmc.h5m", samples=100, min_mesh_size=0.1, max_mesh_size=1.0,delete_intermediate_stl_files=False, backend:str="gmsh"):
+    def brep_to_h5m(self,brep_filename: str = None, h5m_filename:str="dagmc.h5m", samples: int =100, min_mesh_size:float =0.1, max_mesh_size:float =1.0,delete_intermediate_stl_files:bool=False, backend:str="gmsh", stl_tol:float=0.1, stl_ang_tol:float=0.2):
         """calls the lower level gmsh functions in order"""
         if (brep_filename is None):
             brep_filename='temp_name.brep'
@@ -332,7 +332,7 @@ class Assembly:
                 stl_tagged.append((stl[0],stl[1],e.tag))
             self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
         elif(backend=="stl"):
-            stl_list=self.cq_export_stls(tolerance=0.1,angular_tolerance=0.2)
+            stl_list=self.cq_export_stls(tolerance=stl_tol,angular_tolerance=stl_ang_tol)
             stl_list=self.heal_stls(stl_list)
             stl_tagged=[]
             for (stl,e) in zip(stl_list,self.entities):
