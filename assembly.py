@@ -519,8 +519,9 @@ class Assembly:
 
         path_filename.parents[0].mkdir(parents=True, exist_ok=True)
 
-        if not merge:
-            #This shoud make a compound of list of solids and export that
+        if not merge or len(self.entities)<=1:
+            #merging a single volume does not make sense
+            #If we don't merge, construct a compund solid for later.
             self.merged=cq.Compound.makeCompound([e.solid for e in self.entities])
             rval=self.merged.exportBrep(str(path_filename))
         else:
