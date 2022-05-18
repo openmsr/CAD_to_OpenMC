@@ -30,10 +30,18 @@ class Entity:
             self.solid=solid
             self.idx=idx
             self.tag=tag
+            #extract some parameters from the solid for later.
+            self.bb=solid.BoundingBox()
+            self.center = solid.Center()
+            self.volume = solid.Volume()
 
-    def export_stl(self,filename:str = None):
-        if filename is None:
-            filename=f'{self.idx}.stl'
+    def similar(self,center:tuple=(0,0,0),volume:float=1,bb:tuple=(0,0,0),
+            tolerance=1e-3)->bool:
+        """method checks whether the entity can be regard as similar with another entities parameters"""
+        cms_close=np.norm(self.center-center)<tolerance
+        bb_close=np.norm(self.bb-bb)<tolerance
+        vol_close=np.abs(self.volume-volume)<tolerance
+        return (cms_close and bb_close and vol_close)
 
 class Assembly:
     """This class encapsulates a set of geometries defined by step-files
