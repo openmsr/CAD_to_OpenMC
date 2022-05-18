@@ -136,6 +136,7 @@ class Assembly:
         """
         #import _all_ the shapes in the file - i.e. may return a list
         part = cq.importers.importStep(str(filename)).vals()
+        #scale the shapes even if the factor is 1.
         try:
             scaled_part = [p.scale(scale_factor) for p in part]
         except:
@@ -159,7 +160,7 @@ class Assembly:
         mode: Optional[str] = "solid",
         units: Optional[str] = "mm",
     ) -> Union[List[str], str]:
-        """Exports the 3D reactor model as a stp file or files.
+        """Exports the assembly as a stp file or files.
 
         Args:
             filename: Accepts a single filename as a string which exports the
@@ -232,6 +233,7 @@ class Assembly:
         stls=[]
         #If not merged we should operate directly on the entities objects
         #For now this is a hack relying on the fact that merged is a compund object.
+
         msolids=self.merged.Solids()
         if(len(msolids)!=len(self.entities)):
             print("ERROR: the number of merged solids does not match the original number")
@@ -252,7 +254,7 @@ class Assembly:
         angular_tolerance: float = 0.1,
         idx: int =0
     ) -> Union[str, List[str]]:
-        """Writes stl files (CAD geometry) for each Shape object in the reactor
+        """Writes stl files (CAD geometry) for each Shape object in the assembly
 
         Args:
             filename: Accepts a single filename as a string which exports the
