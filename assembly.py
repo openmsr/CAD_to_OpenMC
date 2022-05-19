@@ -373,7 +373,7 @@ class Assembly:
 
     #this bit is picked from stl_to_h5m
 
-    def stl2h5m(self,stls:list,h5m_file:str='dagmc.h5m', vtk:bool=false) -> str:
+    def stl2h5m(self,stls:list,h5m_file:str='dagmc.h5m', vtk:bool=False) -> str:
         """function that export the list of stls that we have presumably generated somehow
         and merges them into a DAGMC h5m-file by means of the MOAB-framework.
         """
