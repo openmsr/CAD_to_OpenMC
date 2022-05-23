@@ -400,7 +400,7 @@ class Assembly:
             print(f"INFO: writing geometry to h5m \"{h5m_file}.") 
         moab_core.write_file(str(h5m_p))
         if(vtk):
-            moab_core.write_file(h5m_p.with_suffix('.vtk'))
+            moab_core.write_file(str(h5m_p.with_suffix('.vtk')))
 
         return str(h5m_p)
 
