@@ -29,4 +29,6 @@ The follwing code-snippet can now be run to explore the capabilities of Assembly
 ```
 
 N.b. the last parameters to brep_to_h5m are simply echoing their default values.
-This procedure will in turn call OCP andgmsh to prduce a mesh with merged surfaces, in the output file "dagmc.h5m"
+This procedure will in turn call OCP and gmsh to prduce a mesh with merged surfaces in the output file "dagmc.h5m"
+
+The ```export_brep```-step may be omitted, in which case a temporary file will be written.
