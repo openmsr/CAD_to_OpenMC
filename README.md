@@ -28,7 +28,9 @@ The follwing code-snippet can now be run to explore the capabilities of Assembly
   a.brep_to_h5m(brep_filename='file.brep',min_mesh_size=0.1, max_mesh_size=10, samples=20)
 ```
 
-N.b. the last parameters to brep_to_h5m are simply echoing their default values.
-This procedure will in turn call OCP and gmsh to prduce a mesh with merged surfaces in the output file "dagmc.h5m"
+N.b. the last 3 parameters to brep_to_h5m are simply echoing their default values, and uses the default mesher: gmsh. Their significance is that all curves are sampled by 20 points, but limits the generated mesh-elements to be  within the size range [min_mesh_size,max_mesh_size].
+This procedure will in turn call OCP and gmsh to produce a mesh with merged surfaces in the output file "dagmc.h5m"
+
+The other available meshing backend is the stl-export from CadQuery (accessible by setting ```backend='stl'```) which uses the parameters ```stl_tol``` and ```stl_ang_tol``` to set meshing quality.
 
 The ```export_brep```-step may be omitted, in which case a temporary file will be written.
