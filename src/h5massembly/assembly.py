@@ -320,29 +320,44 @@ class Assembly:
         return filename
 
     #See issue 4 - we should clean up the parameter-interface to gmsh (and friends)
-    def brep_to_h5m(self,brep_filename: str = None, h5m_filename:str="dagmc.h5m", samples: int =100, min_mesh_size:float =0.1, max_mesh_size:float =1.0,delete_intermediate_stl_files:bool=False, backend:str="gmsh", stl_tol:float=0.1, stl_ang_tol:float=0.2):
+    def brep_to_h5m(self,brep_filename: str = None, h5m_filename:str="dagmc.h5m", samples: int =100,
+            min_mesh_size:float =0.1, max_mesh_size:float =1.0,delete_intermediate_stl_files:bool=False,
+            backend:str="gmsh", stl_tol:float=0.1, stl_ang_tol:float=0.2, threads:int=1, heal:bool=True, gmsh_default_opts=False):
         """calls the lower level gmsh functions in order"""
         if (brep_filename is None):
-            brep_filename='temp_name.brep'
-            self.export_brep(brep_filename)
+            try:
+              self.export_brep(self.brep_filename)
+            except:
+              self.brep_filename='temp_name.brep'
+              self.export_brep(self.brep_filename)
+        else:
+            self.brep_filename=brep_filename
 
         if(backend=="gmsh"):
-            self.gmsh_init(brep_filename, samples=samples,min_mesh_size=min_mesh_size, max_mesh_size=max_mesh_size,mesh_algorithm=1)
+            if (self.verbose):
+                print(f'INFO: Using backend {backend} with parameters (min,max)_mesh_size=({min_mesh_size},{max_mesh_size}) curve_samples={samples}')
+            self.gmsh_init(self.brep_filename, samples=samples,min_mesh_size=min_mesh_size, max_mesh_size=max_mesh_size,mesh_algorithm=1, threads=threads, default=gmsh_default_opts)
             self.gmsh_generate_mesh()
             stl_list=self.gmsh_export_stls()
-            stl_list=self.heal_stls(stl_list)
+            if(heal):
+                stl_list=self.heal_stls(stl_list)
             #add the material tags to the stl_list
             stl_tagged=[]
             for (stl,e) in zip(stl_list,self.entities):
                 stl_tagged.append((stl[0],stl[1],e.tag))
             self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
         elif(backend=="stl"):
+            if (self.verbose):
+                print(f'INFO: Using backend {stl} with parameters tolerance={tol} and angular tolerance={ang_tol}')
             stl_list=self.cq_export_stls(tolerance=stl_tol,angular_tolerance=stl_ang_tol)
-            stl_list=self.heal_stls(stl_list)
+            if(heal):
+                stl_list=self.heal_stls(stl_list)
             stl_tagged=[]
             for (stl,e) in zip(stl_list,self.entities):
                 stl_tagged.append((stl[0],stl[1],e.tag))
             self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
+        else:
+            print(f'ERROR: Unknown backend: {backend}')
 
     def tag_geometry_with_mats(self,volumes,implicit_complement_material_tag,graveyard, default_tag='vacuum'):
         """Tag all volumes with materials coming from the step files
@@ -497,32 +512,36 @@ class Assembly:
             types.MB_TYPE_OPAQUE, types.MB_TAG_SPARSE, create_if_missing=True,
         )
         tags["geom_dimension"] = moab_core.tag_get_handle(
-            types.GEOM_DIMENSION_TAG_NAME, 1, 
+            types.GEOM_DIMENSION_TAG_NAME, 1,
             types.MB_TYPE_INTEGER, types.MB_TAG_DENSE, create_if_missing=True,
         )
         # Global ID is a default tag, just need the name to retrieve
         tags["global_id"] = moab_core.tag_get_handle(types.GLOBAL_ID_TAG_NAME)
         return moab_core, tags
 
-    def export_brep(self, filename: str, merge: bool = True):
+    def export_brep(self, filename: str, merge: bool = True, step: bool =False):
         """Exports a brep file for the Assembly
-        This requires serializing the assembly 
+        This requires serializing the assembly
 
         Args:
             filename: the filename of exported the brep file.
             merged: if the surfaces should be merged (True) or not (False).
+            step: Use step fileformat instead of the default brep
 
         Returns:
-            filename of the brep created
+            filename of the brep created. Also stored in self.brep_filename
         """
 
         path_filename = pl.Path(filename)
+        self.brep_filename=filename
 
-        if path_filename.suffix != ".brep":
+        if not step and path_filename.suffix != ".brep":
             msg = "When exporting a brep file the filename must end with .brep"
             raise ValueError(msg)
-
-        path_filename.parents[0].mkdir(parents=True, exist_ok=True)
+	elseif step and path_filename.suffix not in (".step",".stp"):
+            msg = "When exporting a step file the filename must end with .step or .stp"
+            raise ValueError(msg)
+	path_filename.parents[0].mkdir(parents=True, exist_ok=True)
 
         if not merge or len(self.entities)<=1:
             #merging a single volume does not make sense
@@ -565,10 +584,10 @@ class Assembly:
         if(self.verbose>1):
             print("INFO: Generate compound shape")
         self.merged = cq.Compound(bldr.Shape())
-    
+
         return self.merged
 
-    def gmsh_init(self,brep_fn="gemetry.brep",samples=20, min_mesh_size=0.1, max_mesh_size=10, mesh_algorithm=1, threads=None):
+    def gmsh_init(self,brep_fn="geometry.brep",default=False,samples=20, min_mesh_size=0.1, max_mesh_size=10, mesh_algorithm=1, threads=None):
         gmsh.initialize()
         if (self.verbose>1):
             gmsh.option.setNumber("General.Terminal",1)
@@ -576,21 +595,22 @@ class Assembly:
             gmsh.option.setNumber("General.Terminal",0)
 
         gmsh.model.add(f"model from Assembly.py {brep_fn}")
-        gmsh.option.setString("Geometry.OCCTargetUnit","M")
-        #do this by means of properties instead
-        if(threads is not None):
-           gmsh.option.setNumber("General.NumThreads",threads)
-        self.volumes = gmsh.model.occ.importShapes(brep_fn)
-        gmsh.model.occ.synchronize()
+        if(not default):
+          gmsh.option.setString("Geometry.OCCTargetUnit","CM")
+          #do this by means of properties instead
+          if(threads is not None):
+            gmsh.option.setNumber("General.NumThreads",threads)
+          self.volumes = gmsh.model.occ.importShapes(brep_fn)
+          gmsh.model.occ.synchronize()
 
-        gmsh.option.setNumber("Mesh.Algorithm", mesh_algorithm)
-        gmsh.option.setNumber("Mesh.MeshSizeMin", min_mesh_size)
-        gmsh.option.setNumber("Mesh.MeshSizeMax", max_mesh_size)
+          gmsh.option.setNumber("Mesh.Algorithm", mesh_algorithm)
+          gmsh.option.setNumber("Mesh.MeshSizeMin", min_mesh_size)
+          gmsh.option.setNumber("Mesh.MeshSizeMax", max_mesh_size)
 
-        gmsh.option.setNumber("Mesh.MaxRetries",3)
-        gmsh.option.setNumber("Mesh.MeshSizeFromPoints",0)
-        gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
-        gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", samples)
+          gmsh.option.setNumber("Mesh.MaxRetries",3)
+          gmsh.option.setNumber("Mesh.MeshSizeFromPoints",0)
+          gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
+          gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", samples)
 
     def gmsh_deinit(self):
         gmsh.finalize()
