@@ -47,7 +47,7 @@ class Assembly:
     """This class encapsulates a set of geometries defined by step-files
     addtionally it provides access to meshing-utilities, and export to a DAGMC-enabled
     h5m scene, which may be used for neutronics.
-    This class is based on (and borrows heavily from) the paramak package. 
+    This class is based on (and borrows heavily from) the paramak package.
     """
     def __init__(self, stp_files=[], stl_files=[], verbose:int = 1, default_tag='vacuum'):
         self.stp_files=stp_files
@@ -66,7 +66,7 @@ class Assembly:
             ents=[]
             #try if solid is iterable
             try:
-                for s in solid:    
+                for s in solid:
                     e = Entity(solid=s)
                     ents.append(e)
             except:
@@ -377,7 +377,7 @@ class Assembly:
         """function that export the list of stls that we have presumably generated somehow
         and merges them into a DAGMC h5m-file by means of the MOAB-framework.
         """
-        
+
         if(self.verbose>0):
             print("INFO: reassembling stl-files into h5m structure")
         h5m_p=pl.Path(h5m_file)
@@ -397,7 +397,7 @@ class Assembly:
 
         moab_core.add_entities(file_set, all_sets)
         if(self.verbose>0):
-            print(f"INFO: writing geometry to h5m \"{h5m_file}.") 
+            print(f"INFO: writing geometry to h5m: \"{h5m_file}\".")
         moab_core.write_file(str(h5m_p))
         if(vtk):
             moab_core.write_file(str(h5m_p.with_suffix('.vtk')))
@@ -442,8 +442,8 @@ class Assembly:
         # establish parent-child relationship
         moab_core.add_parent_child(volume_set, surface_set)
 
-        # set surface sense
-        #This should be fixed - we should know which volume comes next, instead of just setting it to be 0
+        # Set surface sense
+        # This should be fixed - we should know which volume comes next, instead of just setting it to be 0
         sense_data = [volume_set, np.uint64(0)]
         moab_core.tag_set_data(tags["surf_sense"], surface_set, sense_data)
 
@@ -476,7 +476,7 @@ class Assembly:
         """
         # create pymoab instance
         moab_core = core.Core()
-        
+
         tags = dict()
         sense_tag_name = "GEOM_SENSE_2"
         sense_tag_size = 2
@@ -532,6 +532,7 @@ class Assembly:
 
     def merge_surfaces(self):
         """Run through the assembly and merge concurrent surfaces.
+            We should only merge surfaces that have overlapping bounding boxes
         """
         bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
         #loop trough all objects in geometry and split and merge them accordingly
