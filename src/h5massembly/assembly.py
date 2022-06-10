@@ -59,6 +59,8 @@ class Assembly:
 
     def import_stp_files(self,tags:dict=None,default_tag:str='vacuum', scale=1.0):
         tags_set=0
+        #clear list to avoid double-import
+        self.entities=[]
 
         for stp in self.stp_files:
             solid = self.load_stp_file(stp,scale)
