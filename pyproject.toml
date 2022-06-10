@@ -1,0 +1,14 @@
+[build-system]
+requires = ["setuptools>=42"]
+build-backend = "setuptools.build_meta"
+install-requires = ['gmsh',
+        'cadquery2',
+        'numpy',
+        'OCP',
+        'collections',
+        'pathlib',
+        'typing',
+        'meshio',
+        'trimesh',
+        'tempfile',
+        'pymoab']
