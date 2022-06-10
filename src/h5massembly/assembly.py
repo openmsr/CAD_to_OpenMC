@@ -538,7 +538,7 @@ class Assembly:
         if not step and path_filename.suffix != ".brep":
             msg = "When exporting a brep file the filename must end with .brep"
             raise ValueError(msg)
-	elseif step and path_filename.suffix not in (".step",".stp"):
+        elif step and path_filename.suffix not in (".step",".stp"):
             msg = "When exporting a step file the filename must end with .step or .stp"
             raise ValueError(msg)
 	path_filename.parents[0].mkdir(parents=True, exist_ok=True)
