@@ -541,7 +541,7 @@ class Assembly:
         elif step and path_filename.suffix not in (".step",".stp"):
             msg = "When exporting a step file the filename must end with .step or .stp"
             raise ValueError(msg)
-	path_filename.parents[0].mkdir(parents=True, exist_ok=True)
+        path_filename.parents[0].mkdir(parents=True, exist_ok=True)
 
         if not merge or len(self.entities)<=1:
             #merging a single volume does not make sense
@@ -559,6 +559,8 @@ class Assembly:
             We should only merge surfaces that have overlapping bounding boxes
         """
         bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
+        bldr.SetFuzzyValue(1e-1)
+        print(bldr.FuzzyValue())
         #loop trough all objects in geometry and split and merge them accordingly
         #shapes should be a compund cq object or a list thereof
         for shape in self.entities:
