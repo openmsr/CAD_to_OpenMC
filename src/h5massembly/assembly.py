@@ -103,20 +103,23 @@ class Assembly:
                     vid=v[1]
                     try:
                         s=gmsh.model.getEntityName(3,vid)
+                        part=s.split('/')[-1]
                         tag=None
                         for k in tags.keys():
-                            g=re.match(k,s)
+                            #print(f'matching {k} against {part}')
+                            g=re.match(k,part)
                             if (g):
                                 tag=tags[k]
                                 break
                         if tag is None:
                             tag=self.default_tag
+                        else:
+                            tags_set=tags_set+1
                         if(self.verbose>1):
                             print(f"INFO: Tagging volume #{vid} label:{s} with material {tag}")
                     except:
                         tag=default_tag
                     e.tag=tag
-                    tags_set=tags_set+1
                 gmsh.finalize()
 
             self.entities.extend(ents)
