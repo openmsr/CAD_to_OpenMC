@@ -1,7 +1,7 @@
 # step_to_h5m
 Please note that this tool will likely change its name soon to h5massembly.
 
-This is intended to be a python package heavily inspired by [Paramak](https://github.com/fusion-energy/paramak), and borrwing a lot from its namesake: https://github.com/fusion-energy/step_to_h5m).
+This is intended to be a python package heavily inspired by [Paramak](https://github.com/fusion-energy/paramak), and borrowing a lot from its namesake: https://github.com/fusion-energy/step_to_h5m).
 It's "raison d'etre" is to enable a link between the online CAD-tool onShape and the neutron transport code OpenMC.
 
 We will use cadQuery and its links to OCCT to enable import and imprinting/merging algorithms.
