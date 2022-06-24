@@ -35,13 +35,51 @@ class Entity:
             self.center = solid.Center()
             self.volume = solid.Volume()
 
-    def similar(self,center:tuple=(0,0,0),volume:float=1,bb:tuple=(0,0,0),
-            tolerance=1e-3)->bool:
+    def similarity(self,center:tuple=(0,0,0),bb:tuple=(0,0,0),volume:float=1,
+            tolerance=1e-2)->bool:
+        """method returns a value for the similary between the entity and the 3 parameters
+           cms, bb, and volume"""
+        cms_rel_dist= np.linalg.norm([self.center.x-center[0], self.center.y-center[1], self.center.z-center[2]])/np.linalg.norm(center)
+        bb_rel_dist=np.linalg.norm([self.bb.xlen-bb[0],self.bb.ylen-bb[1],self.bb.zlen-bb[2]])/np.linalg.norm(bb)
+        vol_rel_dist=np.abs(self.volume-volume)/volume
+        return cms_rel_dist + bb_rel_dist + vol_rel_dist
+
+    def similar(self,center:tuple=(0,0,0),bb:tuple=(0,0,0),volume:float=1,
+            tolerance=1e-2)->bool:
         """method checks whether the entity can be regard as similar with another entities parameters"""
-        cms_close=np.norm(self.center-center)<tolerance
-        bb_close=np.norm(self.bb-bb)<tolerance
-        vol_close=np.abs(self.volume-volume)<tolerance
+        print(center,bb,volume)
+        print([self.center.x, self.center.y, self.center.z],[self.bb.xlen,self.bb.ylen,self.bb.zlen],self.volume)
+        cms_close=np.linalg.norm([self.center.x-center[0], self.center.y-center[1], self.center.z-center[2]])/np.linalg.norm(center)<tolerance
+        bb_close=np.linalg.norm([self.bb.xlen-bb[0],self.bb.ylen-bb[1],self.bb.zlen-bb[2]])/np.linalg.norm(bb)<tolerance 
+        vol_close=np.abs(self.volume-volume)/volume<tolerance
         return (cms_close and bb_close and vol_close)
+
+
+def idx_similar(entity_list,center,bounding_box,volume):
+    """returns the index in the solid_list for which a solid is similar in terms of bounding box, cms, and volume
+       If no similar object is found return -1. 
+    """
+    idx_found=[]
+    found=False
+    for i,ent in enumerate(entity_list):
+      if ent.similar([center.x,center.y,center.z],[bounding_box.xlen,bounding_box.ylen, bounding_box.zlen],volume, tolerance=1e-1):
+        found=True
+        idx_found.append(i)
+    if(len(idx_found)>1):
+      #we have multiple matches - pick the best one
+      dsmall=1e9
+      for i,ent in enumerate([entity_list[idx] for idx in idx_found]):
+        d=ent.similarity([center.x,center.y,center.z],[bounding_box.xlen,bounding_box.ylen, bounding_box.zlen],volume)
+        if(d<dsmall):
+          dsmall=d
+          end_idx=idx_found[i]
+    elif(len(idx_found)==1):
+        end_idx=idx_found[0]
+        print(f'INFO: Found index at {end_idx}')
+    else:
+        end_idx=-1
+        print('INFO: No similar object found')
+    return end_idx
 
 class Assembly:
     """This class encapsulates a set of geometries defined by step-files
