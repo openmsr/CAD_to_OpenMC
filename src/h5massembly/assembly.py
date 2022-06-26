@@ -164,7 +164,7 @@ class Assembly:
         if(tags_set!=len(self.entities)):
            print(f"WARNING: {len(self.entities)-tags_set} volumes were tagged with the default ({default_tag}) material.")
 
-    def load_stp_file(self,filename: str, scale_factor: float = 1.0):
+    def load_stp_file(self,filename: str, scale_factor: float = 0.1):
         """Loads a stp file and makes the 3D solid and wires available for use.
 
         Args:
@@ -172,7 +172,8 @@ class Assembly:
             scale_factor: a scaling factor to apply to the geometry that can be
                 used to increase the size or decrease the size of the geometry.
                 Useful when converting the geometry to cm for use in neutronics
-                simulations.
+                simulations. The default (0.1) corresponds to the standard setting of OpenCASCADE
+                which assumes mm to the the standard of OpenMC which is cm.
 
         Returns:
             CadQuery.solid
