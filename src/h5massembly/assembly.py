@@ -285,9 +285,9 @@ class Assembly:
         for i,s in enumerate(msolids):
             j=i+1
             filename=f"volume_{j}.stl"
-            cq.exporters.export(s,filename,exportType="STL",tolerance=tolerance,angularTolerance=angular_tolerance)
+            status=cq.exporters.export(s,filename,exportType="STL",tolerance=tolerance,angularTolerance=angular_tolerance)
             if(self.verbose>1):
-                print(f"INFO: export to file {filename}")
+                print(f"INFO: export to file {filename}:{status}")
             stls.append((j,filename))
         return stls
 
@@ -341,7 +341,7 @@ class Assembly:
             #construct stl_file names from stp_files
             self.stl_files=[str(pl.Path(f).with_suffix('.stl')) for f in self.stp_files]
 
-        # exports the reactor solid as a separate stl files
+        # exports the assembly solid as a separate stl files
         if len(filename) != len(self.entities):
             msg = (
                 f"The Reactor contains {len(self.shapes_and_components)} "
