@@ -380,20 +380,36 @@ class Assembly:
             stl_list=self.gmsh_export_stls()
             if(heal):
                 stl_list=self.heal_stls(stl_list)
+
+            # now we have the gmsh imported geometry. This order may be different from the one
+            # that is held by the cq.entities. We should rerun the similarity filter.
+            brep_volume_dimtags=gmsh.model.occ.getEntities(3)
+            tag_idxs=[]
+            for dimtag in brep_volume_dimtags()
+              cms=gmsh.model.get_center_of_mass(dimtag[0],dimtag[1])
+              bb=gmsh.model.get_bounding_box(dimtag[0],dimtag[1])
+              vol=gmsh.model.get_mass(dimtag[0],dimtag[1])
+              j=idx_similar(self.entities,cms,bb,vol)
+              tag_idx.append(j)
+
             #add the material tags to the stl_list
             stl_tagged=[]
-            for (stl,e) in zip(stl_list,self.entities):
+            for (stl,e) in zip(stl_list,self.entities[i for i in tag_idx if !=-1] ):
                 stl_tagged.append((stl[0],stl[1],e.tag))
             self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
         elif(backend=="stl"):
             if (self.verbose):
-                print(f'INFO: Using backend {stl} with parameters tolerance={tol} and angular tolerance={ang_tol}')
+                print(f'INFO: Using backend {backend} with parameters tolerance={stl_tol} and angular tolerance={stl_ang_tol}')
             stl_list=self.cq_export_stls(tolerance=stl_tol,angular_tolerance=stl_ang_tol)
             if(heal):
                 stl_list=self.heal_stls(stl_list)
             stl_tagged=[]
             for (stl,e) in zip(stl_list,self.entities):
-                stl_tagged.append((stl[0],stl[1],e.tag))
+                try:
+                    stl_tagged.append((stl[0],stl[1],e.tag))
+                except:
+                    print("WARNING: list of material tags is exhausted. Tagging volume {stl[0]},{stl[1]} with \'vacuum\'")
+                    stl_tagged.append(st[0],stl[1],'vacuum')
             self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
         else:
             print(f'ERROR: Unknown backend: {backend}')
@@ -591,6 +607,24 @@ class Assembly:
             #the merge surface returns a cq-compound object.
             self.merged = self.merge_surfaces()
             rval=self.merged.exportBrep(str(path_filename))
+            #the merging process may result in extra volumes.
+            #We need to make sure these are at the end of the list
+            #If not this results in a loss ofvolumes in the end.
+            print("INFO: reordering volumes")
+            print(self.merged)
+            idxs=[]
+            for solid in self.merged.Solids():
+              center=solid.Center()
+              bb=solid.BoundingBox()
+              vol=solid.Volume()
+              idx=idx_similar(self.entities,center,bb,vol)
+              idxs.append(idx)
+            #reorder
+
+            print(idxs)
+            ents=[self.entities[i] for i in idxs if i!=-1]
+            self.entities=ents
+
         return rval
 
     def merge_surfaces(self):
@@ -611,7 +645,7 @@ class Assembly:
                   bldr.AddArgument(shape.solid.val().wrapped)
               except:
                   bldr.AddArgument(shape.solid.wrapped)
-
+        bldr.SetParallelMode_s(True)
         bldr.SetNonDestructive(True)
 
         if(self.verbose>1):
@@ -628,6 +662,12 @@ class Assembly:
 
         return self.merged
 
+    def merge_two(self,solid1,solid2):
+        """ Checks two surfaces if their BB overlap. If so merge the two - and return a list of the results
+        """
+
+
+
     def gmsh_init(self,brep_fn="geometry.brep",default=False,samples=20, min_mesh_size=0.1, max_mesh_size=10, mesh_algorithm=1, threads=None):
         gmsh.initialize()
         if (self.verbose>1):
@@ -641,8 +681,6 @@ class Assembly:
           #do this by means of properties instead
           if(threads is not None):
             gmsh.option.setNumber("General.NumThreads",threads)
-          self.volumes = gmsh.model.occ.importShapes(brep_fn)
-          gmsh.model.occ.synchronize()
 
           gmsh.option.setNumber("Mesh.Algorithm", mesh_algorithm)
           gmsh.option.setNumber("Mesh.MeshSizeMin", min_mesh_size)
@@ -652,6 +690,8 @@ class Assembly:
           gmsh.option.setNumber("Mesh.MeshSizeFromPoints",0)
           gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
           gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", samples)
+        self.volumes = gmsh.model.occ.importShapes(brep_fn)
+        gmsh.model.occ.synchronize()
 
     def gmsh_deinit(self):
         gmsh.finalize()
@@ -702,8 +742,11 @@ class Assembly:
            pg = gmsh.model.addPhysicalGroup(2,ents[1])
            ps = gmsh.model.setPhysicalName(2,pg,f'surfaces_on_volume_{vid}')
            filename=f'volume_{vid}.stl'
-           gmsh.write(filename)
-           stls.append((vid,filename))
+           try:
+              gmsh.write(filename)
+              stls.append((vid,filename))
+           except:
+              print(f'WARNING: Could not write volume {vid}. Skipping')
            gmsh.model.removePhysicalGroups([]) # remove group again
         return stls
 
