@@ -279,9 +279,12 @@ class Assembly:
         #For now this is a hack relying on the fact that merged is a compund object.
 
         msolids=self.merged.Solids()
+        offset=0
         if(len(msolids)!=len(self.entities)):
-            print("ERROR: the number of merged solids does not match the original number")
-            return
+            print("WARNING: the number of merged solids does not match the original number")
+            offset=len(msolids)-len(self.entities)
+            if(offset<0):
+                offset=0
         for i,s in enumerate(msolids):
             j=i+1
             filename=f"volume_{j}.stl"
