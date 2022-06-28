@@ -1,6 +1,6 @@
 [project]
 name="h5massembly"
-version="0.0.9"
+version="0.0.10"
 authors = [
   { name="Erik B Knudsen", email="erik.knudsen@copenhagenatomics.com" },
 ]
