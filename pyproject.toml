@@ -1,3 +1,22 @@
+[project]
+name="h5massembly"
+version="0.0.9"
+authors = [
+  { name="Erik B Knudsen", email="erik.knudsen@copenhagenatomics.com" },
+]
+description = "Package to automagically convert step-gometries to h5m descriptions for neutronics by OpenMC"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/openmsr/step_to_h5m"
+"Bug Tracker" = "https://github.com/openmsr/step_to_h5m/issues"
+
 [build-system]
-requires = ["setuptools>=42"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
