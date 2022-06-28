@@ -47,8 +47,6 @@ class Entity:
     def similar(self,center:tuple=(0,0,0),bb:tuple=(0,0,0),volume:float=1,
             tolerance=1e-2)->bool:
         """method checks whether the entity can be regard as similar with another entities parameters"""
-        print(center,bb,volume)
-        print([self.center.x, self.center.y, self.center.z],[self.bb.xlen,self.bb.ylen,self.bb.zlen],self.volume)
         cms_close=np.linalg.norm([self.center.x-center[0], self.center.y-center[1], self.center.z-center[2]])/np.linalg.norm(center)<tolerance
         bb_close=np.linalg.norm([self.bb.xlen-bb[0],self.bb.ylen-bb[1],self.bb.zlen-bb[2]])/np.linalg.norm(bb)<tolerance 
         vol_close=np.abs(self.volume-volume)/volume<tolerance
@@ -144,7 +142,6 @@ class Assembly:
                         part=s.split('/')[-1]
                         tag=None
                         for k in tags.keys():
-                            #print(f'matching {k} against {part}')
                             g=re.match(k,part)
                             if (g):
                                 tag=tags[k]
@@ -388,7 +385,7 @@ class Assembly:
             # that is held by the cq.entities. We should rerun the similarity filter.
             brep_volume_dimtags=gmsh.model.occ.getEntities(3)
             tag_idxs=[]
-            for dimtag in brep_volume_dimtags()
+            for dimtag in brep_volume_dimtags:
               cms=gmsh.model.get_center_of_mass(dimtag[0],dimtag[1])
               bb=gmsh.model.get_bounding_box(dimtag[0],dimtag[1])
               vol=gmsh.model.get_mass(dimtag[0],dimtag[1])
@@ -397,7 +394,7 @@ class Assembly:
 
             #add the material tags to the stl_list
             stl_tagged=[]
-            for (stl,e) in zip(stl_list,self.entities[i for i in tag_idx if !=-1] ):
+            for (stl,e) in zip(stl_list,[self.entities[i] for i in tag_idx if i!=-1] ):
                 stl_tagged.append((stl[0],stl[1],e.tag))
             self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
         elif(backend=="stl"):
@@ -614,7 +611,6 @@ class Assembly:
             #We need to make sure these are at the end of the list
             #If not this results in a loss ofvolumes in the end.
             print("INFO: reordering volumes")
-            print(self.merged)
             idxs=[]
             for solid in self.merged.Solids():
               center=solid.Center()
@@ -624,7 +620,6 @@ class Assembly:
               idxs.append(idx)
             #reorder
 
-            print(idxs)
             ents=[self.entities[i] for i in idxs if i!=-1]
             self.entities=ents
 
@@ -636,7 +631,6 @@ class Assembly:
         """
         bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
         bldr.SetFuzzyValue(1e-1)
-        print(bldr.FuzzyValue())
         #loop trough all objects in geometry and split and merge them accordingly
         #shapes should be a compund cq object or a list thereof
         for shape in self.entities:
