@@ -1,6 +1,6 @@
 [project]
 name="h5massembly"
-version="0.0.10"
+version="0.0.11"
 authors = [
   { name="Erik B Knudsen", email="erik.knudsen@copenhagenatomics.com" },
 ]
@@ -12,8 +12,19 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
+dependencies=[
+        'gmsh',
+        'cadquery2',
+        'numpy',
+        'OCP',
+        'pathlib',
+        'typing',
+        'meshio',
+        'trimesh',
+        'pymoab',
+]
 
-[project.urls]
+        [project.urls]
 "Homepage" = "https://github.com/openmsr/step_to_h5m"
 "Bug Tracker" = "https://github.com/openmsr/step_to_h5m/issues"
 
