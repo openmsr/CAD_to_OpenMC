@@ -384,7 +384,7 @@ class Assembly:
             # now we have the gmsh imported geometry. This order may be different from the one
             # that is held by the cq.entities. We should rerun the similarity filter.
             brep_volume_dimtags=gmsh.model.occ.getEntities(3)
-            tag_idxs=[]
+            tag_idx=[]
             for dimtag in brep_volume_dimtags:
               cms=gmsh.model.get_center_of_mass(dimtag[0],dimtag[1])
               bb=gmsh.model.get_bounding_box(dimtag[0],dimtag[1])
