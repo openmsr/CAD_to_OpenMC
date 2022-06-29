@@ -121,7 +121,7 @@ class Assembly:
                     try:
                         s=gmsh.model.getEntityName(3,vid)
                         part=s.split('/')[-1]
-                        g=re.match("^([^\s_@]+)",part)
+                        g=re.match(r'^([^\s_@]+)',part)
                         tag=g[0]
                         if(self.verbose>1):
                             print(f"INFO: Tagging volume #{vid} label:{s} with material {tag}")
@@ -425,7 +425,7 @@ class Assembly:
             try:
                 s=gmsh.model.getEntityName(3,tagid)
                 part=s.split('/')[-1]
-                g=re.match("^([^\s_@]+)",part)
+                g=re.match(r'^([^\s_@]+)',part)
                 volume_mat_list[tagid]=g[0]
             except:
                 volume_mat_list[tagid]=default_tag
