@@ -409,7 +409,7 @@ class Assembly:
                     stl_tagged.append((stl[0],stl[1],e.tag))
                 except:
                     print("WARNING: list of material tags is exhausted. Tagging volume {stl[0]},{stl[1]} with \'vacuum\'")
-                    stl_tagged.append(st[0],stl[1],'vacuum')
+                    stl_tagged.append(stl[0],stl[1],'vacuum')
             self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
         else:
             print(f'ERROR: Unknown backend: {backend}')
