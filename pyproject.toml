@@ -21,7 +21,7 @@ dependencies=[
         'typing',
         'meshio',
         'trimesh',
-        'pymoab',
+        'Cython'
 ]
 
         [project.urls]
