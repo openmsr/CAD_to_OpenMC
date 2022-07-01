@@ -59,7 +59,7 @@ class Entity:
             tolerance=1e-2)->bool:
         """method checks whether the entity can be regard as similar with another entities parameters"""
         cms_close=np.linalg.norm([self.center.x-center[0], self.center.y-center[1], self.center.z-center[2]])/np.linalg.norm(center)<tolerance
-        bb_close=np.linalg.norm([self.bb.xlen-bb[0],self.bb.ylen-bb[1],self.bb.zlen-bb[2]])/np.linalg.norm(bb)<tolerance 
+        bb_close=np.linalg.norm([self.bb.xlen-bb[0],self.bb.ylen-bb[1],self.bb.zlen-bb[2]])/np.linalg.norm(bb)<tolerance
         vol_close=np.abs(self.volume-volume)/volume<tolerance
         return (cms_close and bb_close and vol_close)
 
@@ -323,7 +323,7 @@ class Assembly:
         """
         volume_mat_list = {}
         offset=0
-        #do auto-tags for all but the last volumue , which might be a graveyard 
+        #do auto-tags for all but the last volumue , which might be a graveyard
         for entry in volumes[:-1]:
             tagid=entry[1]
             try:
@@ -339,7 +339,7 @@ class Assembly:
             volume_mat_list[volumes[-1][1]]='Graveyard'
         else:
             #assume that the graveyard (if needed) has been added beforehand
-            #use the tag from the file for the last element which may not be 
+            #use the tag from the file for the last element which may not be
             #the graveyard
             try:
                 tagid=volumes[-1][1]

@@ -9,4 +9,3 @@ class MesherFactory(object_factory.ObjectFactory):
 meshers=MesherFactory()
 meshers.register_builder('gmsh',MesherGMSHBuilder())
 meshers.register_builder('stl',MesherCQSTLBuilder())
-
