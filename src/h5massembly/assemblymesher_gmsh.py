@@ -1,5 +1,6 @@
 import gmsh
-
+import cadquery2 as cq
+import os
 
 class MesherGMSH:
   def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, solids):
@@ -9,17 +10,18 @@ class MesherGMSH:
     self.mesh_algorithm=mesh_algorithm
     self.solids=solids
     self._gmsh_init()
+    self._cq_solids_tp_gmsh()
+
+  def __del__(self):
+    gmsh.finalize()
 
   def _gmsh_init(self):
-      self._export_brep()
-
       gmsh.initialize()
       if (self.verbose>1):
           gmsh.option.setNumber("General.Terminal",1)
       else:
           gmsh.option.setNumber("General.Terminal",0)
 
-      gmsh.model.add(f"model from Assembly.py {brep_fn}")
       if(not default):
         gmsh.option.setString("Geometry.OCCTargetUnit","CM")
         #do this by means of properties instead
@@ -34,11 +36,18 @@ class MesherGMSH:
         gmsh.option.setNumber("Mesh.MeshSizeFromPoints",0)
         gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
         gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", self.curve_samples)
-      self.volumes = gmsh.model.occ.importShapes(self.fname)
-      gmsh.model.occ.synchronize()
 
-  def _gmsh_deinit(self):
-      gmsh.finalize()
+  def _cq_solids_to_gmsh(self):
+      #should check of solids is in fact a compound?
+      compound=cq.Compound.makeCompound(solids)
+
+      with tempfile.TemporaryDirectory(del) as td:
+        outpath=os.path.join(td,'export.',self.IntermediateLayer)
+        with open(outpath,'w') as fp:
+          compound.exportBrep(outpath)
+        gmsh.model.occ.importShapes(outpath)
+      gmsh.model.occ.synchronize()
+      gmsh.model.add(f"model from assembly.py: {outpath}")
 
   def _generate_mesh(self):
       if(self.verbose>0):
@@ -52,7 +61,6 @@ class MesherGMSH:
       so we have a list of volumes to operate on.
       We do this be greating gmsh physical groups and export 1 group at a time."""
       self._generate_mesh()
-
       stls=[]
       for dim,vid in self.volumes:
          if (dim!=3):
