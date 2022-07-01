@@ -21,7 +21,7 @@ mesher_config={
   'min_mesh_size':0.1,
   'max_mesh_size':10,
   'curve_samples':20,
-  'default':False
+  'default':False,
   'vetoed':None
 }
 
