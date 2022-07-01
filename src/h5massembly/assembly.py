@@ -14,6 +14,16 @@ import re
 import os
 from pymoab import core, types
 
+import assemblymesher
+mesher_config={
+  'tolerance':0.1,
+  'angular_tolerance':0.2,
+  'min_mesh_size':0.1,
+  'max_mesh_size':10,
+  'curve_samples':20,
+  'default':False
+}
+
 #these are dummies that we still need to define
 def _replace(filename, string1, string2):
     pass
@@ -25,7 +35,7 @@ class Entity:
     At some point it should be able to import also Shapes.
     For now it can just get a solid as input
     """
-    def __init__(self,solid=None,idx=0, tag: str ='vacuum'):
+    def __init__(self,solid=None,idx=0, tag='vacuum'):
         if solid is not None:
             self.solid=solid
             self.idx=idx
@@ -55,7 +65,7 @@ class Entity:
 
 def idx_similar(entity_list,center,bounding_box,volume):
     """returns the index in the solid_list for which a solid is similar in terms of bounding box, cms, and volume
-       If no similar object is found return -1. 
+       If no similar object is found return -1.
     """
     idx_found=[]
     found=False
@@ -371,48 +381,9 @@ class Assembly:
               self.export_brep(self.brep_filename)
         else:
             self.brep_filename=brep_filename
-
-        if(backend=="gmsh"):
-            if (self.verbose):
-                print(f'INFO: Using backend {backend} with parameters (min,max)_mesh_size=({min_mesh_size},{max_mesh_size}) curve_samples={samples}')
-            self.gmsh_init(self.brep_filename, samples=samples,min_mesh_size=min_mesh_size, max_mesh_size=max_mesh_size,mesh_algorithm=1, threads=threads, default=gmsh_default_opts)
-            self.gmsh_generate_mesh()
-            stl_list=self.gmsh_export_stls()
-            if(heal):
-                stl_list=self.heal_stls(stl_list)
-
-            # now we have the gmsh imported geometry. This order may be different from the one
-            # that is held by the cq.entities. We should rerun the similarity filter.
-            brep_volume_dimtags=gmsh.model.occ.getEntities(3)
-            tag_idx=[]
-            for dimtag in brep_volume_dimtags:
-              cms=gmsh.model.get_center_of_mass(dimtag[0],dimtag[1])
-              bb=gmsh.model.get_bounding_box(dimtag[0],dimtag[1])
-              vol=gmsh.model.get_mass(dimtag[0],dimtag[1])
-              j=idx_similar(self.entities,cms,bb,vol)
-              tag_idx.append(j)
-
-            #add the material tags to the stl_list
-            stl_tagged=[]
-            for (stl,e) in zip(stl_list,[self.entities[i] for i in tag_idx if i!=-1] ):
-                stl_tagged.append((stl[0],stl[1],e.tag))
-            self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
-        elif(backend=="stl"):
-            if (self.verbose):
-                print(f'INFO: Using backend {backend} with parameters tolerance={stl_tol} and angular tolerance={stl_ang_tol}')
-            stl_list=self.cq_export_stls(tolerance=stl_tol,angular_tolerance=stl_ang_tol)
-            if(heal):
-                stl_list=self.heal_stls(stl_list)
-            stl_tagged=[]
-            for (stl,e) in zip(stl_list,self.entities):
-                try:
-                    stl_tagged.append((stl[0],stl[1],e.tag))
-                except:
-                    print("WARNING: list of material tags is exhausted. Tagging volume {stl[0]},{stl[1]} with \'vacuum\'")
-                    stl_tagged.append(stl[0],stl[1],'vacuum')
-            self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
-        else:
-            print(f'ERROR: Unknown backend: {backend}')
+        config_mesh['solids']=self.solids
+        meshgen=meshers.get(backend,**config_mesh)
+        stl_lists=meshgen.generate_stls()
 
     def tag_geometry_with_mats(self,volumes,implicit_complement_material_tag,graveyard, default_tag='vacuum'):
         """Tag all volumes with materials coming from the step files

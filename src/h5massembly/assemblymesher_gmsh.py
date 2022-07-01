@@ -50,7 +50,7 @@ class MesherGMSH:
       and returns the list of files. This list may subsequently be iterated upon
       to merge into a h5m-file. Expects that the geometry has been surface-mesh by gmsh
       so we have a list of volumes to operate on.
-      We do this be greating gmsh physical groups and we may export only 1 group."""
+      We do this be greating gmsh physical groups and export 1 group at a time."""
       self._generate_mesh()
 
       stls=[]
@@ -69,6 +69,7 @@ class MesherGMSH:
             print(f'WARNING: Could not write volume {vid}. Skipping')
          gmsh.model.removePhysicalGroups([]) # remove group again
       return stls
+
 
 class MesherGMSHBuilder:
   def __init__(self):

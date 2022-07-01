@@ -1,7 +1,7 @@
 import cadquery2 as cq
 
 
-class MesherCQ:
+class MesherCQSTL:
   def __init__(self, tolerance, angular_tolerance, default, solids, verbose):
     self.brep_fname=fname
     self.tolerance=tolerance
@@ -24,11 +24,11 @@ class MesherCQ:
     return stls
 
 
-class MesherGMSHBuilder:
+class MesherCQSTLBuilder:
   def __init__(self):
     self._instance = None
 
   def __call__(self, tolerance, angular_tolerance, default, solids, verbose, **_ignored):
     if not self._instance:
-      self._instance = MesherCQ(tolerance, angular_tolerance, default, solids, verbose)
+      self._instance = MesherCQSTL(tolerance, angular_tolerance, default, solids, verbose)
     return self._instance
