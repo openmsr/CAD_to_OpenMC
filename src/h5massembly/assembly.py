@@ -312,8 +312,8 @@ class Assembly:
             backend:str="gmsh", stl_tol:float=0.1, stl_ang_tol:float=0.2, threads:int=1, heal:bool=True, gmsh_default_opts=False):
         """calls the lower level gmsh functions in order"""
 
-        config_mesh['solids']=self.solids
-        meshgen=meshers.get(backend,**config_mesh)
+        mesher_config['solids']=self.solids
+        meshgen=meshers.get(backend,**mesher_config)
         stl_list=meshgen.generate_stls()
         stl_list=self.heal_stls()
         stl2h5m(stl_list,h5m_filename,True)
