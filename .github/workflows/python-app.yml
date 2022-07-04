@@ -41,7 +41,6 @@ jobs:
         cmake -DENABLE_HDF5=ON -DENABLE_PYMOAB=ON -DBUILD_SHARED_LIBS=ON -DENABLE_FORTRAN=OFF
         make
         sudo make install
-        cat /home/runner/moab/lib/python${{matrix.pyv}}/site-packages/install_files.txt
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
