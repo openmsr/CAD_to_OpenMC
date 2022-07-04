@@ -31,7 +31,7 @@ class MesherGMSH:
       if(not self.default):
         gmsh.option.setString("Geometry.OCCTargetUnit","CM")
         #do this by means of properties instead
-        if(threads is not None):
+        if(self.threads is not None):
           gmsh.option.setNumber("General.NumThreads",self.threads)
 
         gmsh.option.setNumber("Mesh.Algorithm", self.mesh_algorithm)
