@@ -3,14 +3,15 @@ import cadquery2 as cq
 import os
 
 class MesherGMSH:
-  def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, solids):
+  def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, solids):
     self._min_mesh_size=min_mesh_size
     self._max_mesh_size=max_mesh_size
     self.curveSamples=curveSamples
     self.mesh_algorithm=mesh_algorithm
     self.solids=solids
+    self.vetoed=vetoed
     self._gmsh_init()
-    self._cq_solids_tp_gmsh()
+    self._cq_solids_to_gmsh()
 
   def __del__(self):
     gmsh.finalize()
@@ -67,7 +68,12 @@ class MesherGMSH:
              #appears not to be a volume - skip
              continue
          ents = gmsh.model.getAdjacencies(dim,vid)
-         pg = gmsh.model.addPhysicalGroup(2,ents[1])
+         #may want to skip some problematic surfaces
+         if(self.vetoed):
+            picked_ents=[e for e in ents[1] if e not in self.vetoed]
+         else:
+            picked_ents=ents[1]
+         pg = gmsh.model.addPhysicalGroup(2,picked_ents)
          ps = gmsh.model.setPhysicalName(2,pg,f'surfaces_on_volume_{vid}')
          filename=f'volume_{vid}.stl'
          try:
