@@ -5,13 +5,16 @@ import tempfile
 import assemblymesher
 
 class MesherGMSH:
-  def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, solids):
+  def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, solids):
+    self.IntermediateLayer='brep'
     self._min_mesh_size=min_mesh_size
     self._max_mesh_size=max_mesh_size
-    self.curveSamples=curveSamples
+    self.curve_samples=curve_samples
     self.mesh_algorithm=mesh_algorithm
+    self.default=default
     self.solids=solids
     self.vetoed=vetoed
+    self.threads=threads
     self._gmsh_init()
     self._cq_solids_to_gmsh()
 
@@ -25,11 +28,11 @@ class MesherGMSH:
       else:
           gmsh.option.setNumber("General.Terminal",0)
 
-      if(not default):
+      if(not self.default):
         gmsh.option.setString("Geometry.OCCTargetUnit","CM")
         #do this by means of properties instead
         if(threads is not None):
-          gmsh.option.setNumber("General.NumThreads",threads)
+          gmsh.option.setNumber("General.NumThreads",self.threads)
 
         gmsh.option.setNumber("Mesh.Algorithm", self.mesh_algorithm)
         gmsh.option.setNumber("Mesh.MeshSizeMin", self.min_mesh_size)
@@ -42,7 +45,7 @@ class MesherGMSH:
 
   def _cq_solids_to_gmsh(self):
       #should check of solids is in fact a compound?
-      compound=cq.Compound.makeCompound(solids)
+      compound=cq.Compound.makeCompound(self.solids)
 
       with tempfile.TemporaryDirectory() as td:
         outpath=os.path.join(td,'export.',self.IntermediateLayer)
