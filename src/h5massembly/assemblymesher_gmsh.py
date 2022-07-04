@@ -43,7 +43,7 @@ class MesherGMSH:
       #should check of solids is in fact a compound?
       compound=cq.Compound.makeCompound(solids)
 
-      with tempfile.TemporaryDirectory(del) as td:
+      with tempfile.TemporaryDirectory() as td:
         outpath=os.path.join(td,'export.',self.IntermediateLayer)
         with open(outpath,'w') as fp:
           compound.exportBrep(outpath)
