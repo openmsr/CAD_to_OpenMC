@@ -1,9 +1,8 @@
 import cadquery2 as cq
-
+import assemblymesher
 
 class MesherCQSTL:
   def __init__(self, tolerance, angular_tolerance, default, solids, verbose):
-    self.brep_fname=fname
     self.tolerance=tolerance
     self.angular_tolerance=angular_tolerance
     self.solids=solids
