@@ -14,7 +14,8 @@ import re
 import os
 from pymoab import core, types
 
-import assemblymesher
+from assemblymesher import *
+
 mesher_config={
   'tolerance':0.1,
   'angular_tolerance':0.2,
