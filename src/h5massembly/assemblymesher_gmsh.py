@@ -1,6 +1,7 @@
 import gmsh
 import cadquery2 as cq
 import os
+import tempfile
 import assemblymesher
 
 class MesherGMSH:
