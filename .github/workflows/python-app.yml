@@ -53,6 +53,4 @@ jobs:
     - name: Build and pip-install h5massembly w deps.
       run: |
         python -m build
-        ls dist
-        ls
         pip install dist/h5massembly*.tar.gz
