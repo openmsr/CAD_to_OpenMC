@@ -34,7 +34,7 @@ jobs:
     - name: build and install moab
       run: |
         sudo apt-get update
-        sudo apt-get -y install gcc cmake make build-essential libeigen3-dev libnetcdf-dev libnetcdf15 libnetcdf-mpi-dev libnetcdf-mpi-13 python3-netcdf4 libhdf5-103 libhdf5-cpp-103 libhdf5-dev python3-setuptools python3-build python3-pip libglu1-mesa
+        sudo apt-get -y install gcc cmake make build-essential libeigen3-dev libnetcdf-dev libnetcdf19 libnetcdf-mpi-dev libnetcdf-mpi-19 python3-netcdf4 libhdf5-103 libhdf5-cpp-103 libhdf5-dev python3-setuptools python3-build python3-pip libglu1-mesa
         git clone --single-branch --branch 5.3.1 --depth 1 https://bitbucket.org/fathomteam/moab.git
         cd moab
         mkdir build
