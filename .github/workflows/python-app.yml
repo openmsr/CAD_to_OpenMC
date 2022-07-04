@@ -5,7 +5,7 @@ name: Python application
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, factory_meshclasses ]
   pull_request:
     branches: [ main ]
 
@@ -38,9 +38,9 @@ jobs:
         git clone --single-branch --branch 5.3.1 --depth 1 https://bitbucket.org/fathomteam/moab.git
         cd moab
         mkdir build
-        cmake -DENABLE_HDF5=ON -DENABLE_PYMOAB=ON -DBUILD_SHARED_LIBS=ON -DENABLE_FORTRAN=OFF -DCMAKE_INSTALL_PREFIX=$HOME/moab
+        cmake -DENABLE_HDF5=ON -DENABLE_PYMOAB=ON -DBUILD_SHARED_LIBS=ON -DENABLE_FORTRAN=OFF
         make
-        make install
+        sudo make install
         cat /home/runner/moab/lib/python${{matrix.pyv}}/site-packages/install_files.txt
     - name: Lint with flake8
       run: |
@@ -48,12 +48,6 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=moab
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=moab
-    - name: check paths
+    - name: where am I
       run: |
-        export PYTHONPATH="$HOME/moab/lib/python${{matrix.pyv}}"
-        sudo find / -name pymoab\*
-        python -c 'import sys; print(sys.path)'
-    - name: Test with pytest
-      run: |
-        export PYTHONPATH="$HOME/moab/lib/python${{matrix.pyv}}"
-        pytest -o norecursedirs=moab
+        echo `pwd`
