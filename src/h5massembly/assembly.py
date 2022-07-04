@@ -316,7 +316,7 @@ class Assembly:
         meshgen=meshers.get(backend,**mesher_config)
         stl_list=meshgen.generate_stls()
         stl_list=self.heal_stls()
-        stl2h5m(stl_list,h5m_filename,True)
+        self.stl2h5m(stl_list,h5m_filename,True)
 
     def tag_geometry_with_mats(self,volumes,implicit_complement_material_tag,graveyard, default_tag='vacuum'):
         """Tag all volumes with materials coming from the step files
