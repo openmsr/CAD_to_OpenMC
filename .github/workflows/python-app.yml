@@ -12,7 +12,8 @@ on:
 permissions:
   contents: read
 env:
-  PYTHONPATH='/usr/local/lib'
+  PYTHONPATH: '/usr/local/lib'
+  
 jobs:
   build:
 
