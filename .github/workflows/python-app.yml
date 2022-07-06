@@ -52,6 +52,7 @@ jobs:
         echo `pwd`
     - name: Build, pip-install, and test-import h5massembly with dependencies.
       run: |
+        echo $PYTHONPATH
         python -m build
         pip install dist/h5massembly*.tar.gz
         python -c 'import h5massembly.assembly'
