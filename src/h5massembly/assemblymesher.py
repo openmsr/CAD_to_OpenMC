@@ -1,8 +1,8 @@
-import object_factory
-from assemblymesher_gmsh import *
-from assemblymesher_cq import *
+from .object_factory import ObjectFactory
+from .assemblymesher_gmsh import *
+from .assemblymesher_cq import *
 
-class MesherFactory(object_factory.ObjectFactory):
+class MesherFactory(ObjectFactory):
   def get(self,mesher_id,**kwargs):
     return self.create(mesher_id, **kwargs)
 

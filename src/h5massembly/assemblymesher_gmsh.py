@@ -2,7 +2,6 @@ import gmsh
 import cadquery2 as cq
 import os
 import tempfile
-import assemblymesher
 
 class MesherGMSH:
   def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, solids):

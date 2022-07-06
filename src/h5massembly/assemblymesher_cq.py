@@ -1,5 +1,4 @@
 import cadquery2 as cq
-from assemblymesher import *
 
 class MesherCQSTL:
   def __init__(self, tolerance, angular_tolerance, default, solids, verbose):
