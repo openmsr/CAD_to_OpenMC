@@ -50,7 +50,8 @@ jobs:
     - name: where am I
       run: |
         echo `pwd`
-    - name: Build and pip-install h5massembly w deps.
+    - name: Build, pip-install, and test-import h5massembly with dependencies.
       run: |
         python -m build
         pip install dist/h5massembly*.tar.gz
+        python -c 'import h5massembly.assembly'
