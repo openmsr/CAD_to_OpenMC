@@ -196,6 +196,8 @@ class Assembly:
         #import _all_ the shapes in the file - i.e. may return a list
         part = cq.importers.importStep(str(filename)).vals()
         #scale the shapes even if the factor is 1.
+        if(self.verbose!=0):
+            print(f'INFO: {str(filename)} imported - scaling')
         try:
             scaled_part = [p.scale(scale_factor) for p in part]
         except:
