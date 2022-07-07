@@ -57,4 +57,4 @@ jobs:
         pip install dist/h5massembly*.tar.gz
         python -c 'import h5massembly.assembly'
       env: 
-        PYTHONPATH: "/usr/local/lib/python_${{matrix.pyv}}/site-packages"
+        PYTHONPATH: "/usr/local/lib/python${{matrix.pyv}}/site-packages"
