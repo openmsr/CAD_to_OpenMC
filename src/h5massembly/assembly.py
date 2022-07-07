@@ -22,8 +22,10 @@ mesher_config={
   'min_mesh_size':0.1,
   'max_mesh_size':10,
   'curve_samples':20,
+  'mesh_algorithm':1,
   'default':False,
-  'vetoed':None
+  'vetoed':None,
+  'threads':4
 }
 
 #these are dummies that we still need to define
@@ -76,7 +78,7 @@ def idx_similar(entity_list,center,bounding_box,volume):
     idx_found=[]
     found=False
     for i,ent in enumerate(entity_list):
-      if ent.similar([center.x,center.y,center.z],[bounding_box.xlen,bounding_box.ylen, bounding_box.zlen],volume, tolerance=1e-1):
+      if ent.similar([center.x,center.y,center.z],[bounding_box.xlen,bounding_box.ylen, bounding_box.zlen],volume, tolerance=1e1):
         found=True
         idx_found.append(i)
     if(len(idx_found)>1):
@@ -313,10 +315,13 @@ class Assembly:
             backend:str="gmsh", stl_tol:float=0.1, stl_ang_tol:float=0.2, threads:int=1, heal:bool=True, gmsh_default_opts=False):
         """calls the lower level gmsh functions in order"""
 
-        mesher_config['solids']=self.solids
+        mesher_config['entities']=self.entities
         meshgen=meshers.get(backend,**mesher_config)
         stl_list=meshgen.generate_stls()
-        stl_list=self.heal_stls()
+        for e in self.entities:
+          print('before'+e.stl)
+        if(heal):
+          stl_list=self.heal_stls(stl_list)
         self.stl2h5m(stl_list,h5m_filename,True)
 
     def tag_geometry_with_mats(self,volumes,implicit_complement_material_tag,graveyard, default_tag='vacuum'):
@@ -477,6 +482,90 @@ class Assembly:
         tags["global_id"] = moab_core.tag_get_handle(types.GLOBAL_ID_TAG_NAME)
         return moab_core, tags
 
+    def merge_all(self):
+        #merging a single object does not really make sense
+        if len(self.entities)>1:
+          #extract cq solids backend algorithm
+          unmerged=[e.solid for e in self.entities]
+          #do merge
+          merged=self._merge_solids(unmerged, fuzzy_value=1e-2)
+          #the merging process may result in extra volumes.
+          #We need to make sure these are at the end of the list
+          #If not this results in a loss ofvolumes in the end.
+          print("INFO: reordering volumes")
+          idxs=[]
+          for solid in merged.Solids():
+            center=solid.Center()
+            bb=solid.BoundingBox()
+            vol=solid.Volume()
+            idx=idx_similar(self.entities,center,bb,vol)
+            idxs.append(idx)
+          ents=[self.entities[i] for i in idxs if i!=-1]
+          self.entities=ents
+
+    def _merge_solids(self,solids,fuzzy_value):
+        """merge a set of cq-solids
+           returns as cq-compound object
+        """
+        bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
+        bldr.SetFuzzyValue(fuzzy_value)
+        #loop trough all objects in geometry and split and merge them accordingly
+        #shapes should be a compund cq object or a list thereof
+        for shape in solids:
+          # checks if solid is a compound as .val() is not needed for compunds
+          if isinstance(shape, cq.occ_impl.shapes.Compound):
+            bldr.AddArgument(shape.wrapped)
+          else:
+              try:
+                  bldr.AddArgument(shape.val().wrapped)
+              except:
+                  bldr.AddArgument(shape.wrapped)
+        bldr.SetParallelMode_s(True)
+        bldr.SetNonDestructive(True)
+
+        if(self.verbose>1):
+            print("INFO: Commence perform step of merge")
+        bldr.Perform()
+
+        if(self.verbose>1):
+            print("INFO: Commence image step of merge")
+        bldr.Images()
+
+        if(self.verbose>1):
+            print("INFO: Generate compound shape")
+        merged = cq.Compound(bldr.Shape())
+
+        return merged
+
+    def heal_stls(self,stls):
+        if(self.verbose>0):
+            print("INFO: checking surfaces and reparing normals")
+        for e in self.entities:
+          print('before'+e.stl)
+
+        healed=[]
+        for e in self.entities:
+            stl=e.stl
+            mesh = trimesh.load_mesh(stl)
+            if (self.verbose>1):
+                print("INFO: stl-file", stl, ": mesh is watertight", mesh.is_watertight)
+            trimesh.repair.fix_normals(
+                mesh
+            )  # reqired as gmsh stl export from brep can get the inside outside mixed up
+            new_filename = stl[:-4] + "_with_corrected_face_normals.stl"
+            mesh.export(new_filename)
+            e.stl=new_filename
+
+    def tag_stls(self,stls):
+        stl_tagged=[]
+        for (stl,e) in zip(stl_list,self.entities):
+            try:
+                stl_tagged.append((stl[0],stl[1],e.tag))
+            except:
+                print("WARNING: list of material tags is exhausted. Tagging volume {stl[0]},{stl[1]} with \'vacuum\'")
+                stl_tagged.append(stl[0],stl[1],'vacuum')
+
+###############
     def export_brep(self, filename: str, merge: bool = True, step: bool =False):
         """Exports a brep file for the Assembly
         This requires serializing the assembly
@@ -528,58 +617,8 @@ class Assembly:
 
         return rval
 
-    def merge_surfaces(self):
-        """Run through the assembly and merge concurrent surfaces.
-            We should only merge surfaces that have overlapping bounding boxes
-        """
-        bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
-        bldr.SetFuzzyValue(1e-1)
-        #loop trough all objects in geometry and split and merge them accordingly
-        #shapes should be a compund cq object or a list thereof
-        for shape in self.entities:
-          # checks if solid is a compound as .val() is not needed for compunds
-          if isinstance(shape.solid, cq.occ_impl.shapes.Compound):
-            bldr.AddArgument(shape.solid.wrapped)
-          else:
-              try:
-                  bldr.AddArgument(shape.solid.val().wrapped)
-              except:
-                  bldr.AddArgument(shape.solid.wrapped)
-        bldr.SetParallelMode_s(True)
-        bldr.SetNonDestructive(True)
 
-        if(self.verbose>1):
-            print("INFO: Commence perform step of merge")
-        bldr.Perform()
-
-        if(self.verbose>1):
-            print("INFO: Commence image step of merge")
-        bldr.Images()
-
-        if(self.verbose>1):
-            print("INFO: Generate compound shape")
-        self.merged = cq.Compound(bldr.Shape())
-
-        return self.merged
 
     def merge_two(self,solid1,solid2):
         """ Checks two surfaces if their BB overlap. If so merge the two - and return a list of the results
         """
-
-    def heal_stls(self,stls):
-        if(self.verbose>0):
-            print("INFO: checking surfaces and reparing normals")
-
-        healed=[]
-        for stl in stls:
-            vid,fn=stl
-            mesh = trimesh.load_mesh(fn)
-            if (self.verbose>1):
-                print("INFO: stl-file", fn, ": mesh is watertight", mesh.is_watertight)
-            trimesh.repair.fix_normals(
-                mesh
-            )  # reqired as gmsh stl export from brep can get the inside outside mixed up
-            new_filename = fn[:-4] + "_with_corrected_face_normals.stl"
-            mesh.export(new_filename)
-            healed.append((vid,new_filename))
-        return healed
