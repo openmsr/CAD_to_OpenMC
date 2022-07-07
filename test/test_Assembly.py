@@ -10,9 +10,6 @@ class TestRun:
     self.a.import_stp_files()
     self.h5m = 'out.h5m'
 
-  def test_brep_export(self):
-    assert a.export_brep(ofile)
-
   def test_gmsh(self):
     self.a.solids_to_h5m(backend='gmsh')
     h5p = pl.Path('dagmc.h5m')
