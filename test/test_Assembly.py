@@ -24,7 +24,7 @@ class TestRun:
     self._cleanup()
 
   def _cleanup(self):
-    pwd=pathlib.Path('.')
+    pwd=pl.Path('.')
     for v in pwd.glob('volume_*.stl'):
       v.unlink()
     (pwd / 'dagmc.h5,').unlink()
