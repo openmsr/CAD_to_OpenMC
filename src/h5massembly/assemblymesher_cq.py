@@ -1,32 +1,29 @@
 import cadquery2 as cq
 
 class MesherCQSTL:
-  def __init__(self, tolerance, angular_tolerance, default, solids, verbose):
+  def __init__(self, tolerance, angular_tolerance, default, entities):
     self.tolerance=tolerance
     self.angular_tolerance=angular_tolerance
-    self.solids=solids
-    self.verbose=verbose
+    self.entities=entities
+    self.verbose=2
 
   def generate_stls(self):
     stls=[]
-    #If not merged we should operate directly on the entities objects
-    #For now this is a hack relying on the fact that merged is a compund object.
-
-    for i,s in enumerate(self.solids):
+    #created a cq-compund from list of entities
+    for i,e in enumerate(self.entities):
       j=i+1
       filename=f"volume_{j}.stl"
-      status=cq.exporters.export(s,filename,exportType="STL",tolerance=self.tolerance,angularTolerance=self.angular_tolerance)
+      status=cq.exporters.export(e.solid,filename,exportType="STL",tolerance=self.tolerance,angularTolerance=self.angular_tolerance)
       if(self.verbose>1):
         print(f"INFO: cq export to file {filename}:{status}")
-      stls.append((j,filename))
+      e.stl=filename
     return stls
-
 
 class MesherCQSTLBuilder:
   def __init__(self):
     self._instance = None
 
-  def __call__(self, tolerance, angular_tolerance, default, solids, verbose, **_ignored):
+  def __call__(self, tolerance, angular_tolerance, default, entities, **_ignored):
     if not self._instance:
-      self._instance = MesherCQSTL(tolerance, angular_tolerance, default, solids, verbose)
+      self._instance = MesherCQSTL(tolerance, angular_tolerance, default, entities)
     return self._instance

@@ -362,10 +362,10 @@ class Assembly:
         moab_core,moab_tags = self.init_moab()
 
         sid,vid = (1,1)
-        for sid,sfn,mtag in stls:
+        for e in self.entities:
             if (self.verbose>1):
                 print(f"INFO: add stl-file \"{sfn}\" with tag \"{mtag}\" to MOAB structure")
-            moab_core = self.add_stl_to_moab_core(moab_core,sid,vid,mtag, moab_tags, sfn)
+            moab_core = self.add_stl_to_moab_core(moab_core,sid,vid,e.tag, moab_tags, e.stl)
             vid += 1
             sid += 1
 
