@@ -318,8 +318,6 @@ class Assembly:
         mesher_config['entities']=self.entities
         meshgen=meshers.get(backend,**mesher_config)
         stl_list=meshgen.generate_stls()
-        for e in self.entities:
-          print('before'+e.stl)
         if(heal):
           stl_list=self.heal_stls(stl_list)
         self.stl2h5m(stl_list,h5m_filename,True)
@@ -540,8 +538,6 @@ class Assembly:
     def heal_stls(self,stls):
         if(self.verbose>0):
             print("INFO: checking surfaces and reparing normals")
-        for e in self.entities:
-          print('before'+e.stl)
 
         healed=[]
         for e in self.entities:

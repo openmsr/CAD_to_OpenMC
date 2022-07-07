@@ -69,7 +69,6 @@ class MesherGMSH:
       #tag_idx is now the reordered list of indices
       #use that to reorder the entities to match the newly imported
       #list of volumes in the gmsh geometry representation
-      print("tag_idx",tag_idx)
       self.entities=[self.entities[i] for i in tag_idx if i!=-1]
 
   def _find_similar(self,cms,bb,vol):
@@ -77,8 +76,6 @@ class MesherGMSH:
       iclose=-1
       for i,e in enumerate(self.entities):
           simi=e.similarity(cms,bb,vol,tolerance=1e5)
-          print(cms,bb,vol)
-          print(i,e.center,e.bb,e.volume,simi)
           if (simi<closest):
               iclose=i
               closest=simi
@@ -87,7 +84,6 @@ class MesherGMSH:
   def _generate_mesh(self):
       if(self.verbose>0):
           print("INFO: GMSH generate surface mesh")
-      print(gmsh.model.getEntities(2))
       gmsh.model.mesh.generate(2)
 
   def generate_stls(self):
