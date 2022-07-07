@@ -369,7 +369,7 @@ class Assembly:
         sid,vid = (1,1)
         for e in self.entities:
             if (self.verbose>1):
-                print(f"INFO: add stl-file \"{sfn}\" with tag \"{mtag}\" to MOAB structure")
+                print(f"INFO: add stl-file \"{e.stl}\" with tag \"{mtag}\" to MOAB structure")
             moab_core = self.add_stl_to_moab_core(moab_core,sid,vid,e.tag, moab_tags, e.stl)
             vid += 1
             sid += 1
