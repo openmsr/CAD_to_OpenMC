@@ -2,8 +2,6 @@ gmsh
 cadquery2
 numpy
 OCP
-pathlib
-typing
 meshio
 trimesh
 Cython

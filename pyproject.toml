@@ -1,6 +1,6 @@
 [project]
-name="h5massembly"
-version="0.0.11-2"
+name="CAD_to_OpenMC"
+version="0.0.2"
 authors = [
   { name="Erik B Knudsen", email="erik.knudsen@copenhagenatomics.com" },
 ]
@@ -17,8 +17,6 @@ dependencies=[
         'cadquery2',
         'numpy',
         'OCP',
-        'pathlib',
-        'typing',
         'meshio',
         'trimesh',
         'Cython'

@@ -14,6 +14,20 @@ import re
 import os
 from pymoab import core, types
 
+from .assemblymesher import *
+
+mesher_config={
+  'tolerance':0.1,
+  'angular_tolerance':0.2,
+  'min_mesh_size':0.1,
+  'max_mesh_size':10,
+  'curve_samples':20,
+  'mesh_algorithm':1,
+  'default':False,
+  'vetoed':None,
+  'threads':4
+}
+
 #these are dummies that we still need to define
 def _replace(filename, string1, string2):
     pass
@@ -25,7 +39,7 @@ class Entity:
     At some point it should be able to import also Shapes.
     For now it can just get a solid as input
     """
-    def __init__(self,solid=None,idx=0, tag: str ='vacuum'):
+    def __init__(self,solid=None,idx=0, tag='vacuum'):
         if solid is not None:
             self.solid=solid
             self.idx=idx
@@ -48,19 +62,23 @@ class Entity:
             tolerance=1e-2)->bool:
         """method checks whether the entity can be regard as similar with another entities parameters"""
         cms_close=np.linalg.norm([self.center.x-center[0], self.center.y-center[1], self.center.z-center[2]])/np.linalg.norm(center)<tolerance
-        bb_close=np.linalg.norm([self.bb.xlen-bb[0],self.bb.ylen-bb[1],self.bb.zlen-bb[2]])/np.linalg.norm(bb)<tolerance 
+        bb_close=np.linalg.norm([self.bb.xlen-bb[0],self.bb.ylen-bb[1],self.bb.zlen-bb[2]])/np.linalg.norm(bb)<tolerance
         vol_close=np.abs(self.volume-volume)/volume<tolerance
         return (cms_close and bb_close and vol_close)
+
+    def export_stp(self):
+        """export the entity to a step-file using its tag as filename through cadquery export"""
+        pass
 
 
 def idx_similar(entity_list,center,bounding_box,volume):
     """returns the index in the solid_list for which a solid is similar in terms of bounding box, cms, and volume
-       If no similar object is found return -1. 
+       If no similar object is found return -1.
     """
     idx_found=[]
     found=False
     for i,ent in enumerate(entity_list):
-      if ent.similar([center.x,center.y,center.z],[bounding_box.xlen,bounding_box.ylen, bounding_box.zlen],volume, tolerance=1e-1):
+      if ent.similar([center.x,center.y,center.z],[bounding_box.xlen,bounding_box.ylen, bounding_box.zlen],volume, tolerance=1e1):
         found=True
         idx_found.append(i)
     if(len(idx_found)>1):
@@ -165,7 +183,7 @@ class Assembly:
         """Loads a stp file and makes the 3D solid and wires available for use.
 
         Args:
-            filename: the filename used to save the html graph.
+            filename: the filename of the file containing the step-definition.
             scale_factor: a scaling factor to apply to the geometry that can be
                 used to increase the size or decrease the size of the geometry.
                 Useful when converting the geometry to cm for use in neutronics
@@ -173,11 +191,13 @@ class Assembly:
                 which assumes mm to the the standard of OpenMC which is cm.
 
         Returns:
-            CadQuery.solid
+            [CadQuery.solid]
         """
         #import _all_ the shapes in the file - i.e. may return a list
         part = cq.importers.importStep(str(filename)).vals()
         #scale the shapes even if the factor is 1.
+        if(self.verbose!=0):
+            print(f'INFO: {str(filename)} imported - scaling')
         try:
             scaled_part = [p.scale(scale_factor) for p in part]
         except:
@@ -185,7 +205,7 @@ class Assembly:
 
         solid=[]
         #serialize
-        #Solids returns a list even if the part is not a Compund object
+        #Solids() returns a list even if the part is not a Compund object
         try:
             for p in scaled_part:
                 solid.extend(p.Solids())
@@ -291,135 +311,25 @@ class Assembly:
             stls.append((j,filename))
         return stls
 
-    def export_stl(
-        self,
-        filename: Union[List[str], str] = None,
-        tolerance: float = 0.001,
-        angular_tolerance: float = 0.1,
-        idx: int =0
-    ) -> Union[str, List[str]]:
-        """Writes stl files (CAD geometry) for each Shape object in the assembly
-
-        Args:
-            filename: Accepts a single filename as a string which exports the
-                full reactor model to a single file. Alternativley filename can
-                also accept a list of strings where each string is the filename
-                of the the individual shapes that make it up. This will result
-                in separate files for each shape in the reactor. Defaults to
-                None which uses the Reactor.name with '.stl' appended to the end
-                of each entry.
-            tolerance (float):  the precision of the faceting
-            include_graveyard: specify if the graveyard will be included or
-                not. If True the the Reactor.make_graveyard will be called
-                using Reactor.graveyard_size and Reactor.graveyard_offset
-                attribute values.
-
-        Returns:
-            list: a list of stl filenames created
-        """
-
-        if isinstance(filename, str):
-
-            filename = pl.Path(filename)
-
-            if filename.suffix != ".stl":
-                filename = filename.with_suffix(".stl")
-
-            filename.parents[0].mkdir(parents=True, exist_ok=True)
-
-            # add an include_graveyard that add graveyard if requested
-            cq.exporters.export(
-                self.entities[idx].solid,
-                str(filename),
-                exportType="STL",
-                tolerance=tolerance,
-                angularTolerance=angular_tolerance,
-            )
-            return str(filename)
-
-        if filename is None:
-            #construct stl_file names from stp_files
-            self.stl_files=[str(pl.Path(f).with_suffix('.stl')) for f in self.stp_files]
-
-        # exports the assembly solid as a separate stl files
-        if len(filename) != len(self.entities):
-            msg = (
-                f"The Reactor contains {len(self.shapes_and_components)} "
-                f"Shapes and {len(filename)} filenames have be provided. "
-                f"The names of the shapes are {self.name}"
-            )
-            raise ValueError(msg)
-        #needs to be fixed
-        for stl_filename, entry in zip(filename, self.shapes_and_components):
-            entry.export_stl(
-                filename=stl_filename,
-                tolerance=tolerance,
-                verbose=False,
-            )
-        return filename
-
     #See issue 4 - we should clean up the parameter-interface to gmsh (and friends)
-    def brep_to_h5m(self,brep_filename: str = None, h5m_filename:str="dagmc.h5m", samples: int =100,
+    def solids_to_h5m(self,brep_filename: str = None, h5m_filename:str="dagmc.h5m", samples: int =100,
             min_mesh_size:float =0.1, max_mesh_size:float =1.0,delete_intermediate_stl_files:bool=False,
             backend:str="gmsh", stl_tol:float=0.1, stl_ang_tol:float=0.2, threads:int=1, heal:bool=True, gmsh_default_opts=False):
         """calls the lower level gmsh functions in order"""
-        if (brep_filename is None):
-            try:
-              self.export_brep(self.brep_filename)
-            except:
-              self.brep_filename='temp_name.brep'
-              self.export_brep(self.brep_filename)
-        else:
-            self.brep_filename=brep_filename
 
-        if(backend=="gmsh"):
-            if (self.verbose):
-                print(f'INFO: Using backend {backend} with parameters (min,max)_mesh_size=({min_mesh_size},{max_mesh_size}) curve_samples={samples}')
-            self.gmsh_init(self.brep_filename, samples=samples,min_mesh_size=min_mesh_size, max_mesh_size=max_mesh_size,mesh_algorithm=1, threads=threads, default=gmsh_default_opts)
-            self.gmsh_generate_mesh()
-            stl_list=self.gmsh_export_stls()
-            if(heal):
-                stl_list=self.heal_stls(stl_list)
-
-            # now we have the gmsh imported geometry. This order may be different from the one
-            # that is held by the cq.entities. We should rerun the similarity filter.
-            brep_volume_dimtags=gmsh.model.occ.getEntities(3)
-            tag_idx=[]
-            for dimtag in brep_volume_dimtags:
-              cms=gmsh.model.get_center_of_mass(dimtag[0],dimtag[1])
-              bb=gmsh.model.get_bounding_box(dimtag[0],dimtag[1])
-              vol=gmsh.model.get_mass(dimtag[0],dimtag[1])
-              j=idx_similar(self.entities,cms,bb,vol)
-              tag_idx.append(j)
-
-            #add the material tags to the stl_list
-            stl_tagged=[]
-            for (stl,e) in zip(stl_list,[self.entities[i] for i in tag_idx if i!=-1] ):
-                stl_tagged.append((stl[0],stl[1],e.tag))
-            self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
-        elif(backend=="stl"):
-            if (self.verbose):
-                print(f'INFO: Using backend {backend} with parameters tolerance={stl_tol} and angular tolerance={stl_ang_tol}')
-            stl_list=self.cq_export_stls(tolerance=stl_tol,angular_tolerance=stl_ang_tol)
-            if(heal):
-                stl_list=self.heal_stls(stl_list)
-            stl_tagged=[]
-            for (stl,e) in zip(stl_list,self.entities):
-                try:
-                    stl_tagged.append((stl[0],stl[1],e.tag))
-                except:
-                    print("WARNING: list of material tags is exhausted. Tagging volume {stl[0]},{stl[1]} with \'vacuum\'")
-                    stl_tagged.append(stl[0],stl[1],'vacuum')
-            self.stl2h5m(stl_tagged,h5m_file=h5m_filename)
-        else:
-            print(f'ERROR: Unknown backend: {backend}')
+        mesher_config['entities']=self.entities
+        meshgen=meshers.get(backend,**mesher_config)
+        stl_list=meshgen.generate_stls()
+        if(heal):
+          stl_list=self.heal_stls(stl_list)
+        self.stl2h5m(stl_list,h5m_filename,True)
 
     def tag_geometry_with_mats(self,volumes,implicit_complement_material_tag,graveyard, default_tag='vacuum'):
         """Tag all volumes with materials coming from the step files
         """
         volume_mat_list = {}
         offset=0
-        #do auto-tags for all but the last volumue , which might be a graveyard 
+        #do auto-tags for all but the last volumue , which might be a graveyard
         for entry in volumes[:-1]:
             tagid=entry[1]
             try:
@@ -435,7 +345,7 @@ class Assembly:
             volume_mat_list[volumes[-1][1]]='Graveyard'
         else:
             #assume that the graveyard (if needed) has been added beforehand
-            #use the tag from the file for the last element which may not be 
+            #use the tag from the file for the last element which may not be
             #the graveyard
             try:
                 tagid=volumes[-1][1]
@@ -445,8 +355,6 @@ class Assembly:
             except:
                 volume_mat_list[tagid]=default_tag
         return volume_mat_list
-
-    #this bit is picked from stl_to_h5m
 
     def stl2h5m(self,stls:list,h5m_file:str='dagmc.h5m', vtk:bool=False) -> str:
         """function that export the list of stls that we have presumably generated somehow
@@ -459,10 +367,10 @@ class Assembly:
         moab_core,moab_tags = self.init_moab()
 
         sid,vid = (1,1)
-        for sid,sfn,mtag in stls:
+        for e in self.entities:
             if (self.verbose>1):
-                print(f"INFO: add stl-file \"{sfn}\" with tag \"{mtag}\" to MOAB structure")
-            moab_core = self.add_stl_to_moab_core(moab_core,sid,vid,mtag, moab_tags, sfn)
+                print(f"INFO: add stl-file \"{e.stl}\" with tag \"{mtag}\" to MOAB structure")
+            moab_core = self.add_stl_to_moab_core(moab_core,sid,vid,e.tag, moab_tags, e.stl)
             vid += 1
             sid += 1
 
@@ -574,6 +482,88 @@ class Assembly:
         tags["global_id"] = moab_core.tag_get_handle(types.GLOBAL_ID_TAG_NAME)
         return moab_core, tags
 
+    def merge_all(self):
+        #merging a single object does not really make sense
+        if len(self.entities)>1:
+          #extract cq solids backend algorithm
+          unmerged=[e.solid for e in self.entities]
+          #do merge
+          merged=self._merge_solids(unmerged, fuzzy_value=1e-2)
+          #the merging process may result in extra volumes.
+          #We need to make sure these are at the end of the list
+          #If not this results in a loss ofvolumes in the end.
+          print("INFO: reordering volumes")
+          idxs=[]
+          for solid in merged.Solids():
+            center=solid.Center()
+            bb=solid.BoundingBox()
+            vol=solid.Volume()
+            idx=idx_similar(self.entities,center,bb,vol)
+            idxs.append(idx)
+          ents=[self.entities[i] for i in idxs if i!=-1]
+          self.entities=ents
+
+    def _merge_solids(self,solids,fuzzy_value):
+        """merge a set of cq-solids
+           returns as cq-compound object
+        """
+        bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
+        bldr.SetFuzzyValue(fuzzy_value)
+        #loop trough all objects in geometry and split and merge them accordingly
+        #shapes should be a compund cq object or a list thereof
+        for shape in solids:
+          # checks if solid is a compound as .val() is not needed for compunds
+          if isinstance(shape, cq.occ_impl.shapes.Compound):
+            bldr.AddArgument(shape.wrapped)
+          else:
+              try:
+                  bldr.AddArgument(shape.val().wrapped)
+              except:
+                  bldr.AddArgument(shape.wrapped)
+        bldr.SetParallelMode_s(True)
+        bldr.SetNonDestructive(True)
+
+        if(self.verbose>1):
+            print("INFO: Commence perform step of merge")
+        bldr.Perform()
+
+        if(self.verbose>1):
+            print("INFO: Commence image step of merge")
+        bldr.Images()
+
+        if(self.verbose>1):
+            print("INFO: Generate compound shape")
+        merged = cq.Compound(bldr.Shape())
+
+        return merged
+
+    def heal_stls(self,stls):
+        if(self.verbose>0):
+            print("INFO: checking surfaces and reparing normals")
+
+        healed=[]
+        for e in self.entities:
+            stl=e.stl
+            mesh = trimesh.load_mesh(stl)
+            if (self.verbose>1):
+                print("INFO: stl-file", stl, ": mesh is watertight", mesh.is_watertight)
+            trimesh.repair.fix_normals(
+                mesh
+            )  # reqired as gmsh stl export from brep can get the inside outside mixed up
+            new_filename = stl[:-4] + "_with_corrected_face_normals.stl"
+            mesh.export(new_filename)
+            e.stl=new_filename
+
+    def tag_stls(self,stls):
+        stl_tagged=[]
+        for (stl,e) in zip(stl_list,self.entities):
+            try:
+                stl_tagged.append((stl[0],stl[1],e.tag))
+            except:
+                print("WARNING: list of material tags is exhausted. Tagging volume {stl[0]},{stl[1]} with \'vacuum\'")
+                stl_tagged.append(stl[0],stl[1],'vacuum')
+
+###############
     def export_brep(self, filename: str, merge: bool = True, step: bool =False):
         """Exports a brep file for the Assembly
         This requires serializing the assembly
@@ -625,142 +615,8 @@ class Assembly:
 
         return rval
 
-    def merge_surfaces(self):
-        """Run through the assembly and merge concurrent surfaces.
-            We should only merge surfaces that have overlapping bounding boxes
-        """
-        bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
-        bldr.SetFuzzyValue(1e-1)
-        #loop trough all objects in geometry and split and merge them accordingly
-        #shapes should be a compund cq object or a list thereof
-        for shape in self.entities:
-          # checks if solid is a compound as .val() is not needed for compunds
-          if isinstance(shape.solid, cq.occ_impl.shapes.Compound):
-            bldr.AddArgument(shape.solid.wrapped)
-          else:
-              try:
-                  bldr.AddArgument(shape.solid.val().wrapped)
-              except:
-                  bldr.AddArgument(shape.solid.wrapped)
-        bldr.SetParallelMode_s(True)
-        bldr.SetNonDestructive(True)
 
-        if(self.verbose>1):
-            print("INFO: Commence perform step of merge")
-        bldr.Perform()
-
-        if(self.verbose>1):
-            print("INFO: Commence image step of merge")
-        bldr.Images()
-
-        if(self.verbose>1):
-            print("INFO: Generate compound shape")
-        self.merged = cq.Compound(bldr.Shape())
-
-        return self.merged
 
     def merge_two(self,solid1,solid2):
         """ Checks two surfaces if their BB overlap. If so merge the two - and return a list of the results
         """
-
-
-
-    def gmsh_init(self,brep_fn="geometry.brep",default=False,samples=20, min_mesh_size=0.1, max_mesh_size=10, mesh_algorithm=1, threads=None):
-        gmsh.initialize()
-        if (self.verbose>1):
-            gmsh.option.setNumber("General.Terminal",1)
-        else:
-            gmsh.option.setNumber("General.Terminal",0)
-
-        gmsh.model.add(f"model from Assembly.py {brep_fn}")
-        if(not default):
-          gmsh.option.setString("Geometry.OCCTargetUnit","CM")
-          #do this by means of properties instead
-          if(threads is not None):
-            gmsh.option.setNumber("General.NumThreads",threads)
-
-          gmsh.option.setNumber("Mesh.Algorithm", mesh_algorithm)
-          gmsh.option.setNumber("Mesh.MeshSizeMin", min_mesh_size)
-          gmsh.option.setNumber("Mesh.MeshSizeMax", max_mesh_size)
-
-          gmsh.option.setNumber("Mesh.MaxRetries",3)
-          gmsh.option.setNumber("Mesh.MeshSizeFromPoints",0)
-          gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
-          gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", samples)
-        self.volumes = gmsh.model.occ.importShapes(brep_fn)
-        gmsh.model.occ.synchronize()
-
-    def gmsh_deinit(self):
-        gmsh.finalize()
-
-    def gmsh_set_graveyard(self,graveyard_side=100, graveyard_radius=None, division=2):
-        """Method sets up a graveyard box and a rough mesh_field there"""
-        gs=graveyard_side/2.0
-        final_volume_number=self.volumes[-1][1]
-        gmsh.model.occ.addBox(-gs,-gs,-gs,2*gs,2*gs,2*gs,final_volume_number+2)
-        gmsh.model.occ.addBox(-gs-2.5,-gs-2.5,-gs-2.5,2*gs+5.,2*gs+5.,2*gs+5.,final_volume_number+3)
-        gy_tag=gmsh.model.occ.cut([(3,final_volume_number+3)],[(3,final_volume_number+2)],final_volume_number+1)
-        gmsh.model.occ.synchronize()
-        self.graveyard_size=graveyard_side;
-        self.volumes=gmsh.model.getEntities(3)
-        self._set_graveyard_box_field()
-
-    def _gmsh_set_graveyard_box_field(self,division=2,field=0):
-        """set the mesh size field close (and outside) to the graveyard to something coarse(r)"""
-        gmsh.model.mesh.field.add("Box",field)
-        gmsh.model.mesh.field.setNumber(field,"VIn",10)
-        gmsh.model.mesh.field.setNumber(field,"VOut",self.graveyard_size/division)
-
-        gmsh.model.mesh.field.setNumber(field,"XMin",-(self.graveyard_size*0.99)/2.0)
-        gmsh.model.mesh.field.setNumber(field,"XMax", (self.graveyard_size*0.99)/2.0)
-        gmsh.model.mesh.field.setNumber(field,"YMin",-(self.graveyard_size*0.99)/2.0)
-        gmsh.model.mesh.field.setNumber(field,"YMax", (self.graveyard_size*0.99)/2.0)
-        gmsh.model.mesh.field.setNumber(field,"ZMin",-(self.graveyard_size*0.99)/2.0)
-        gmsh.model.mesh.field.setNumber(field,"ZMax", (self.graveyard_size*0.99)/2.0)
-        return field
-
-    def gmsh_generate_mesh(self):
-        if(self.verbose>0):
-            print("INFO: Meshing surfaces")
-        gmsh.model.mesh.generate(2)
-
-    def gmsh_export_stls(self):
-        """export all the optionally merged volumes as stl-files
-        and returns the list of files. This list may subsequently be iterated upon
-        to merge into a h5m-file. Expects that the geometry has been surface-mesh by gmsh
-        so we have a list of volumes to operate on.
-        We do this be greating gmsh physical groups and we may export only 1 group."""
-        stls=[]
-        for dim,vid in self.volumes:
-           if (dim!=3):
-               #appears not to be a volume - skip
-               continue
-           ents = gmsh.model.getAdjacencies(dim,vid)
-           pg = gmsh.model.addPhysicalGroup(2,ents[1])
-           ps = gmsh.model.setPhysicalName(2,pg,f'surfaces_on_volume_{vid}')
-           filename=f'volume_{vid}.stl'
-           try:
-              gmsh.write(filename)
-              stls.append((vid,filename))
-           except:
-              print(f'WARNING: Could not write volume {vid}. Skipping')
-           gmsh.model.removePhysicalGroups([]) # remove group again
-        return stls
-
-    def heal_stls(self,stls):
-        if(self.verbose>0):
-            print("INFO: checking surfaces and reparing normals")
-
-        healed=[]
-        for stl in stls:
-            vid,fn=stl
-            mesh = trimesh.load_mesh(fn)
-            if (self.verbose>1):
-                print("INFO: stl-file", fn, ": mesh is watertight", mesh.is_watertight)
-            trimesh.repair.fix_normals(
-                mesh
-            )  # reqired as gmsh stl export from brep can get the inside outside mixed up
-            new_filename = fn[:-4] + "_with_corrected_face_normals.stl"
-            mesh.export(new_filename)
-            healed.append((vid,new_filename))
-        return healed
