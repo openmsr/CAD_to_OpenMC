@@ -42,19 +42,21 @@ Parameters are changed by means of altering entries in the ```mesher_config```-d
 Below is a list of the available parameters and their
 meanings:
 
-min_mesh_size
-:Minimum mesh element size (gmsh backend)
-max_mesh_size
-:Maximum mesh element size (gmsh backend)
-curve_samples
-:The number of point samples used to approximate a curve, 1D-mesh. (gmsh backend)
-mesh_algorithm
-:Integer specifying which mesh algorithm to use (gmsh backend) 1: Adaptive algorithm - generally the most robust choice.
-vetoed
-:A python list of surfaces that should be excluded from meshin. Useful when some surface fails for whatever reason
-threads
-:The number of threads to be used to speed up the meshing algorithms. Useful for multicore-computers.
-tolerance
-:Relative mesh tolerance (stl backend). Lower this to get a finer mesh.
-angular_tolerance
-:Relative angular mesh tolerance (stl backend) Lower this to get a better angular resolution.
+<dl>
+<dt>min_mesh_size</dt>
+<dd>Minimum mesh element size (gmsh backend)</dd>
+<dt>max_mesh_size</dt>
+<dd>Maximum mesh element size (gmsh backend)</dd>
+<dt>curve_samples</dt>
+<dd>The number of point samples used to approximate a curve, 1D-mesh. (gmsh backend)</dd>
+<dt>mesh_algorithm</dt>
+<dd>Integer specifying which mesh algorithm to use (gmsh backend) 1: Adaptive algorithm - generally the most robust choice.</dd>
+<dt>vetoed</dt>
+<dd>A python list of surfaces that should be excluded from meshin. Useful when some surface fails for whatever reason</dd>
+<dt>threads</dt>
+<dd>The number of threads to be used to speed up the meshing algorithms. Useful for multicore-computers.</dd>
+<dt>tolerance</dt>
+<ddRelative mesh tolerance (stl backend). Lower this to get a finer mesh.</dd>
+<dt>angular_tolerance</dt>
+<dd>Relative angular mesh tolerance (stl backend) Lower this to get a better angular resolution.</dd>
+</dl>
