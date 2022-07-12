@@ -12,28 +12,49 @@ We then use gmsh to generate a surface mesh which may be used by OpenMC through 
 
 # To install/set up in a virtual python environment
 _replace \<name\> with an arbitrary name for your virtual environment_
-1. Clone the github repository as you'd normally do
-2. In the directory where you want your environment to reside do: ```python -m venv <name>```
-3. Activate the environment: ```source <name>/bin/activate```
-4. install the requirements: ```pip install -r requirements.txt```
-5. Build and install moab (if not already installed). The moab team relies on conda for standard installation but are working on a pip-based solution. Once that is done moab would simply be added to the requirements-file instead.
+1. In the directory where you want your environment to reside do: ```python -m venv <name>```
+2. Activate the environment: ```source <name>/bin/activate```
+3. Build and install moab (if not already installed). The moab team relies on conda for standard installation but are working on a pip-based solution. Once that is done moab would simply be added to the requirements-file instead.
   1. Clone the moab code-repository: e.g. ```git clone git@bitbucket.org:fathomteam/moab.git```
   2. Configure and build the code: ```mkdir build; cd build; cmake .. -DENABLE_PYMOAB=1 -DCMAKE_INSTALL_PREFIX=<path/to/venv/>; make; make install```
+4. Install the package: ```pip install CAD_to_OpenMC```
 
 # Run a test case:
 The follwing code-snippet can now be run to explore the capabilities of Assembly/step_to_h5m
 ```
-  import assembly as ab
+  import CAD_to_OpenMC.assembly as ab
   a=ab.Assembly()
   a.stp_files=["file.step"]
   a.import_stp_files()
-  a.export_brep('file.brep')
-  a.brep_to_h5m(brep_filename='file.brep',min_mesh_size=0.1, max_mesh_size=10, samples=20)
+  a.solids_to_h5m(backend='gmsh')
 ```
-
-N.b. the last 3 parameters to brep_to_h5m are simply echoing their default values, and uses the default mesher: gmsh. Their significance is that all curves are sampled by 20 points, but limits the generated mesh-elements to be  within the size range [min_mesh_size,max_mesh_size].
+Unless anything else is specified this proceudre simply uses the default CAD_to_OpenMC parameters to create meshes.
+E.g. for the "gmsh"-backend this means sampling curves 20 times, a minimum mesh-element size of 0.1, and a maximum mesh element size of 10.
 This procedure will in turn call OCP and gmsh to produce a mesh with merged surfaces in the output file "dagmc.h5m"
 
 The other available meshing backend is the stl-export from CadQuery (accessible by setting ```backend='stl'```) which uses the parameters ```stl_tol``` and ```stl_ang_tol``` to set meshing quality.
 
-The ```export_brep```-step may be omitted, in which case a temporary file will be written.
+Parameters are changed by means of altering entries in the ```mesher_config```-dictionary. Like:
+<code>
+ ab.mesher_config['min_mesh_size']=0.2
+</code>
+
+Below is a list of the available parameters and their
+meanings:
+
+min_mesh_size
+:Minimum mesh element size (gmsh backend)
+max_mesh_size
+:Maximum mesh element size (gmsh backend)
+curve_samples
+:The number of point samples used to approximate a curve, 1D-mesh. (gmsh backend)
+mesh_algorithm
+:Integer specifying which mesh algorithm to use (gmsh backend) 1: Adaptive algorithm - generally the most robust choice.
+vetoed
+:A python list of surfaces that should be excluded from meshin. Useful when some surface fails for whatever reason
+threads
+:The number of threads to be used to speed up the meshing algorithms. Useful for multicore-computers.
+tolerance
+:Relative mesh tolerance (stl backend). Lower this to get a finer mesh.
+angular_tolerance
+:Relative angular mesh tolerance (stl backend) Lower this to get a better angular resolution.
