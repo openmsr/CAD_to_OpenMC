@@ -52,11 +52,11 @@ jobs:
     - name: where am I
       run: |
         echo `pwd`
-    - name: Build, pip-install, and test-import h5massembly with dependencies.
+    - name: Build, pip-install, and test-import CAD_to_OpenMC with dependencies.
       run: |
         echo $PYTHONPATH
         python -m build
-        pip install dist/h5massembly*.tar.gz
-        python -c 'import h5massembly.assembly'
+        pip install dist/CAD_to_OpenMC*.tar.gz
+        python -c 'import CAD_to_OpenMC.assembly'
       env: 
         PYTHONPATH: "/usr/local/lib/python${{matrix.pyv}}/site-packages"
