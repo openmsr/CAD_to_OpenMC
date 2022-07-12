@@ -1,6 +1,6 @@
 [project]
-name="h5massembly"
-version="0.0.12-1"
+name="CAD_to_OpenMC"
+version="0.0.2"
 authors = [
   { name="Erik B Knudsen", email="erik.knudsen@copenhagenatomics.com" },
 ]
