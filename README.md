@@ -32,7 +32,7 @@ Unless anything else is specified this proceudre simply uses the default CAD_to_
 E.g. for the "gmsh"-backend this means sampling curves 20 times, a minimum mesh-element size of 0.1, and a maximum mesh element size of 10.
 This procedure will in turn call OCP and gmsh to produce a mesh with merged surfaces in the output file "dagmc.h5m"
 
-The other available meshing backend is the stl-export from CadQuery (accessible by setting ```backend='stl'```) which uses the parameters ```stl_tol``` and ```stl_ang_tol``` to set meshing quality.
+The other available meshing backend is the stl-export from CadQuery (accessible by setting ```backend='stl'```) which uses the parameters ```tolerance``` and ```angular_tolerance``` to set meshing quality.
 
 Parameters are changed by means of altering entries in the ```mesher_config```-dictionary. Like:
 <code>
