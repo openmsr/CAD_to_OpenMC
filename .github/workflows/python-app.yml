@@ -5,7 +5,7 @@ name: Python application
 
 on:
   push:
-    branches: [ main, factory_meshclasses ]
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 
