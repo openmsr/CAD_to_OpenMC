@@ -3,7 +3,9 @@
 # CAD_to_OpenMC
 
 This is intended to be a python package heavily inspired by [Paramak](https://github.com/fusion-energy/paramak), and borrows a lot from [step_to_h5m]( https://github.com/fusion-energy/step_to_h5m).
-It's "raison d'etre" is to enable a link between the online CAD-tool onShape and the neutron transport code OpenMC.
+It's "raison d'etre" is to establish an open source-based link between CAD tools in general and the neutron transport code OpenMC.
+
+Although most CAD-tools use some other internal and/or native representation for geometry, most, if not all, will be able to export to the STEP-file format. Therefore this is the format we use 
 
 We will use cadQuery and its links to OCCT to enable import and imprinting/merging algorithms.
 
@@ -17,6 +19,7 @@ _replace \<name\> with an arbitrary name for your virtual environment_
 3. Build and install moab (if not already installed). The moab team relies on conda for standard installation but are working on a pip-based solution. Once that is done moab would simply be added to the requirements-file instead.
   1. Clone the moab code-repository: e.g. ```git clone git@bitbucket.org:fathomteam/moab.git```
   2. Configure and build the code: ```mkdir build; cd build; cmake .. -DENABLE_PYMOAB=1 -DCMAKE_INSTALL_PREFIX=<path/to/venv/>; make; make install```
+  3. Additionally you will need to build the python 
 4. Install the package: ```pip install CAD_to_OpenMC```
 
 # Run a test case:
