@@ -49,7 +49,9 @@ jobs:
         cmake .. -DENABLE_HDF5=ON -DENABLE_PYMOAB=ON -DBUILD_SHARED_LIBS=ON -DENABLE_FORTRAN=OFF -DCMAKE_INSTALL_PREFIX=/usr/local
         make
         sudo make install
-        cd pymoab
+    -name: install pymoab
+        cd moab/build/pymoab
+        python --version
         sudo python setup.py install
         python -c 'import pymoab'
         echo "PYTHONPATH=/usr/local/lib/python${{matrix.pyv}}/dist-packages" >> $GITHUB_ENV
