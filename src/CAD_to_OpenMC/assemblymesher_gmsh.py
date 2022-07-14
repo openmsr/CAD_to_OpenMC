@@ -22,7 +22,9 @@ class MesherGMSH:
   #  gmsh.finalize()
 
   def _gmsh_init(self):
-      gmsh.initialize()
+      if not gmsh.isInitialized():
+        gmsh.initialize()
+
       if (self.verbose>1):
           gmsh.option.setNumber("General.Terminal",1)
       else:
@@ -42,6 +44,17 @@ class MesherGMSH:
         gmsh.option.setNumber("Mesh.MeshSizeFromPoints",0)
         gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
         gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", self.curve_samples)
+        print(self.min_mesh_size,self.max_mesh_size, self.curve_samples)
+
+  def _set_pars(self,min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads):
+    self.min_mesh_size=min_mesh_size
+    self.max_mesh_size=max_mesh_size
+    self.curve_samples=curve_samples
+    self.mesh_algorithm=mesh_algorithm
+    self.default=default
+    self.vetoed=vetoed
+    self.threads=threads
+    self._gmsh_init()
 
   def _cq_solids_to_gmsh(self):
       import glob
@@ -126,4 +139,6 @@ class MesherGMSHBuilder:
   def __call__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, entities,**_ignored):
     if not self._instance:
       self._instance = MesherGMSH(min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, entities)
+    else:
+      self._instance._set_pars(min_mesh_size,max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads)
     return self._instance
