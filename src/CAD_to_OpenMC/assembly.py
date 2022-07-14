@@ -111,7 +111,7 @@ class Assembly:
 
         self.default_tag=default_tag
 
-    def import_stp_files(self,tags:dict=None,default_tag:str='vacuum', scale=1.0):
+    def import_stp_files(self,tags:dict=None,default_tag:str='vacuum', scale=0.1):
         tags_set=0
         #clear list to avoid double-import
         self.entities=[]
