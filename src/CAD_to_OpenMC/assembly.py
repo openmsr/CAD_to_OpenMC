@@ -382,10 +382,20 @@ class Assembly:
         if(self.verbose>0):
             print(f"INFO: writing geometry to h5m: \"{h5m_file}\".")
         moab_core.write_file(str(h5m_p))
+
+        self.check_h5m_file(h5m_file)
+
         if(vtk):
             moab_core.write_file(str(h5m_p.with_suffix('.vtk')))
 
         return str(h5m_p)
+
+    def check_h5m_file(self,h5m_file:str='dagmc.h5m'):
+      with open(h5m_file,"rb") as f:
+        magic_bytes=f.read(8)
+        if(magic_bytes!=b'\x89HDF\x0d\x0a\x1a\x0a'):
+          print(f'ERROR: generated file {h5mfile} does not appear to be a hdf-file. Did you compile the moab libs with HDF enabled?')
+          exit(-1)
 
     def add_stl_to_moab_core(self, moab_core: core.Core, surface_id: int, volume_id: int, material_name: str, tags: dict, stl_filename: str,
 ) -> core.Core:
