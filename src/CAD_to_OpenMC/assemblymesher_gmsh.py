@@ -140,5 +140,6 @@ class MesherGMSHBuilder:
     if not self._instance:
       self._instance = MesherGMSH(min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, entities)
     else:
+      #need to do it this way since gmsh needs to be reinitialized
       self._instance._set_pars(min_mesh_size,max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads)
     return self._instance
