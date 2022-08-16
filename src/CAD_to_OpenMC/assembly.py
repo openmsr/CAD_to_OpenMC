@@ -25,7 +25,9 @@ mesher_config={
   'mesh_algorithm':1,
   'default':False,
   'vetoed':None,
-  'threads':4
+  'threads':4,
+  'radial_threshold':0,
+  'refine':2
 }
 
 #these are dummies that we still need to define
