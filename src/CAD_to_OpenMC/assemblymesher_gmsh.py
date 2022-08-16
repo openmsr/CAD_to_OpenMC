@@ -2,9 +2,10 @@ import gmsh
 import cadquery2 as cq
 import os
 import tempfile
+import math
 
 class MesherGMSH:
-  def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, entities):
+  def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities):
     self.IntermediateLayer='brep'
     self.min_mesh_size=min_mesh_size
     self.max_mesh_size=max_mesh_size
@@ -15,9 +16,10 @@ class MesherGMSH:
     self.vetoed=vetoed
     self.threads=threads
     self.verbose=2
+    self.radial_threshold=radial_threshold
+    self.refine=refine
     self._gmsh_init()
     self._cq_solids_to_gmsh()
-
   #def __del__(self):
   #  gmsh.finalize()
 
@@ -41,12 +43,13 @@ class MesherGMSH:
         gmsh.option.setNumber("Mesh.MeshSizeMax", self.max_mesh_size)
 
         gmsh.option.setNumber("Mesh.MaxRetries",3)
-        gmsh.option.setNumber("Mesh.MeshSizeFromPoints",0)
-        gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 0)
+        gmsh.option.setNumber("Mesh.MeshSizeFromPoints",1)
+        gmsh.option.setNumber("Mesh.MeshSizeExtendFromBoundary", 1)
         gmsh.option.setNumber("Mesh.MeshSizeFromCurvature", self.curve_samples)
-        print(self.min_mesh_size,self.max_mesh_size, self.curve_samples)
+      if self.radial_threshold>0:
+        self._set_radial_field()
 
-  def _set_pars(self,min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads):
+  def _set_pars(self,min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine):
     self.min_mesh_size=min_mesh_size
     self.max_mesh_size=max_mesh_size
     self.curve_samples=curve_samples
@@ -54,7 +57,14 @@ class MesherGMSH:
     self.default=default
     self.vetoed=vetoed
     self.threads=threads
+    self.radial_threshold=radial_threshold
+    self.refine=refine
     self._gmsh_init()
+
+  def _set_radial_field(self):
+    #function to set up a radial field for meshing making the
+    #mesh size depend inversely on the distance from the z-axis
+    gmsh.model.mesh.setSizeCallback(_radial_field)
 
   def _cq_solids_to_gmsh(self):
       import glob
@@ -98,6 +108,8 @@ class MesherGMSH:
       if(self.verbose>0):
           print("INFO: GMSH generate surface mesh")
       gmsh.model.mesh.generate(2)
+      for i in range(self.refine):
+        gmsh.model.mesh.refine()
 
   def generate_stls(self):
       """export all the optionally merged volumes as stl-files
@@ -136,10 +148,16 @@ class MesherGMSHBuilder:
   def __init__(self):
     self._instance = None
 
-  def __call__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, entities,**_ignored):
+  def __call__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities, **_ignored):
     if not self._instance:
-      self._instance = MesherGMSH(min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, entities)
+      self._instance = MesherGMSH(min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities)
     else:
       #need to do it this way since gmsh needs to be reinitialized
-      self._instance._set_pars(min_mesh_size,max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads)
+      self._instance._set_pars(min_mesh_size,max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine)
     return self._instance
+
+def _radial_field(dim,tag, x, y, z, lc):
+  if(math.sqrt(x*x+y*y)>lc):
+    return lc/math.sqrt(x*x+y*y)
+  else:
+    return lc
