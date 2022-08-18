@@ -24,6 +24,10 @@ for a in argv:
 if len(sids)>0:
   mode='sfc'
 
+if not mode:
+  print("Please specify a running mode. Either \'--vol\', \'--sfc\', or \'--sid=N\'.")
+  exit(0)
+
 default_opts=False
 if '--default' in argv:
   default_opts=True
