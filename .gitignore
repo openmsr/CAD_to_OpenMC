@@ -132,3 +132,10 @@ dmypy.json
 *.brep
 *.step
 *.stl
+*.vti
+*.vtk
+*.gltf
+*.csv
+*.h5*
+data/
+scripts/
