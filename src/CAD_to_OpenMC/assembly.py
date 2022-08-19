@@ -17,14 +17,17 @@ from pymoab import core, types
 from .assemblymesher import *
 
 mesher_config={
+#general opts
+  'default':False,
+  'vetoed':None,
+#stl-backend opts
   'tolerance':0.1,
   'angular_tolerance':0.2,
+#gmsh-backend opts
   'min_mesh_size':0.1,
   'max_mesh_size':10,
   'curve_samples':20,
   'mesh_algorithm':1,
-  'default':False,
-  'vetoed':None,
   'threads':4,
   'radial_threshold':0,
   'refine':2
