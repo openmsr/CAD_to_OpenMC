@@ -1,6 +1,7 @@
 import cadquery2 as cq
 import subprocess as sp
 import pathlib as pl
+import hashlib as hl
 
 class MesherCQSTL:
   def __init__(self, tolerance, angular_tolerance, default, refine, entities):
@@ -46,6 +47,31 @@ class MesherCQSTL:
     gmsh.open(str(stlp.with_suffix('.o.mesh')))
     gmsh.write( str(stlp) )
     gmsh.finalize()
+
+
+  def _mesh_surfaces(self):
+    #loop over all surfaces in all entities
+    #and generate meshes (refined or otherwise)
+    facehashtable={}
+    for i,e in enumerate(self.entities):
+      j=i+1
+      volname= f"volume_{j}.stl"
+      k=0
+      for f in e.solid.Faces():
+        
+        m=hl.sha256()  
+        hh=m.update(f)
+        if hh not in keys(facehashtable):
+          facehastable.update(hh,facename)
+        else:
+            
+        #export to stl
+        #refine?
+          #if so reimport
+           
+
+
+
 
 
 class MesherCQSTLBuilder:
