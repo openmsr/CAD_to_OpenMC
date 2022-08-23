@@ -506,7 +506,7 @@ class Assembly:
           merged=self._merge_solids(unmerged, fuzzy_value=1e-2)
           #the merging process may result in extra volumes.
           #We need to make sure these are at the end of the list
-          #If not this results in a loss ofvolumes in the end.
+          #If not this results in a loss of volumes in the end.
           print("INFO: reordering volumes")
           idxs=[]
           for solid in merged.Solids():
