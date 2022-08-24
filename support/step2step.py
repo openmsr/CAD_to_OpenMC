@@ -156,7 +156,7 @@ def find_line(stepfiles,label=None,cmd='CLOSED_SHELL',arg=None):
         return splitcmd
 
 def print_splitcmd(splitcmd=['#1','CARTESIAN_POINT',[0,0,0]]):
-  print(f'{splitcmd[0]}={splitcmd[1]}({",".join(splitcmd[2])});')
+  print(f'{splitcmd[0]}={splitcmd[1]}({",".join(splitmcd[2])});')
 
 def ismultiline(cmd):
   m=re.match('#\d+=\(',cmd)
