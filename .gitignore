@@ -132,10 +132,14 @@ dmypy.json
 *.brep
 *.step
 *.stl
+*.mesh
+*.o.mesh
 *.vti
 *.vtk
 *.gltf
 *.csv
 *.h5*
+*.xml
+*.png
 data/
 scripts/
