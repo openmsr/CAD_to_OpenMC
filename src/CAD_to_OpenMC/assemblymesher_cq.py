@@ -34,14 +34,18 @@ class MesherCQSTL:
 
   def _mmgs_refine_stls(self,stl):
     #call mmgs to refine the mesh
+    try:
+      cp=sp.run(['mmgs_O3','--help'],capture_output=True)
+    except:
+      print(f'WARNING: Cannot find mmgs mesh refinement tool. Vol. {stl} will not be remeshed. Did you forget to include it on the PATH?')
+      return
     import gmsh
     gmsh.initialize()
     #for now we use gmsh as a converter from stl to inria mesh format - this should be changed.
     stlp=pl.Path(stl)
     gmsh.open(str(stlp))
     gmsh.write( str(stlp.with_suffix('.mesh')) )
-    print(stlp,stlp.with_suffix('.mesh'), stlp.with_suffix('.o.mesh'))
-    cp=sp.run(['./mmgs_O3','-hausd','0.1','-optim','-in',stlp.with_suffix('.mesh'),'-out',stlp.with_suffix('.o.mesh')], capture_output=True)
+    cp=sp.run(['mmgs_O3','-hausd','0.1','-optim','-in',stlp.with_suffix('.mesh'),'-out',stlp.with_suffix('.o.mesh')], capture_output=True)
     print(cp.stdout)
 
     gmsh.open(str(stlp.with_suffix('.o.mesh')))
@@ -58,17 +62,17 @@ class MesherCQSTL:
       volname= f"volume_{j}.stl"
       k=0
       for f in e.solid.Faces():
-        
-        m=hl.sha256()  
+
+        m=hl.sha256()
         hh=m.update(f)
         if hh not in keys(facehashtable):
           facehastable.update(hh,facename)
         else:
-            
+
         #export to stl
         #refine?
           #if so reimport
-           
+
 
 
 
