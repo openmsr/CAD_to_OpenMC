@@ -543,15 +543,17 @@ class Assembly:
           #We need to make sure these are at the end of the list
           #If not this results in a loss of volumes in the end.
           print("INFO: reordering volumes")
-          idxs=[]
+          tmp_ents=[]
           for solid in merged.Solids():
             center=solid.Center()
             bb=solid.BoundingBox()
             vol=solid.Volume()
             idx=idx_similar(self.entities,center,bb,vol)
-            idxs.append(idx)
-          ents=[self.entities[i] for i in idxs if i!=-1]
-          self.entities=ents
+            ent=self.entities[idx]
+            #have to use the newly created solid to get the merged entries instead.
+            ent.solid=solid
+            tmp_ents.append(ent)
+          self.entities=tmp_ents
 
     def _merge_solids(self,solids,fuzzy_value):
         """merge a set of cq-solids
@@ -571,7 +573,7 @@ class Assembly:
               except:
                   bldr.AddArgument(shape.wrapped)
         bldr.SetParallelMode_s(True)
-        bldr.SetNonDestructive(True)
+        bldr.SetNonDestructive(False)
 
         if(self.verbose>1):
             print("INFO: Commence perform step of merge")
