@@ -77,6 +77,8 @@ class MesherCQSTL:
           if(True or self.verbose>1):
             print(f"INFO: cq export to file {facename}")
           volumefaces.append(facename)
+          if (self.refine):
+            self._refine_stls(facename)
           #surface is not in table - we need to mesh (and possibly remesh) it
           #and put it into the main facetable as well as the local table for this volume.
           #refine?
