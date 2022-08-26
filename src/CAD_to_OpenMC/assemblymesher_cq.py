@@ -64,13 +64,15 @@ class MesherCQSTL:
       k=0
       volumefaces=[]
       for j,f in enumerate(e.solid.Faces()):
-        m=hl.sha256()
-        hh=m.update(bytes(repr(f),encoding='ascii'))
+        hh=hash(f)
         if hh in facehashtable.keys():
           #surface is in table - use that file for this volume
-          volumefaces.append(facehastable[hh])
+          volumefaces.append(facehashtable[hh])
+          print(f'reusing {hh} {facehashtable[hh]}')
         else:
           facename=f'vol_{i+1}_face{j}.stl'
+          facehashtable[hh]=facename
+          print(len(facehashtable.keys()))
           cq.exporters.export(f,facename, exportType="STL", tolerance=self.tolerance, angularTolerance=self.angular_tolerance)
           if(True or self.verbose>1):
             print(f"INFO: cq export to file {facename}")
