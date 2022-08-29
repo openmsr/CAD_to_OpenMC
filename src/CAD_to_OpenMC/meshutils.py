@@ -59,9 +59,9 @@ def write_dotmesh(dest, vertices, triangles,vertex_labels=None, triangle_labels=
     fp.write(' Vertices\n')
     fp.write(f' {nv}\n')
     for i in range(vertices.shape[0]):
-      _write_vertex(fp,vertices[i])
+      _write_vertex(fp,vertices[i],label=vertex_labels[i])
     fp.write(' Triangles\n')
     fp.write(f' {nt}\n')
     for i in range(nt):
-      _write_triangle(fp,triangles[i]+1)
+      _write_triangle(fp,triangles[i]+1,label=triangle_label[i])
     fp.write(' End\n')
