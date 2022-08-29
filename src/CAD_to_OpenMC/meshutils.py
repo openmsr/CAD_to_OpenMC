@@ -10,15 +10,14 @@ def write_dummy_dotsol(dest,nvertices:int=0):
 1
 
 Dimension 3
-SolAt Vertices
-
+SolAtVertices
 """
   with open(dest,"w") as fp:
     fp.write(header)
-    fp.write(nvertices)
-    fp.write('1 1')
+    fp.write(f'{nvertices}\n')
+    fp.write('1 1\n')
     fp.write('0\n'*nvertices)
-    fp.write('End')
+    fp.write('End\n')
 
 
 def _print_vertex(v,label=None):
