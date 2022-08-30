@@ -3,6 +3,7 @@ import subprocess as sp
 import pathlib as pl
 import hashlib as hl
 from .stl_utils import *
+from . import meshutils
 
 class MesherCQSTL:
   def __init__(self, tolerance, angular_tolerance, default, refine, entities):
@@ -63,11 +64,12 @@ class MesherCQSTL:
       buf,n=read_stl(vf)
       verts=buffer2vertices(buf)
       triangles=buffer2triangles(buf,verts)
-      if (totalverts is None):
+      if (all_verts is None):
         all_verts=verts
         all_triangles=triangles
-        all_tlabels=(i+1)*np.ones((triangles.shape[0],1),dtype='uint')
-        all_vlabels=(i+1)*np.ones((verts.shape[0],1),dtype='uint')
+        all_tlabels=(i+1)*np.ones((triangles.shape[0]),dtype='uint')
+        all_vlabels=1*np.ones((verts.shape[0]),dtype='uint')
+        vertex_count=verts.shape[0]
       else:
         all_verts=np.vstack((all_verts,verts))
         all_triangles=np.vstack((all_triangles,triangles)
