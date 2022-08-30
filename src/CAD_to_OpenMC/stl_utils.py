@@ -35,7 +35,7 @@ def read_stl(src):
   magic_bytes=infp.read(5)
   if (magic_bytes[:5].decode('ascii')=='solid'):
     infp.close()
-    infp=open(s,'r')
+    infp=open(src,'r')
     buffer,n = read_stl_ascii(infp)
   else:
     buffer,n = read_stl_bin(infp)
