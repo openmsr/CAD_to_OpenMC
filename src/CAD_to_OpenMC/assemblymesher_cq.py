@@ -130,11 +130,6 @@ class MesherCQSTL:
         #merge the stls to a single .stl
         merge_stl(volname, volumefaces,of='bin')
       e.stl=volname
-      #we have now a full stl-description of volume with completely imprinted surfaces
-          #surface is not in table - we need to mesh (and possibly remesh) it
-          #and put it into the main facetable as well as the local table for this volume.
-          #refine?
-          #if so reimport
 
 class MesherCQSTLBuilder:
   def __init__(self):
