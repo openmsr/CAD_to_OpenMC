@@ -43,15 +43,18 @@ class MesherCQSTL:
     except:
       print(f'WARNING: Cannot find mmgs mesh refinement tool. Vol. {stl} will not be remeshed. Did you forget to include it on the PATH?')
       return
-    import gmsh
-    gmsh.initialize()
-    #for now we use gmsh as a converter from stl to inria mesh format - this should be changed.
     stlp=pl.Path(stl)
-    gmsh.open(str(stlp))
-    gmsh.write( str(stlp.with_suffix('.mesh')) )
+    with open(stl) as fp:
+      buf,n=read_stl_ascii(fp)
+    verts=buffer2vertices(buf)
+    tris=buffer2triangles(buf,verts)
+    edges=np.array(meshutils.find_edges(tris))
+    meshutils.write_dotmesh(str(stlp.with_suffix('.mesh')),verts,tris,edges=edges,required_edges='all')
     cp=sp.run(['mmgs_O3','-hausd','0.1','-optim','-in',stlp.with_suffix('.mesh'),'-out',stlp.with_suffix('.o.mesh')], capture_output=True)
     print(cp.stdout)
 
+    import gmsh
+    gmsh.initialize()
     gmsh.open(str(stlp.with_suffix('.o.mesh')))
     gmsh.write( str(stlp) )
     gmsh.finalize()
@@ -122,9 +125,8 @@ class MesherCQSTL:
           if(True or self.verbose>1):
             print(f"INFO: cq export to file {facename}")
           volumefaces.append(facename)
-      if (self.refine):
-        self._refine_volumefaces(volumefaces,output_stl=volname)
-      else:
+          if (self.refine):
+            self._refine_stls(facename)
         #merge the stls to a single .stl
         merge_stl(volname, volumefaces,of='bin')
       e.stl=volname
