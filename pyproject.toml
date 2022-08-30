@@ -22,7 +22,7 @@ dependencies=[
         'meshio',
         'trimesh',
         'networkx',
-        'Cython==0.29.32'
+        'Cython'
 ]
 
         [project.urls]
