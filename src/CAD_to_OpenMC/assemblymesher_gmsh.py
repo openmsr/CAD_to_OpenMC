@@ -5,7 +5,7 @@ import tempfile
 import math
 
 class MesherGMSH:
-  def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities):
+  def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities, translate, rotate):
     self.IntermediateLayer='brep'
     self.min_mesh_size=min_mesh_size
     self.max_mesh_size=max_mesh_size
@@ -18,6 +18,8 @@ class MesherGMSH:
     self.verbose=2
     self.radial_threshold=radial_threshold
     self.refine=refine
+    self.translate=translate
+    self.rotate=rotate
     self._gmsh_init()
     self._cq_solids_to_gmsh()
   #def __del__(self):
@@ -75,8 +77,35 @@ class MesherGMSH:
         outpath=os.path.join(td,'export.'+self.IntermediateLayer)
         compound.exportBrep(outpath)
         vols=gmsh.model.occ.importShapes(outpath)
+      self._apply_transforms()
       gmsh.model.occ.synchronize()
       self._reorder()
+
+  def _apply_transforms(self):
+      translation = self.translate
+      rotation = self.rotate
+
+      #translations
+      if translation:
+        vids = translation[0]
+        x,y,z = translation[1],translation[2],translation[3]
+        print(f'applying translation {translation[1:4]} (x,y,z) to volume(s) {vids}')
+        if isinstance(vids, list):
+            for v in vids:
+                gmsh.model.occ.translate([(3,v)],x,y,z)
+        else:
+            gmsh.model.occ.translate([(3,vids)],x,y,z)
+
+      #rotations
+      if rotate:
+        vids = rotation[0]
+        ax_x,ax_y,ax_z = rotation[1],rotation[2],rotation[3]
+        theta = rotation[4]
+        if isinstance(vids, list):
+            for v in vids:
+                gmsh.model.occ.rotate([(3, v)], x, y, z, ax_x, ax_y, ax_z, theta)
+        else:
+            gmsh.model.occ.rotate([(3, vids)], x, y, z, ax_x, ax_y, ax_z, theta)
 
   def _reorder(self):
       #in the process of exporting/importing, the ordering may have been jumbled
