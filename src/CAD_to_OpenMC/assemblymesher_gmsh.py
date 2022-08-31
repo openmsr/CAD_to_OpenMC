@@ -97,10 +97,12 @@ class MesherGMSH:
             gmsh.model.occ.translate([(3,vids)],x,y,z)
 
       #rotations
-      if rotate:
+      if rotation:
         vids = rotation[0]
-        ax_x,ax_y,ax_z = rotation[1],rotation[2],rotation[3]
-        theta = rotation[4]
+        x,y,z = rotation[1],rotation[2],rotation[3]
+        ax_x,ax_y,ax_z = rotation[4],rotation[5],rotation[6]
+        theta = rotation[7]
+        print(f'applying rotation of {theta} radians about point {rotation[1:4]} & axis {rotation[4:7]} (x,y,z) to volume(s) {vids}')
         if isinstance(vids, list):
             for v in vids:
                 gmsh.model.occ.rotate([(3, v)], x, y, z, ax_x, ax_y, ax_z, theta)
@@ -177,9 +179,9 @@ class MesherGMSHBuilder:
   def __init__(self):
     self._instance = None
 
-  def __call__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities, **_ignored):
+  def __call__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities, translate, rotate, **_ignored):
     if not self._instance:
-      self._instance = MesherGMSH(min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities)
+      self._instance = MesherGMSH(min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities, translate, rotate)
     else:
       #need to do it this way since gmsh needs to be reinitialized
       self._instance._set_pars(min_mesh_size,max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine)
