@@ -12,6 +12,9 @@ class MesherCQSTL:
     self.entities=entities
     self.verbose=2
     self.refine=refine
+    self.default=default
+    self.min_mesh_size=min_mesh_size
+    self.max_mesh_size=max_mesh_size
 
   def generate_stls(self):
     self._mesh_surfaces()
