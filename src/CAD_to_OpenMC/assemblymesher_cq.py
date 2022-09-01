@@ -6,7 +6,7 @@ from .stl_utils import *
 from . import meshutils
 
 class MesherCQSTL:
-  def __init__(self, tolerance, angular_tolerance, default, refine, entities):
+  def __init__(self, tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default, refine, entities):
     self.tolerance=tolerance
     self.angular_tolerance=angular_tolerance
     self.entities=entities
@@ -50,7 +50,7 @@ class MesherCQSTL:
     tris=buffer2triangles(buf,verts)
     edges=np.array(meshutils.find_edges(tris))
     meshutils.write_dotmesh(str(stlp.with_suffix('.mesh')),verts,tris,edges=edges,required_edges='all')
-    cp=sp.run(['mmgs_O3','-hausd','0.1','-optim','-in',stlp.with_suffix('.mesh'),'-out',stlp.with_suffix('.o.mesh')], capture_output=True)
+    cp=sp.run(['mmgs_O3','-hmin',f'{self.min_mesh_size}','-hmax',f'{self.max_mesh_size}','-optim','-in',stlp.with_suffix('.mesh'),'-out',stlp.with_suffix('.o.mesh')], capture_output=True)
     print(cp.stdout)
 
     import gmsh
@@ -135,7 +135,7 @@ class MesherCQSTLBuilder:
   def __init__(self):
     self._instance = None
 
-  def __call__(self, tolerance, angular_tolerance, default, refine, entities, **_ignored):
+  def __call__(self, tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default, refine, entities, **_ignored):
     if not self._instance:
-      self._instance = MesherCQSTL(tolerance, angular_tolerance, default,refine, entities)
+      self._instance = MesherCQSTL(tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default,refine, entities)
     return self._instance
