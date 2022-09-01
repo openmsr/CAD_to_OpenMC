@@ -127,8 +127,8 @@ class MesherCQSTL:
           volumefaces.append(facename)
           if (self.refine):
             self._refine_stls(facename)
-        #merge the stls to a single .stl
-        merge_stl(volname, volumefaces,of='bin')
+      #merge the stls to a single .stl
+      merge_stl(volname, volumefaces,of='bin')
       e.stl=volname
 
 class MesherCQSTLBuilder:
