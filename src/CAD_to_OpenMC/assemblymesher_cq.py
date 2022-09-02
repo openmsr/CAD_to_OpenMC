@@ -3,14 +3,18 @@ import subprocess as sp
 import pathlib as pl
 import hashlib as hl
 from .stl_utils import *
+from . import meshutils
 
 class MesherCQSTL:
-  def __init__(self, tolerance, angular_tolerance, default, refine, entities):
+  def __init__(self, tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default, refine, entities):
     self.tolerance=tolerance
     self.angular_tolerance=angular_tolerance
     self.entities=entities
     self.verbose=2
     self.refine=refine
+    self.default=default
+    self.min_mesh_size=min_mesh_size
+    self.max_mesh_size=max_mesh_size
 
   def generate_stls(self):
     self._mesh_surfaces()
@@ -42,15 +46,62 @@ class MesherCQSTL:
     except:
       print(f'WARNING: Cannot find mmgs mesh refinement tool. Vol. {stl} will not be remeshed. Did you forget to include it on the PATH?')
       return
-    import gmsh
-    gmsh.initialize()
-    #for now we use gmsh as a converter from stl to inria mesh format - this should be changed.
     stlp=pl.Path(stl)
-    gmsh.open(str(stlp))
-    gmsh.write( str(stlp.with_suffix('.mesh')) )
-    cp=sp.run(['mmgs_O3','-hausd','0.1','-optim','-in',stlp.with_suffix('.mesh'),'-out',stlp.with_suffix('.o.mesh')], capture_output=True)
+    with open(stl) as fp:
+      buf,n=read_stl_ascii(fp)
+    verts=buffer2vertices(buf)
+    tris=buffer2triangles(buf,verts)
+    edges=np.array(meshutils.find_edges(tris))
+    meshutils.write_dotmesh(str(stlp.with_suffix('.mesh')),verts,tris,edges=edges,required_edges='all')
+    cp=sp.run(['mmgs_O3','-hmin',f'{self.min_mesh_size}','-hmax',f'{self.max_mesh_size}','-optim','-in',stlp.with_suffix('.mesh'),'-out',stlp.with_suffix('.o.mesh')], capture_output=True)
     print(cp.stdout)
 
+    import gmsh
+    gmsh.initialize()
+    gmsh.open(str(stlp.with_suffix('.o.mesh')))
+    gmsh.write( str(stlp) )
+    gmsh.finalize()
+
+  def _refine_volumefaces(self,stls,output_stl='out.stl'):
+    #refine a volume consistng of a set of stl-files which is expected to contains its parts
+    all_verts=None
+    for i,vf in enumerate(stls):
+      print(f'processing: {vf}')
+      #if this is reuse of an already refined surface we should extract the information from there instead.
+      #check if the file exists
+      vfp=pl.Path(vf)
+      if False and vfp.with_suffix('.o.mesh').exists():
+        print(f'found refined file {str(vfp.with_suffix(".o.mesh"))} extracting information from that')
+        import gmsh
+        gmsh.initialize()
+        gmsh.open(str(vfp.with_suffix('.o.mesh')))
+        gmsh.write(str(vfp.with_suffix('.tmp.stl')))
+        gmsh.finalize()
+
+      buf,n=read_stl(vf)
+      verts=buffer2vertices(buf)
+      triangles=buffer2triangles(buf,verts)
+      if (all_verts is None):
+        all_verts=verts
+        all_triangles=triangles
+        all_tlabels=(i+1)*np.ones((triangles.shape[0]),dtype='uint')
+        all_vlabels=1*np.ones((verts.shape[0]),dtype='uint')
+        vertex_count=verts.shape[0]
+      else:
+        all_verts=np.vstack((all_verts,verts))
+        #these new triangle labels need an offset of the current vertex count
+        all_triangles=np.vstack((all_triangles,triangles+vertex_count))
+        all_tlabels=np.append(all_tlabels,(i+1)*np.ones((triangles.shape[0]),dtype='uint'))
+        all_vlabels=np.append(all_vlabels,1*np.ones((verts.shape[0]),dtype='uint'))
+        vertex_count+=verts.shape[0]
+    stlp=pl.Path(output_stl)
+    meshutils.write_dotmesh(stlp.with_suffix('.mesh'),all_verts,all_triangles,vertex_labels=all_vlabels, triangle_labels=all_tlabels)
+    meshutils.write_dummy_dotsol(stlp.with_suffix('.sol'),all_verts.shape[0])
+
+    cp=sp.run(['mmgs_O3','-ls','-sol',stlp.with_suffix('.sol'),'-in',stlp.with_suffix('.mesh'),'-out',stlp.with_suffix('.o.mesh'),'-keep-ref'], capture_output=True)
+    print(cp.stdout)
+    import gmsh
+    gmsh.initialize()
     gmsh.open(str(stlp.with_suffix('.o.mesh')))
     gmsh.write( str(stlp) )
     gmsh.finalize()
@@ -79,10 +130,7 @@ class MesherCQSTL:
           volumefaces.append(facename)
           if (self.refine):
             self._refine_stls(facename)
-          #surface is not in table - we need to mesh (and possibly remesh) it
-          #and put it into the main facetable as well as the local table for this volume.
-          #refine?
-          #if so reimport
+      #merge the stls to a single .stl
       merge_stl(volname, volumefaces,of='bin')
       e.stl=volname
 
@@ -90,7 +138,7 @@ class MesherCQSTLBuilder:
   def __init__(self):
     self._instance = None
 
-  def __call__(self, tolerance, angular_tolerance, default, refine, entities, **_ignored):
+  def __call__(self, tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default, refine, entities, **_ignored):
     if not self._instance:
-      self._instance = MesherCQSTL(tolerance, angular_tolerance, default,refine, entities)
+      self._instance = MesherCQSTL(tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default,refine, entities)
     return self._instance
