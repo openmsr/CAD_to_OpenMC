@@ -20,6 +20,5 @@ Contents
 
 .. toctree::
 
-   usage.rst
-   examples.rst
-   
+   usage
+   api
