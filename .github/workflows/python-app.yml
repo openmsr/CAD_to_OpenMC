@@ -45,6 +45,7 @@ jobs:
         git clone --single-branch --branch 5.3.1 --depth 1 https://bitbucket.org/fathomteam/moab.git
         cd moab
         mkdir build
+        cd build
         cmake .. -DENABLE_HDF5=ON -DENABLE_PYMOAB=ON -DBUILD_SHARED_LIBS=ON -DENABLE_FORTRAN=OFF -DCMAKE_INSTALL_PREFIX=/usr/local
         make
         sudo make install
