@@ -84,7 +84,6 @@ class MesherGMSH:
   def _apply_transforms(self):
       translation = self.translate
       rotation = self.rotate
-
       #translations
       if translation:
         vids = translation[0]
@@ -95,7 +94,6 @@ class MesherGMSH:
                 gmsh.model.occ.translate([(3,v)],x,y,z)
         else:
             gmsh.model.occ.translate([(3,vids)],x,y,z)
-
       #rotations
       if rotation:
         vids = rotation[0]
