@@ -34,6 +34,8 @@ _replace \<name\> with an arbitrary name for your virtual environment_
 
 Should you wish to install the development version of this package you may do so by cloning this repository and replace the last command by: ```pip install <path/to/repo>```. This procedure will build and install the python package locally directly from source.
 
+5. Optionally install the msh refinement tool mmg (https://www.mmgtools.org), which may be run in conjunction with the cq/stl-mesher backend to avoid the high aspect ratio triangles that this backend tends to produce. Arch-linux users may install this from the AUR, otherwise get the source (and build from that) or binary builds from the mmg-site.
+
 # Run a test case:
 The follwing code-snippet can now be run to explore the capabilities of Assembly/step_to_h5m. We supply a couple of example .step-files in the examples directory. In this example we'll be using a geometry with a set of 7 pin-cells.
 
@@ -61,9 +63,9 @@ meanings:
 
 <dl>
 <dt>min_mesh_size</dt>
-<dd>Minimum mesh element size (gmsh backend)</dd>
+<dd>Minimum mesh element size (gmsh backend/mmg refinement)</dd>
 <dt>max_mesh_size</dt>
-<dd>Maximum mesh element size (gmsh backend)</dd>
+<dd>Maximum mesh element size (gmsh backend/mmg refinement)</dd>
 <dt>curve_samples</dt>
 <dd>The number of point samples used to approximate a curve, 1D-mesh. (gmsh backend)</dd>
 <dt>mesh_algorithm</dt>
@@ -73,7 +75,10 @@ meanings:
 <dt>threads</dt>
 <dd>The number of threads to be used to speed up the meshing algorithms. Useful for multicore-computers.</dd>
 <dt>tolerance</dt>
-<ddRelative mesh tolerance (stl backend). Lower this to get a finer mesh.</dd>
+<ddRelative mesh tolerance (cq/stl backend). Lower this to get a finer mesh.</dd>
 <dt>angular_tolerance</dt>
-<dd>Relative angular mesh tolerance (stl backend) Lower this to get a better angular resolution.</dd>
+<dd>Relative angular mesh tolerance (cq/stl backend) Lower this to get a better angular resolution.</dd>
+<dt>refine</dt>
+<dd>(gmsh backend) Integer specifying how many iterations of mesh refinement should be run. (cq/stl backend): any value that evlautes to true triggers the use of mmg for refinement
+</dl>
 </dl>
