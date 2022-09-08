@@ -62,10 +62,11 @@ Below is a list of the available parameters and their
 meanings:
 
 <dl>
+<<<<<<< HEAD
     <dt>min_mesh_size</dt>
-        <dd>Minimum mesh element size (gmsh backend)</dd>
+        <dd>Minimum mesh element size (gmsh backend/mmg_refinement)</dd>
     <dt>max_mesh_size</dt>
-        <dd>Maximum mesh element size (gmsh backend)</dd>
+        <dd>Maximum mesh element size (gmsh backend/mmg_refinement)</dd>
     <dt>curve_samples</dt>
         <dd>The number of point samples used to approximate a curve, 1D-mesh. (gmsh backend)</dd>
     <dt>mesh_algorithm</dt>
@@ -75,9 +76,9 @@ meanings:
     <dt>threads</dt>
         <dd>The number of threads to be used to speed up the meshing algorithms. Useful for multicore-computers.</dd>
     <dt>tolerance</dt>
-        <ddRelative mesh tolerance (stl backend). Lower this to get a finer mesh.</dd>
+        <ddRelative mesh tolerance (cq/stl backend). Lower this to get a finer mesh.</dd>
     <dt>angular_tolerance</dt>
-        <dd>Relative angular mesh tolerance (stl backend) Lower this to get a better angular resolution.</dd>
+        <dd>Relative angular mesh tolerance (cq/stl backend) Lower this to get a better angular resolution.</dd>
     <dt>refine</dt>
         <dd>After the initial meshing step is done, should the mesh be refined. This option has more than one meaning. If the cq/stl-backend is active and refinement is non-zero or true, the mesh-refinment tool (mmg)[https://www.mmgtools.org] is called in sequence on each surface. If the gmsh-backend is active and refine is non-zero the gmsh-refinement tool is called on the full geometry the given number of times. A value of true simply does refinement once.</dd> 
 </dl>
