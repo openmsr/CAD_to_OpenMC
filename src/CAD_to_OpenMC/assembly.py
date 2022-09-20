@@ -30,7 +30,7 @@ mesher_config={
   'mesh_algorithm':1,
   'threads':4,
   'radial_threshold':0,
-  'refine':2,
+  'refine':2
 }
 
 #these are dummies that we still need to define
@@ -119,6 +119,7 @@ class Assembly:
         tags_set=0
         #clear list to avoid double-import
         self.entities=[]
+
         for stp in self.stp_files:
             solid = self.load_stp_file(stp,scale,translate,rotate)
 
