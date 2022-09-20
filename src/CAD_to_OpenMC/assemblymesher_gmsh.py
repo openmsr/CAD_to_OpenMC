@@ -5,7 +5,7 @@ import tempfile
 import math
 
 class MesherGMSH:
-  def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities, translate, rotate):
+  def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities):
     self.IntermediateLayer='brep'
     self.min_mesh_size=min_mesh_size
     self.max_mesh_size=max_mesh_size
@@ -18,8 +18,6 @@ class MesherGMSH:
     self.verbose=2
     self.radial_threshold=radial_threshold
     self.refine=refine
-    self.translate=translate
-    self.rotate=rotate
     self._gmsh_init()
     self._cq_solids_to_gmsh()
   #def __del__(self):
@@ -77,35 +75,8 @@ class MesherGMSH:
         outpath=os.path.join(td,'export.'+self.IntermediateLayer)
         compound.exportBrep(outpath)
         vols=gmsh.model.occ.importShapes(outpath)
-      self._apply_transforms()
       gmsh.model.occ.synchronize()
       self._reorder()
-
-  def _apply_transforms(self):
-      translation = self.translate
-      rotation = self.rotate
-      #translations
-      if translation:
-        vids = translation[0]
-        x,y,z = translation[1],translation[2],translation[3]
-        print(f'applying translation {translation[1:4]} (x,y,z) to volume(s) {vids}')
-        if isinstance(vids, list):
-            for v in vids:
-                gmsh.model.occ.translate([(3,v)],x,y,z)
-        else:
-            gmsh.model.occ.translate([(3,vids)],x,y,z)
-      #rotations
-      if rotation:
-        vids = rotation[0]
-        x,y,z = rotation[1],rotation[2],rotation[3]
-        ax_x,ax_y,ax_z = rotation[4],rotation[5],rotation[6]
-        theta = rotation[7]
-        print(f'applying rotation of {theta} radians about point {rotation[1:4]} & axis {rotation[4:7]} (x,y,z) to volume(s) {vids}')
-        if isinstance(vids, list):
-            for v in vids:
-                gmsh.model.occ.rotate([(3, v)], x, y, z, ax_x, ax_y, ax_z, theta)
-        else:
-            gmsh.model.occ.rotate([(3, vids)], x, y, z, ax_x, ax_y, ax_z, theta)
 
   def _reorder(self):
       #in the process of exporting/importing, the ordering may have been jumbled
@@ -177,9 +148,9 @@ class MesherGMSHBuilder:
   def __init__(self):
     self._instance = None
 
-  def __call__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities, translate, rotate, **_ignored):
+  def __call__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities,**_ignored):
     if not self._instance:
-      self._instance = MesherGMSH(min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities, translate, rotate)
+      self._instance = MesherGMSH(min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities)
     else:
       #need to do it this way since gmsh needs to be reinitialized
       self._instance._set_pars(min_mesh_size,max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine)
