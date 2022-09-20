@@ -251,7 +251,7 @@ class Assembly:
                         rotated_part = p[1].rotate(rotate[1],rotate[2],rotate[3])
                         transformed_part[p[0]] = rotated_part
             except:
-                transformed_part = transformed_part.rotate(roate[0],rotate[1],rotate[2],rotate[3])
+                transformed_part = transformed_part.rotate(rotate[1],rotate[2],rotate[3])
 
         return transformed_part
 
