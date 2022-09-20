@@ -31,8 +31,6 @@ mesher_config={
   'threads':4,
   'radial_threshold':0,
   'refine':2,
-  'translate':None,
-  'rotate':None
 }
 
 #these are dummies that we still need to define
@@ -115,16 +113,14 @@ class Assembly:
         self.stl_files=stl_files
         self.entities=[]
         self.verbose=verbose
-
         self.default_tag=default_tag
 
-    def import_stp_files(self,tags:dict=None,default_tag:str='vacuum', scale=0.1):
+    def import_stp_files(self,tags:dict=None,default_tag:str='vacuum', scale=0.1,translate=[],rotate=[]):
         tags_set=0
         #clear list to avoid double-import
         self.entities=[]
-
         for stp in self.stp_files:
-            solid = self.load_stp_file(stp,scale)
+            solid = self.load_stp_file(stp,scale,translate,rotate)
 
             ents=[]
             #try if solid is iterable
@@ -186,7 +182,7 @@ class Assembly:
         if(tags_set!=len(self.entities)):
            print(f"WARNING: {len(self.entities)-tags_set} volumes were tagged with the default ({default_tag}) material.")
 
-    def load_stp_file(self,filename: str, scale_factor: float = 0.1):
+    def load_stp_file(self,filename: str, scale_factor: float = 0.1,translate: list = [],rotate: list = []):
         """Loads a stp file and makes the 3D solid and wires available for use.
 
         Args:
@@ -202,13 +198,9 @@ class Assembly:
         """
         #import _all_ the shapes in the file - i.e. may return a list
         part = cq.importers.importStep(str(filename)).vals()
-        #scale the shapes even if the factor is 1.
-        if(self.verbose!=0):
-            print(f'INFO: {str(filename)} imported - scaling')
-        try:
-            scaled_part = [p.scale(scale_factor) for p in part]
-        except:
-            scaled_part=part.scale(scale_factor)
+
+        # apply apply_transforms
+        scaled_part = self.apply_transforms(part,filename,scale_factor,translate,rotate)
 
         solid=[]
         #serialize
@@ -220,6 +212,47 @@ class Assembly:
             solid.extend(scaled_part.Solids())
 
         return solid
+
+    def apply_transforms(self,part,filename,scale_factor,translate,rotate):
+        #scale the shapes even if the factor is 1.
+        if(self.verbose!=0):
+            print(f'INFO: {str(filename)} imported - scaling')
+        try:
+            transformed_part = [p.scale(scale_factor) for p in part]
+        except:
+            transformed_part = part.scale(scale_factor)
+
+        # translation
+        if translate:
+            if(self.verbose!=0):
+                print(f'INFO: {str(filename)} imported - applying translation(s)')
+            try:
+                for p in enumerate(transformed_part):
+                    if (p[0]+1) in translate[0]:
+                        if(self.verbose>1):
+                            print(f"INFO: Applying translation: {translate[1]} to vol {p[0]+1}")
+                        translated_part = p[1].translate(translate[1])
+                        transformed_part[p[0]] = translated_part
+            except:
+                transformed_part = transformed_part.translate(translate[1])
+
+        # rotation
+        if rotate:
+            if(self.verbose!=0):
+                print(f'INFO: {str(filename)} imported - applying rotation(s)')
+            try:
+                # transformed_part = [p[1].rotate(rotate[1],rotate[2],rotate[3]) for p in enumerate(part) if (p[0]+1) in rotate[0]]
+                # debug
+                for p in enumerate(transformed_part):
+                    if (p[0]+1) in rotate[0]:
+                        if (self.verbose>1):
+                            print(f"INFO: Applying rotation: {rotate[3]} degrees about ax {rotate[1]},{rotate[2]} to vol {p[0]+1}\n")
+                        rotated_part = p[1].rotate(rotate[1],rotate[2],rotate[3])
+                        transformed_part[p[0]] = rotated_part
+            except:
+                transformed_part = transformed_part.rotate(roate[0],rotate[1],rotate[2],rotate[3])
+
+        return transformed_part
 
     #export entire assembly to stp
     def export_stp(
@@ -628,13 +661,10 @@ class Assembly:
               idx=idx_similar(self.entities,center,bb,vol)
               idxs.append(idx)
             #reorder
-
             ents=[self.entities[i] for i in idxs if i!=-1]
             self.entities=ents
 
         return rval
-
-
 
     def merge_two(self,solid1,solid2):
         """ Checks two surfaces if their BB overlap. If so merge the two - and return a list of the results
