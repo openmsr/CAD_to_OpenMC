@@ -49,8 +49,13 @@ jobs:
         cmake .. -DENABLE_HDF5=ON -DENABLE_PYMOAB=ON -DBUILD_SHARED_LIBS=ON -DENABLE_FORTRAN=OFF -DCMAKE_INSTALL_PREFIX=/usr/local
         make
         sudo make install
-        cd pymoab
+    - name: install pymoab
+      run: |
+        cd moab/build/pymoab
+        python --version
         sudo python setup.py install
+        python -c 'import pymoab'
+        echo "PYTHONPATH=/usr/local/lib/python${{matrix.pyv}}/dist-packages" >> $GITHUB_ENV
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -66,5 +71,3 @@ jobs:
         python -m build
         pip install dist/CAD_to_OpenMC*.tar.gz
         python -c 'import CAD_to_OpenMC.assembly'
-      env: 
-        PYTHONPATH: "/usr/local/lib/python${{matrix.pyv}}/site-packages"
