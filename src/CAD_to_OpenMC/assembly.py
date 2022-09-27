@@ -228,12 +228,13 @@ class Assembly:
             if(self.verbose!=0):
                 print(f'INFO: {str(filename)} imported - applying translation(s)')
             try:
-                for p in enumerate(transformed_part):
-                    if (p[0]+1) in translate[0]:
-                        if(self.verbose>1):
-                            print(f"INFO: Applying translation: {translate[1]} to vol {p[0]+1}")
-                        translated_part = p[1].translate(translate[1])
-                        transformed_part[p[0]] = translated_part
+                vols = translate[::2]
+                translations = translate[1::2]
+                for v in enumerate(vols):
+                    if(self.verbose>1):
+                        print(f"INFO: Applying translation: {translations[v[0]]} to vol(s) {v[1]}")
+                    for vol in v[1]:
+                        transformed_part[vol-1] = transformed_part[vol-1].translate(translations[v[0]])
             except:
                 transformed_part = transformed_part.translate(translate[1])
 
@@ -242,14 +243,13 @@ class Assembly:
             if(self.verbose!=0):
                 print(f'INFO: {str(filename)} imported - applying rotation(s)')
             try:
-                # transformed_part = [p[1].rotate(rotate[1],rotate[2],rotate[3]) for p in enumerate(part) if (p[0]+1) in rotate[0]]
-                # debug
-                for p in enumerate(transformed_part):
-                    if (p[0]+1) in rotate[0]:
-                        if (self.verbose>1):
-                            print(f"INFO: Applying rotation: {rotate[3]} degrees about ax {rotate[1]},{rotate[2]} to vol {p[0]+1}\n")
-                        rotated_part = p[1].rotate(rotate[1],rotate[2],rotate[3])
-                        transformed_part[p[0]] = rotated_part
+                vols = rotate[::4]
+                print(vols)
+                for v in enumerate(vols):
+                    if(self.verbose>1):
+                        print(f"INFO: Applying rotation: {rotate[v[0]+3]} degrees about ax {rotate[v[0]+1]},{rotate[v[0]+2]} to vol(s) {v[1]}\n")
+                    for vol in v[1]:
+                        transformed_part[vol-1] = transformed_part[vol-1].rotate(rotate[4*v[0]+1],rotate[4*v[0]+2],rotate[4*v[0]+3])
             except:
                 transformed_part = transformed_part.rotate(rotate[1],rotate[2],rotate[3])
 
