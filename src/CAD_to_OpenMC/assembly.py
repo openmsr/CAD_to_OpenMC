@@ -244,7 +244,6 @@ class Assembly:
                 print(f'INFO: {str(filename)} imported - applying rotation(s)')
             try:
                 vols = rotate[::4]
-                print(vols)
                 for v in enumerate(vols):
                     if(self.verbose>1):
                         print(f"INFO: Applying rotation: {rotate[v[0]+3]} degrees about ax {rotate[v[0]+1]},{rotate[v[0]+2]} to vol(s) {v[1]}\n")
