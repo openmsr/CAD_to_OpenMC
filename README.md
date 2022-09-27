@@ -51,7 +51,7 @@ This procedure will in turn call OCP and gmsh to produce a mesh with merged surf
 
 The other available meshing backend is the stl-export from CadQuery (accessible by setting ```backend='stl'```) which uses the parameters ```tolerance``` and ```angular_tolerance``` to set meshing quality.
 
-Parameters are changed by means of altering entries in the ```mesher_config```-dictionary defined  in the assemlby modulde root namespace. Like:
+Parameters are changed by means of altering entries in the ```mesher_config```-dictionary defined  in the assembly module root namespace. Like:
 ```python
  ab.mesher_config['min_mesh_size']=0.2
  ```
@@ -60,20 +60,22 @@ Below is a list of the available parameters and their
 meanings:
 
 <dl>
-<dt>min_mesh_size</dt>
-<dd>Minimum mesh element size (gmsh backend)</dd>
-<dt>max_mesh_size</dt>
-<dd>Maximum mesh element size (gmsh backend)</dd>
-<dt>curve_samples</dt>
-<dd>The number of point samples used to approximate a curve, 1D-mesh. (gmsh backend)</dd>
-<dt>mesh_algorithm</dt>
-<dd>Integer specifying which mesh algorithm to use (gmsh backend) 1: Adaptive algorithm - generally the most robust choice.</dd>
-<dt>vetoed</dt>
-<dd>A python list of surfaces that should be excluded from meshin. Useful when some surface fails for whatever reason</dd>
-<dt>threads</dt>
-<dd>The number of threads to be used to speed up the meshing algorithms. Useful for multicore-computers.</dd>
-<dt>tolerance</dt>
-<ddRelative mesh tolerance (stl backend). Lower this to get a finer mesh.</dd>
-<dt>angular_tolerance</dt>
-<dd>Relative angular mesh tolerance (stl backend) Lower this to get a better angular resolution.</dd>
+    <dt>min_mesh_size</dt>
+        <dd>Minimum mesh element size (gmsh backend)</dd>
+    <dt>max_mesh_size</dt>
+        <dd>Maximum mesh element size (gmsh backend)</dd>
+    <dt>curve_samples</dt>
+        <dd>The number of point samples used to approximate a curve, 1D-mesh. (gmsh backend)</dd>
+    <dt>mesh_algorithm</dt>
+        <dd>Integer specifying which meshing algorithm to use (gmsh backend) 1: Adaptive algorithm - most often the most robust choice.</dd>
+    <dt>vetoed</dt>
+        <dd>A list of surfaces that should be excluded from meshing. Useful when some surface fails for whatever reason. Be aware that this may make your geometry non-watertight.</dd>
+    <dt>threads</dt>
+        <dd>The number of threads to be used to speed up the meshing algorithms. Useful for multicore-computers.</dd>
+    <dt>tolerance</dt>
+        <ddRelative mesh tolerance (stl backend). Lower this to get a finer mesh.</dd>
+    <dt>angular_tolerance</dt>
+        <dd>Relative angular mesh tolerance (stl backend) Lower this to get a better angular resolution.</dd>
+    <dt>refine</dt>
+        <dd>After the initial meshing step is done, should the mesh be refined. This option has more than one meaning. If the cq/stl-backend is active and refinement is non-zero or true, the mesh-refinment tool (mmg)[https://www.mmgtools.org] is called in sequence on each surface. If the gmsh-backend is active and refine is non-zero the gmsh-refinement tool is called on the full geometry the given number of times. A value of true simply does refinement once.</dd> 
 </dl>
