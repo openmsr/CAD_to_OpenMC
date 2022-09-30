@@ -7,9 +7,9 @@ It's "raison d'etre" is to establish an open source-based link between CAD tools
 
 Although most CAD-tools use some other internal and/or native representation for geometry, most, if not all, will be able to export to the STEP-file format. Therefore this is the format we use 
 
-We will use cadQuery and its links to OCCT to enable import and imprinting/merging algorithms.
+CAD_to_OpenMC uses cadQuery and its links to OCCT to enable import and imprinting/merging algorithms. This is a way of solving the problem with touching surfaces.
 
-The code structure relies on a main class Assembly which maintains the geometry in terms of a list of instances of the subclass Entity.
+The code structure relies on a main class *Assembly*, which maintains the geometry in terms of a list of instances of the subclass Entity.
 A geometry is imported from a (set of) .step files into the entity-list. This list is passed on to a mesher-class which generates a meshed geometry.
 
 # To install/set up in a virtual python environment
