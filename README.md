@@ -77,3 +77,20 @@ meanings:
 <dt>angular_tolerance</dt>
 <dd>Relative angular mesh tolerance (stl backend) Lower this to get a better angular resolution.</dd>
 </dl>
+
+# Advanced example
+For a more advanced example of the use of CAD_to_OpenMC and OpenMC we may turn to the Zero Power Reactor Experiment. This was a full-scale reactor experiment that was carried out at Oak Rodge TN in the 1960's. Copenhagen Atomics provides a CAD-drawn model of this experiment, extracted from the original reports and drawings from the original experiment, in the form of a step-file. To get access simply clone the zpre github repository and run the scripts:
+```bash
+git clone https://www.github.com/openmsr/zpre
+cd zpre
+bash run.sh
+```
+The ```run.sh```-script will the ask you what kidn of calculation you'd like to perform. As a first run you might choose to ask OpenMC to simply plot the geometry of the reactor (option 2). If this is the first time you run the script, this triggers a surface-meshing operation to be performed (Be aware that by default this creates a large amount of console output - this is to be expected).
+Once this process has finished, there should now be a file zpre.h5m inside the h5m_files directory, and a set of plot_[123].png files. which correspond to XY,XZ, and YZ-slices through the center of the reactor.
+If all goes well these should look something like this:
+
+|XY|XZ|XZ|
+|:--:|:--:|:--:|
+|plot_xy.png|plot_xz.png|plot_yz.png|
+
+The colors are chosen arbitrarily amd automatically by the OpenMC-plotting routine.
