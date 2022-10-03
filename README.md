@@ -93,6 +93,6 @@ If all goes well these should look something like this:
 
 |XY|XZ|XZ|
 |:--:|:--:|:--:|
-| (plot_xy.png)[images/plot_xy.png] | (plot_xz.png)[images/plot_xz.png] | (plot_yz.png)[images/plot_yz.png] |
+| ![plot_xy.png](images/plot_xy.png) | ![plot_xz.png](images/plot_xz.png) | ![plot_yz.png](images/plot_yz.png) |
 
-The colors are chosen arbitrarily amd automatically by the OpenMC-plotting routine.
+The colors are chosen arbitrarily amd automatically by the OpenMC-plotting routine, which is why the same geomtrical entity gets a different color in the slices.
