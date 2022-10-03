@@ -17,15 +17,20 @@ from pymoab import core, types
 from .assemblymesher import *
 
 mesher_config={
+#general opts
+  'default':False,
+  'vetoed':None,
+#stl-backend opts
   'tolerance':0.1,
   'angular_tolerance':0.2,
+#gmsh-backend opts
   'min_mesh_size':0.1,
   'max_mesh_size':10,
   'curve_samples':20,
   'mesh_algorithm':1,
-  'default':False,
-  'vetoed':None,
-  'threads':4
+  'threads':4,
+  'radial_threshold':0,
+  'refine':2
 }
 
 #these are dummies that we still need to define
@@ -108,16 +113,15 @@ class Assembly:
         self.stl_files=stl_files
         self.entities=[]
         self.verbose=verbose
-
         self.default_tag=default_tag
 
-    def import_stp_files(self,tags:dict=None,default_tag:str='vacuum', scale=0.1):
+    def import_stp_files(self,tags:dict=None,default_tag:str='vacuum', scale=0.1,translate=[],rotate=[]):
         tags_set=0
         #clear list to avoid double-import
         self.entities=[]
 
         for stp in self.stp_files:
-            solid = self.load_stp_file(stp,scale)
+            solid = self.load_stp_file(stp,scale,translate,rotate)
 
             ents=[]
             #try if solid is iterable
@@ -179,7 +183,7 @@ class Assembly:
         if(tags_set!=len(self.entities)):
            print(f"WARNING: {len(self.entities)-tags_set} volumes were tagged with the default ({default_tag}) material.")
 
-    def load_stp_file(self,filename: str, scale_factor: float = 0.1):
+    def load_stp_file(self,filename: str, scale_factor: float = 0.1,translate: list = [],rotate: list = []):
         """Loads a stp file and makes the 3D solid and wires available for use.
 
         Args:
@@ -195,13 +199,9 @@ class Assembly:
         """
         #import _all_ the shapes in the file - i.e. may return a list
         part = cq.importers.importStep(str(filename)).vals()
-        #scale the shapes even if the factor is 1.
-        if(self.verbose!=0):
-            print(f'INFO: {str(filename)} imported - scaling')
-        try:
-            scaled_part = [p.scale(scale_factor) for p in part]
-        except:
-            scaled_part=part.scale(scale_factor)
+
+        # apply apply_transforms
+        scaled_part = self.apply_transforms(part,filename,scale_factor,translate,rotate)
 
         solid=[]
         #serialize
@@ -213,6 +213,46 @@ class Assembly:
             solid.extend(scaled_part.Solids())
 
         return solid
+
+    def apply_transforms(self,part,filename,scale_factor,translate,rotate):
+        #scale the shapes even if the factor is 1.
+        if(self.verbose!=0):
+            print(f'INFO: {str(filename)} imported - scaling')
+        try:
+            transformed_part = [p.scale(scale_factor) for p in part]
+        except:
+            transformed_part = part.scale(scale_factor)
+
+        # translation
+        if translate:
+            if(self.verbose!=0):
+                print(f'INFO: {str(filename)} imported - applying translation(s)')
+            try:
+                vols = translate[::2]
+                translations = translate[1::2]
+                for v in enumerate(vols):
+                    if(self.verbose>1):
+                        print(f"INFO: Applying translation: {translations[v[0]]} to vol(s) {v[1]}")
+                    for vol in v[1]:
+                        transformed_part[vol-1] = transformed_part[vol-1].translate(translations[v[0]])
+            except:
+                transformed_part = transformed_part.translate(translate[1])
+
+        # rotation
+        if rotate:
+            if(self.verbose!=0):
+                print(f'INFO: {str(filename)} imported - applying rotation(s)')
+            try:
+                vols = rotate[::4]
+                for v in enumerate(vols):
+                    if(self.verbose>1):
+                        print(f"INFO: Applying rotation: {rotate[v[0]+3]} degrees about ax {rotate[v[0]+1]},{rotate[v[0]+2]} to vol(s) {v[1]}\n")
+                    for vol in v[1]:
+                        transformed_part[vol-1] = transformed_part[vol-1].rotate(rotate[4*v[0]+1],rotate[4*v[0]+2],rotate[4*v[0]+3])
+            except:
+                transformed_part = transformed_part.rotate(rotate[1],rotate[2],rotate[3])
+
+        return transformed_part
 
     #export entire assembly to stp
     def export_stp(
@@ -382,10 +422,20 @@ class Assembly:
         if(self.verbose>0):
             print(f"INFO: writing geometry to h5m: \"{h5m_file}\".")
         moab_core.write_file(str(h5m_p))
+
+        self.check_h5m_file(h5m_file)
+
         if(vtk):
             moab_core.write_file(str(h5m_p.with_suffix('.vtk')))
 
         return str(h5m_p)
+
+    def check_h5m_file(self,h5m_file:str='dagmc.h5m'):
+      with open(h5m_file,"rb") as f:
+        magic_bytes=f.read(8)
+        if(magic_bytes!=b'\x89HDF\x0d\x0a\x1a\x0a'):
+          print(f'ERROR: generated file {h5mfile} does not appear to be a hdf-file. Did you compile the moab libs with HDF enabled?')
+          exit(-1)
 
     def add_stl_to_moab_core(self, moab_core: core.Core, surface_id: int, volume_id: int, material_name: str, tags: dict, stl_filename: str,
 ) -> core.Core:
@@ -609,13 +659,10 @@ class Assembly:
               idx=idx_similar(self.entities,center,bb,vol)
               idxs.append(idx)
             #reorder
-
             ents=[self.entities[i] for i in idxs if i!=-1]
             self.entities=ents
 
         return rval
-
-
 
     def merge_two(self,solid1,solid2):
         """ Checks two surfaces if their BB overlap. If so merge the two - and return a list of the results
