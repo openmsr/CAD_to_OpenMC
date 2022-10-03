@@ -62,7 +62,6 @@ Below is a list of the available parameters and their
 meanings:
 
 <dl>
-<<<<<<< HEAD
     <dt>min_mesh_size</dt>
         <dd>Minimum mesh element size (gmsh backend/mmg_refinement)</dd>
     <dt>max_mesh_size</dt>
