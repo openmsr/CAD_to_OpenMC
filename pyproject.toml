@@ -19,6 +19,7 @@ dependencies=[
         'OCP',
         'meshio',
         'trimesh',
+        'networkx',
         'Cython'
 ]
 
