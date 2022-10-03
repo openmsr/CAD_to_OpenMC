@@ -89,7 +89,10 @@ git clone https://www.github.com/openmsr/zpre
 cd zpre
 bash run.sh
 ```
-The ```run.sh```-script will the ask you what kidn of calculation you'd like to perform. As a first run you might choose to ask OpenMC to simply plot the geometry of the reactor (option 2). If this is the first time you run the script, this triggers a surface-meshing operation to be performed (Be aware that by default this creates a large amount of console output - this is to be expected).
+The ```run.sh```-script will the ask you what kind of calculation you'd like to perform. As a first run you might choose to ask OpenMC to simply plot the geometry of the reactor (option 2). If this is the first time you run the script, this triggers a surface-meshing operation to be performed (Be aware that by default this creates a large amount of console output - this is to be expected).
+Dring the surface meshing operation (by default) a .vtk-file is created in addition to the .h5m-file that OpenMC (and DAGMC) needs. This is for convenience so you may inspect the created mesh using e.g. paraview, if you have access to that.
+If you have paraview installed the call ```paraview h5m_files/zpre.h5m``` should yield a geometry like this ![zpre.vtk](images/zpre_paraview.png).
+
 Once this process has finished, there should now be a file zpre.h5m inside the h5m_files directory, and a set of plot_[123].png files. which correspond to XY,XZ, and YZ-slices through the center of the reactor.
 If all goes well these should look something like this:
 
