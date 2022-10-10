@@ -1,5 +1,5 @@
 import gmsh
-import cadquery2 as cq
+import cadquery as cq
 import os
 import tempfile
 import math

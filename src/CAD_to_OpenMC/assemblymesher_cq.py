@@ -1,4 +1,4 @@
-import cadquery2 as cq
+import cadquery as cq
 import subprocess as sp
 import pathlib as pl
 import hashlib as hl
