@@ -14,7 +14,8 @@ classifiers = [
 ]
 dependencies=[
         'gmsh',
-        'cadquery2',
+        'pyparsing==2.4',
+        'cadquery',
         'numpy',
         'OCP',
         'meshio',
