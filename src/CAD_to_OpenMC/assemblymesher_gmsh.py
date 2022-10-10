@@ -20,8 +20,9 @@ class MesherGMSH:
     self.refine=refine
     self._gmsh_init()
     self._cq_solids_to_gmsh()
-  #def __del__(self):
-  #  gmsh.finalize()
+
+  def __del__(self):
+    gmsh.finalize()
 
   def _gmsh_init(self):
       if not gmsh.isInitialized():
