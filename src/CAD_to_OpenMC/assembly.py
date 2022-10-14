@@ -330,27 +330,6 @@ class Assembly:
 
         return filename
 
-    def cq_export_stls(self,angular_tolerance=0.1,tolerance=0.001):
-        stls=[]
-        #If not merged we should operate directly on the entities objects
-        #For now this is a hack relying on the fact that merged is a compund object.
-
-        msolids=self.merged.Solids()
-        offset=0
-        if(len(msolids)!=len(self.entities)):
-            print("WARNING: the number of merged solids does not match the original number")
-            offset=len(msolids)-len(self.entities)
-            if(offset<0):
-                offset=0
-        for i,s in enumerate(msolids):
-            j=i+1
-            filename=f"volume_{j}.stl"
-            status=cq.exporters.export(s,filename,exportType="STL",tolerance=tolerance,angularTolerance=angular_tolerance)
-            if(self.verbose>1):
-                print(f"INFO: export to file {filename}:{status}")
-            stls.append((j,filename))
-        return stls
-
     #See issue 4 - we should clean up the parameter-interface to gmsh (and friends)
     def solids_to_h5m(self,brep_filename: str = None, h5m_filename:str="dagmc.h5m", samples: int =100,
             min_mesh_size:float =0.1, max_mesh_size:float =1.0,delete_intermediate_stl_files:bool=False,
