@@ -334,6 +334,7 @@ class Assembly:
 
         return filename
 
+    #See issue 4 - we should clean up the parameter-interface to gmsh (and friends)
     def solids_to_h5m(self,brep_filename: str = None, h5m_filename:str="dagmc.h5m", samples: int =100,
             delete_intermediate_stl_files:bool=False, backend:str="gmsh", heal:bool=True):
         #get a mesher object from the factory class
