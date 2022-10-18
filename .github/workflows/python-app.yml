@@ -50,7 +50,7 @@ jobs:
         make
         sudo make install
         cd pymoab
-        sudo env "PATH=$PATH" python setup.py install
+        python setup.py install
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
