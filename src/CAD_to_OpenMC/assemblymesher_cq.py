@@ -23,7 +23,7 @@ class MesherCQSTL:
     for i,e in enumerate(self.cq_mesher_entities):
       j=i+1
       filename=f"volume_{j}.stl"
-      cq.exporters.export(e.solid,filename,exportType="STL",tolerance=self.tolerance,angularTolerance=self.angular_tolerance)
+      e.solid.exportStl(filename,ascii=True,tolerance=self.tolerance,angularTolerance=self.angular_tolerance)
       if(self.verbose>1):
         print(f"INFO: cq export to file {filename}")
       e.stl=filename
@@ -123,8 +123,7 @@ class MesherCQSTL:
         else:
           facename=f'vol_{i+1}_face{j}.stl'
           facehashtable[hh]=facename
-          print(len(facehashtable.keys()))
-          cq.exporters.export(f,facename, exportType="STL", tolerance=self.tolerance, angularTolerance=self.angular_tolerance)
+          f.exportStl(facename, tolerance=0.1, angularTolerance=self.angular_tolerance, ascii=True)
           if(True or self.verbose>1):
             print(f"INFO: cq export to file {facename}")
           volumefaces.append(facename)
