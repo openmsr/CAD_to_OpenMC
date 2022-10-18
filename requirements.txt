@@ -1,7 +1,10 @@
 gmsh
-cadquery2
+pyparsing == 2.4
+cadquery == 2.2.0b2
+cadquery-ocp == 7.6.3a0
 numpy
 OCP
 meshio
 trimesh
-Cython
+networkx
+Cython == 0.29.32
