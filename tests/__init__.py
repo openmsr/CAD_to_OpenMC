@@ -3,6 +3,7 @@ import os
 from shutil import copy
 import tempfile
 
+
 @contextmanager
 def cdtemp(files=None):
     """Context manager to change to/return from a tmpdir.
