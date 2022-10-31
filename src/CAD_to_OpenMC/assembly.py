@@ -114,6 +114,7 @@ class Assembly:
         self.entities=[]
         self.verbose=verbose
         self.default_tag=default_tag
+        self.remove_intermediate_files=False
 
     def import_stp_files(self,tags:dict=None,default_tag:str='vacuum', scale=0.1,translate=[],rotate=[]):
         tags_set=0
@@ -392,6 +393,9 @@ class Assembly:
             moab_core = self.add_stl_to_moab_core(moab_core,sid,vid,e.tag, moab_tags, e.stl)
             vid += 1
             sid += 1
+            if (self.remove_intermediate_files):
+              p=pl.Path(e.stl)
+              p.unlink()
 
         all_sets = moab_core.get_entities_by_handle(0)
 
@@ -583,6 +587,9 @@ class Assembly:
             )  # reqired as gmsh stl export from brep can get the inside outside mixed up
             new_filename = stl[:-4] + "_with_corrected_face_normals.stl"
             mesh.export(new_filename)
+            if(self.remove_intermediate_files):
+              p=pl.Path(e.stl)
+              p.unlink()
             e.stl=new_filename
 
     def tag_stls(self,stls):
