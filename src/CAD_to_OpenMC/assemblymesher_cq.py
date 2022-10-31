@@ -2,11 +2,16 @@ import cadquery as cq
 import subprocess as sp
 import pathlib as pl
 import hashlib as hl
-import multiprocessing.pool as mp
+from CAD_to_OpenMC import cdtemp
+
+single_thread_override=True
+try:
+  import multiprocessing.pool as mp
+except:
+  single_thread_override=True
 
 from .stl_utils import *
 from . import meshutils
-
 
 
 
@@ -20,6 +25,8 @@ class MesherCQSTL:
   cq_mesher_ang_tolereance=None
   cq_mesher_min_mesh_size=None
   cq_mesher_max_mesh_size=None
+
+  cq_mesher_faceHash={}
 
   def __init__(self, tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default, refine, threads, entities):
     self._set_meshpars(tolerance,angular_tolerance,min_mesh_size,max_mesh_size)
@@ -93,34 +100,39 @@ class MesherCQSTL:
   def _mesh_surfaces(self):
     #loop over all surfaces in all entities
     #and generate meshes (refined or otherwise)
-    facehashtable={}
-    for i,e in enumerate(self.cq_mesher_entities):
-      volname= f"volume_{i+1}.stl"
-      k=0
-      mpargs=[(j,i,facehashtable,self.refine) for j,f in enumerate(e.solid.Faces())]
-      pl=mp.Pool(processes=4)
-      output=pl.starmap(self._mesh_single, mpargs)
-      print(output)
-      print(len(output))
-      volumefaces=[]
-      for o in output:
-        facehashtable[o[0]]=o[1]
-        volumefaces.append(o[1])
-      #merge the stls to a single .stl
-      merge_stl(volname, volumefaces,of='bin')
-      e.stl=volname
+    cwd=pl.Path.cwd()
+    #create a workplace in tmp
+    with cdtemp() as mngr:
+      for i,e in enumerate(self.cq_mesher_entities):
+        volname= f"volume_{i+1}.stl"
+        k=0
+        mpargs=[(j,i,self.refine) for j,f in enumerate(e.solid.Faces())]
+        if (single_thread_override):
+          output=[]
+          for args in mpargs:
+            output.append(self._mesh_single(*args))
+        else:
+          pool=mp.Pool(processes=self.threads)
+          output=pool.starmap(self._mesh_single, mpargs)
+        volumefaces=[]
+        for o in output:
+          self.cq_mesher_faceHash[o[0]]=o[1]
+          volumefaces.append(o[1])
+        #merge the stls to a single .stl in the working directory
+        merge_stl(str(cwd / volname), volumefaces,of='bin')
+        e.stl=volname
 
   @classmethod
-  def _mesh_single(cls, fid, vid, facehashtable, refine):
+  def _mesh_single(cls, fid, vid, refine):
     f=cls.cq_mesher_entities[vid].solid.Faces()[fid]
     hh=hash(f)
-    if hh in facehashtable.keys():
+    if hh in cls.cq_mesher_faceHash.keys():
       #surface is in table - use that file for this volume
-      print(f'reusing {hh} {facehashtable[hh]}')
-      return(hh,facehashtable[hh])
+      print(f'reusing {hh} {cls.cq_mesher_faceHash[hh]}')
+      return(hh,cls.cq_mesher_faceHash[hh])
     else:
       facename=f'vol_{vid+1}_face{fid}.stl'
-      facehashtable[hh]=facename
+      cls.cq_mesher_faceHash[hh]=facename
       f.exportStl(facename, tolerance=cls.cq_mesher_tolerance, angularTolerance=cls.cq_mesher_ang_tolerance, ascii=True)
       if(True or self.verbose>1):
         print(f"INFO: cq export to file {facename}")
