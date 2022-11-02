@@ -116,7 +116,7 @@ class Assembly:
         self.default_tag=default_tag
         self.remove_intermediate_files=False
 
-    def import_stp_files(self,tags:dict=None,default_tag:str='vacuum', scale=0.1,translate=[],rotate=[]):
+    def import_stp_files(self, tags:dict=None, match_anywhere:bool=False, default_tag:str='vacuum', scale=0.1,translate=[],rotate=[]):
         tags_set=0
         #clear list to avoid double-import
         self.entities=[]
@@ -165,7 +165,10 @@ class Assembly:
                         part=s.split('/')[-1]
                         tag=None
                         for k in tags.keys():
-                            g=re.match(k,part)
+                            if (match_anywhere):
+                              g=re.search(k,part)
+                            else:
+                              g=re.match(k,part)
                             if (g):
                                 tag=tags[k]
                                 break
