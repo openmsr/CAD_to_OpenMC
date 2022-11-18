@@ -8,3 +8,4 @@ meshio
 trimesh
 networkx
 Cython == 0.29.32
+pytest
