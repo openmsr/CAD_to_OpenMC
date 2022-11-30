@@ -1,4 +1,4 @@
-[![Python application](https://github.com/openmsr/step_to_h5m/actions/workflows/python-app.yml/badge.svg?branch=factory_meshclasses)](https://github.com/openmsr/step_to_h5m/actions/workflows/python-app.yml)
+[![Python application](https://github.com/openmsr/CAD_to_OpenMC/actions/workflows/python-app.yml/badge.svg)](https://github.com/openmsr/CAD_to_OpenMC/actions/workflows/python-app.yml)
 
 # CAD_to_OpenMC
 
