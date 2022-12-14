@@ -334,12 +334,9 @@ class Assembly:
 
         return filename
 
-    #See issue 4 - we should clean up the parameter-interface to gmsh (and friends)
     def solids_to_h5m(self,brep_filename: str = None, h5m_filename:str="dagmc.h5m", samples: int =100,
-            min_mesh_size:float =0.1, max_mesh_size:float =1.0,delete_intermediate_stl_files:bool=False,
-            backend:str="gmsh", stl_tol:float=0.1, stl_ang_tol:float=0.2, threads:int=1, heal:bool=True, gmsh_default_opts=False):
-        """calls the lower level gmsh functions in order"""
-
+            delete_intermediate_stl_files:bool=False, backend:str="gmsh", heal:bool=True):
+        #get a mesher object from the factory class
         mesher_config['entities']=self.entities
         meshgen=meshers.get(backend,**mesher_config)
         stl_list=meshgen.generate_stls()
