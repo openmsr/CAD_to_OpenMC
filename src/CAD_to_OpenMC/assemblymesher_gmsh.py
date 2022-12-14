@@ -22,6 +22,20 @@ class MesherGMSH(assemblymesher):
     self._gmsh_init()
     self._cq_solids_to_gmsh()
 
+  @property
+  def refine(self):
+    return self._refine
+
+  @refine.setter
+  def refine(self,ref):
+    if(ref==True):
+      self._refine=1
+    elif(ref==False):
+      self._refine=0
+    else:
+      #assume ref is integer
+      self._refine=abs(int(ref))
+
   def __del__(self):
     gmsh.finalize()
 
