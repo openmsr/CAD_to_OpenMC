@@ -38,6 +38,17 @@ class MesherCQSTL:
     self.max_mesh_size=max_mesh_size
     self.threads=threads
 
+  @property
+  def refine(self):
+    return self._refine
+
+  @refine.setter
+  def refine(self,ref):
+    if(ref==True or ref!=0):
+      self._refine=True
+    else:
+      self._refine=False
+
   @classmethod
   def _set_meshpars(cls,tol,ang_tol, min_sz, max_sz):
     cls.cq_mesher_tolerance=tol

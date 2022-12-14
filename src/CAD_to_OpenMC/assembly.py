@@ -30,7 +30,7 @@ mesher_config={
   'mesh_algorithm':1,
   'threads':4,
   'radial_threshold':0,
-  'refine':2
+  'refine':0
 }
 
 #these are dummies that we still need to define
