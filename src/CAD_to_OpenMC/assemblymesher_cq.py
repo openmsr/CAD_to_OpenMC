@@ -29,7 +29,6 @@ class MesherCQSTL(assemblymesher):
 
   def __init__(self, tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default, refine, threads, entities):
     self._set_meshpars(tolerance,angular_tolerance,min_mesh_size,max_mesh_size)
-    self.verbose=2
     self.refine=refine
     self._set_entities(entities)
     self.default=default
