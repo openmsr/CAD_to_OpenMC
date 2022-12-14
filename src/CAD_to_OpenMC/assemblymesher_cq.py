@@ -98,7 +98,8 @@ class MesherCQSTL(assemblymesher):
     edges=np.array(meshutils.find_edges(tris))
     meshutils.write_dotmesh(str(stlp.with_suffix('.mesh')),verts,tris,edges=edges,required_edges='all')
     cp=sp.run(['mmgs_O3','-hmin',f'{cls.cq_mesher_min_mesh_size}','-hmax',f'{cls.cq_mesher_max_mesh_size}','-optim','-in',stlp.with_suffix('.mesh'),'-out',stlp.with_suffix('.o.mesh')], capture_output=True)
-    print(cp.stdout)
+    if(cls.verbosity_level and cls.verbosity_level>1):
+      print(cp.stdout.decode())
 
     import gmsh
     gmsh.initialize()
