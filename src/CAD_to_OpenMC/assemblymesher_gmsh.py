@@ -3,8 +3,9 @@ import cadquery as cq
 import os
 import tempfile
 import math
+from .assemblymesher_base import *
 
-class MesherGMSH:
+class MesherGMSH(assemblymesher):
   def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities):
     self.IntermediateLayer='brep'
     self.min_mesh_size=min_mesh_size
