@@ -339,6 +339,7 @@ class Assembly:
         #get a mesher object from the factory class
         mesher_config['entities']=self.entities
         meshgen=meshers.get(backend,**mesher_config)
+        meshgen.set_verbosity(self.verbose)
         stl_list=meshgen.generate_stls()
         if(heal):
           stl_list=self.heal_stls(stl_list)
