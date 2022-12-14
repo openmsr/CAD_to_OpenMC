@@ -3,6 +3,7 @@ import subprocess as sp
 import pathlib as pl
 import hashlib as hl
 from CAD_to_OpenMC import cdtemp
+from .assemblymesher_base import *
 
 single_thread_override=True
 try:
@@ -13,12 +14,10 @@ except:
 from .stl_utils import *
 from . import meshutils
 
-
-
 #following pattern here: https://thelaziestprogrammer.com/python/multiprocessing-pool-a-global-solution
 #to enable multiprocessing meshings
 
-class MesherCQSTL:
+class MesherCQSTL(assemblymesher):
   #these need to be class attributes to avoid pickling when spawning a multiprocessing-pool
   cq_mesher_entities=None
   cq_mesher_tolerance=None

@@ -1,3 +1,5 @@
+import abc
+from .assemblymesher_base import *
 from .object_factory import ObjectFactory
 from .assemblymesher_gmsh import *
 from .assemblymesher_cq import *
