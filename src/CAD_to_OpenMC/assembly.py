@@ -197,6 +197,9 @@ class Assembly:
                 Useful when converting the geometry to cm for use in neutronics
                 simulations. The default (0.1) corresponds to the standard setting of OpenCASCADE
                 which assumes mm to the the standard of OpenMC which is cm.
+            translate: optional, iterable of 3 float iterable. Translation vector to
+                apply to parts in the model before meshing occurs. If list of list then
+                each translation in the list is applied to 1 part in sequence.
 
         Returns:
             [CadQuery.solid]
