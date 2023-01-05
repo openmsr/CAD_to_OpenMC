@@ -549,9 +549,9 @@ class Assembly:
         #merging a single object does not really make sense
         if len(self.entities)>1:
           #extract cq solids backend algorithm
-          unmerged=[e.solid for e in self.entities]
+          unmerged = [e.solid for e in self.entities]
           #do merge
-          merged=self._merge_solids(unmerged, fuzzy_value=1e-6)
+          merged = self._merge_solids(unmerged, fuzzy_value=1e-6)
           #the merging process may result in extra volumes.
           #We need to make sure these are at the end of the list
           #If not this results in a loss of volumes in the end.
@@ -563,7 +563,7 @@ class Assembly:
           for j,orig in enumerate(unmerged):
             d_small = 1e9
             i_small = -1
-            merged_solids=merged.Solids()
+            merged_solids = merged.Solids()
             for i,ms in enumerate(merged_solids):
               d = similar_solids(orig,ms)
               if d < d_small:
@@ -572,10 +572,10 @@ class Assembly:
               print(f'WARNING: Could not find a matching merged volume for volume {j+1}.',end=' ')
               print(f'This volume/entity will be skipped. Please examine the output volume carefully.')
             else:
-              ent=self.entities[j]
-              ent.solid=merged_solids[i]
+              ent = self.entities[j]
+              ent.solid = merged_solids[i]
             tmp_ents.append(ent)
-          self.entities=tmp_ents
+          self.entities = tmp_ents
 
 #          for solid in merged.Solids():
 #            center=solid.Center()
