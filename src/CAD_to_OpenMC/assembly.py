@@ -71,6 +71,8 @@ class Entity:
         vol_close=np.abs(self.volume-volume)/volume<tolerance
         return (cms_close and bb_close and vol_close)
 
+
+
     def export_stp(self):
         """export the entity to a step-file using its tag as filename through cadquery export"""
         pass
@@ -102,11 +104,27 @@ def idx_similar(entity_list,center,bounding_box,volume):
         print('INFO: No similar object found')
     return end_idx
 
+def similar_solids(solid1, solid2):
+  """This function compares two solids and reports their similarity constant.
+  defined as the sum of:
+    1. cubic root difference in volume
+    2. difference of bounding box diagonal
+    3. difference in location vector.
+  """
+  dV = math.pow(math.fabs(solid1.Volume()-solid2.Volume()),0.3333333333333333333333333333333333)
+  bb1 = solid1.BoundingBox()
+  bb2 = solid2.BoundingBox()
+  dBB = math.fabs(bb1.DiagonalLength-bb2.DiagonalLength)
+  c1 = solid1.Center()
+  c2 = solid2.Center()
+  dCntr = math.sqrt( (c1.x-c2.x)*(c1.x-c2.x) + (c1.y-c2.y)*(c1.y-c2.y) + (c1.z-c2.z)*(c1.z-c2.z) )
+  return dV+dBB+dCntr
+
 class Assembly:
     """This class encapsulates a set of geometries defined by step-files
     addtionally it provides access to meshing-utilities, and export to a DAGMC-enabled
     h5m scene, which may be used for neutronics.
-    This class is based on (and borrows heavily from) the paramak package.
+    This class is based on (and borrows heavily from) logic from the paramak package.
     """
     def __init__(self, stp_files=[], stl_files=[], verbose:int = 1, default_tag='vacuum'):
         self.stp_files=stp_files
@@ -115,13 +133,14 @@ class Assembly:
         self.verbose=verbose
         self.default_tag=default_tag
         self.remove_intermediate_files=False
+        self.tags=None
 
-    def run(self,backend='stl'):
+    def run(self,backend='stl',h5m_filename:str='dagmc.h5m'):
       """conveniece function that assumes the stp_files field is set, etc and simply runs the mesher with theh set options
       """
-      self.import_stp_files()
+      self.import_stp_files(tags=self.tags)
       self.merge_all()
-      self.solids_to_h5m(backend=backend)
+      self.solids_to_h5m(backend=backend,h5m_filename=h5m_filename)
 
     def import_stp_files(self, tags:dict=None, match_anywhere:bool=False, default_tag:str='vacuum', scale=0.1,translate=[],rotate=[]):
         tags_set=0
@@ -141,7 +160,7 @@ class Assembly:
                 e = Entity(solid=solid)
                 ents.append(e)
 
-            if(tags is None):
+            if( tags is None ):
                 #also import using gmsh to extract the material tags from the labels in the step files
                 gmsh.initialize()
                 vols=gmsh.model.occ.importShapes(stp)
@@ -461,7 +480,6 @@ class Assembly:
         # set geom IDs
         moab_core.tag_set_data(tags["geom_dimension"], volume_set, 3)
         moab_core.tag_set_data(tags["geom_dimension"], surface_set, 2)
-
         # set category tag values
         moab_core.tag_set_data(tags["category"], volume_set, "Volume")
         moab_core.tag_set_data(tags["category"], surface_set, "Surface")
@@ -530,24 +548,33 @@ class Assembly:
         #merging a single object does not really make sense
         if len(self.entities)>1:
           #extract cq solids backend algorithm
-          unmerged=[e.solid for e in self.entities]
+          unmerged = [e.solid for e in self.entities]
           #do merge
-          merged=self._merge_solids(unmerged, fuzzy_value=1e-2)
+          merged = self._merge_solids(unmerged, fuzzy_value=1e-6)
           #the merging process may result in extra volumes.
           #We need to make sure these are at the end of the list
           #If not this results in a loss of volumes in the end.
-          print("INFO: reordering volumes")
-          tmp_ents=[]
-          for solid in merged.Solids():
-            center=solid.Center()
-            bb=solid.BoundingBox()
-            vol=solid.Volume()
-            idx=idx_similar(self.entities,center,bb,vol)
-            ent=self.entities[idx]
-            #have to use the newly created solid to get the merged entries instead.
-            ent.solid=solid
+          print("INFO: reordering volumes after merge")
+          tmp_ents = []
+
+          #figure of which of the merged solids best corresponds to
+          #each of the unmerged volumes.
+          for j,orig in enumerate(unmerged):
+            d_small = 1e9
+            i_small = -1
+            merged_solids = merged.Solids()
+            for i,ms in enumerate(merged_solids):
+              d = similar_solids(orig,ms)
+              if d < d_small:
+                i_small,d_small = i,d
+            if i_small == -1:
+              print(f'WARNING: Could not find a matching merged volume for volume {j+1}.',end=' ')
+              print(f'This volume/entity will be skipped. Please examine the output volume carefully.')
+            else:
+              ent = self.entities[j]
+              ent.solid = merged_solids[i_small]
             tmp_ents.append(ent)
-          self.entities=tmp_ents
+          self.entities = tmp_ents
 
     def _merge_solids(self,solids,fuzzy_value):
         """merge a set of cq-solids
