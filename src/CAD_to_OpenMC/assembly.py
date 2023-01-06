@@ -114,10 +114,9 @@ def similar_solids(solid1, solid2):
   dV = math.pow(math.fabs(solid1.Volume()-solid2.Volume()),0.3333333333333333333333333333333333)
   bb1 = solid1.BoundingBox()
   bb2 = solid2.BoundingBox()
-  dBB = bb1.DiagonalLength-bb2.DiagonalLength
+  dBB = math.fabs(bb1.DiagonalLength-bb2.DiagonalLength)
   c1 = solid1.Center()
   c2 = solid2.Center()
-  #dCntr = math.sqrt( (c1[0]-c2[0])*(c1[0]-c2[0]) + (c1[1]-c2[1])*(c1[1]-c2[1]) + (c1[2]-c2[2])*(c1[2]-c2[2]) )
   dCntr = math.sqrt( (c1.x-c2.x)*(c1.x-c2.x) + (c1.y-c2.y)*(c1.y-c2.y) + (c1.z-c2.z)*(c1.z-c2.z) )
   return dV+dBB+dCntr
 
