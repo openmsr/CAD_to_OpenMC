@@ -480,7 +480,6 @@ class Assembly:
         # set geom IDs
         moab_core.tag_set_data(tags["geom_dimension"], volume_set, 3)
         moab_core.tag_set_data(tags["geom_dimension"], surface_set, 2)
-
         # set category tag values
         moab_core.tag_set_data(tags["category"], volume_set, "Volume")
         moab_core.tag_set_data(tags["category"], surface_set, "Surface")
@@ -576,18 +575,6 @@ class Assembly:
               ent.solid = merged_solids[i_small]
             tmp_ents.append(ent)
           self.entities = tmp_ents
-
-#          for solid in merged.Solids():
-#            center=solid.Center()
-#            bb=solid.BoundingBox()
-#            vol=solid.Volume()
-#            print(solid,center,[bb.xlen,bb.ylen,bb.zlen],vol)
-#            idx=idx_similar(self.entities,center,bb,vol)
-#            ent=self.entities[idx]
-#            #have to use the newly created solid to get the merged entries instead.
-#            ent.solid=solid
-#            tmp_ents.append(ent)
-#          self.entities=tmp_ents
 
     def _merge_solids(self,solids,fuzzy_value):
         """merge a set of cq-solids
