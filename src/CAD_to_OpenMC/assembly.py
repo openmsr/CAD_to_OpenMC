@@ -573,7 +573,7 @@ class Assembly:
               print(f'This volume/entity will be skipped. Please examine the output volume carefully.')
             else:
               ent = self.entities[j]
-              ent.solid = merged_solids[i]
+              ent.solid = merged_solids[i_small]
             tmp_ents.append(ent)
           self.entities = tmp_ents
 
