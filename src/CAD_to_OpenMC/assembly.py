@@ -133,13 +133,14 @@ class Assembly:
         self.verbose=verbose
         self.default_tag=default_tag
         self.remove_intermediate_files=False
+        self.tags=None
 
-    def run(self,backend='stl'):
+    def run(self,backend='stl',h5m_filename:str='dagmc.h5m'):
       """conveniece function that assumes the stp_files field is set, etc and simply runs the mesher with theh set options
       """
-      self.import_stp_files()
+      self.import_stp_files(tags=self.tags)
       self.merge_all()
-      self.solids_to_h5m(backend=backend)
+      self.solids_to_h5m(backend=backend,h5m_filename=h5m_filename)
 
     def import_stp_files(self, tags:dict=None, match_anywhere:bool=False, default_tag:str='vacuum', scale=0.1,translate=[],rotate=[]):
         tags_set=0
@@ -159,7 +160,7 @@ class Assembly:
                 e = Entity(solid=solid)
                 ents.append(e)
 
-            if(tags is None):
+            if( tags is None ):
                 #also import using gmsh to extract the material tags from the labels in the step files
                 gmsh.initialize()
                 vols=gmsh.model.occ.importShapes(stp)
