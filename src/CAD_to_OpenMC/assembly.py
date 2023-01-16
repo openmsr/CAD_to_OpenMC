@@ -642,6 +642,16 @@ class Assembly:
                 print("WARNING: list of material tags is exhausted. Tagging volume {stl[0]},{stl[1]} with \'vacuum\'")
                 stl_tagged.append(stl[0],stl[1],'vacuum')
 
+    def get_all_tags(self):
+        #extract_all_tags from the list of entities
+        return [e.tag for e in self.entitites]
+
+    def get_unique_tags(self):
+        #extract a set of unique tags
+        return { self.get_all_tags() }
+
+
+
 ###############
     def export_brep(self, filename: str, merge: bool = True, step: bool =False):
         """Exports a brep file for the Assembly
