@@ -557,12 +557,13 @@ class Assembly:
           print("INFO: reordering volumes after merge")
           tmp_ents = []
 
-          #figure of which of the merged solids best corresponds to
-          #each of the unmerged volumes.
+          # Figure of which of the merged solids best corresponds to
+          # each of the unmerged volumes.
+          merged_solids = merged.Solids()
           for j,orig in enumerate(unmerged):
             d_small = 1e9
             i_small = -1
-            merged_solids = merged.Solids()
+            print(f'INFO: {len(merged_solids)} merged solids left in list of originally {len(merged.Solids())}')
             for i,ms in enumerate(merged_solids):
               d = similar_solids(orig,ms)
               if d < d_small:
@@ -571,8 +572,10 @@ class Assembly:
               print(f'WARNING: Could not find a matching merged volume for volume {j+1}.',end=' ')
               print(f'This volume/entity will be skipped. Please examine the output volume carefully.')
             else:
+              # Transfer the picked solid to the list of merged solids, removing (pop) it from the list
+              # This to avoid going through the whole listmore than once.
               ent = self.entities[j]
-              ent.solid = merged_solids[i_small]
+              ent.solid = merged_solids.pop(i_small)
             tmp_ents.append(ent)
           self.entities = tmp_ents
 
