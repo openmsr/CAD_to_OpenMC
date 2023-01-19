@@ -26,8 +26,8 @@ dependencies=[
 ]
 
         [project.urls]
-"Homepage" = "https://github.com/openmsr/step_to_h5m"
-"Bug Tracker" = "https://github.com/openmsr/step_to_h5m/issues"
+"Homepage" = "https://github.com/openmsr/CAD_to_OpenMC"
+"Bug Tracker" = "https://github.com/openmsr/CAD_to_OpenMC/issues"
 
 [build-system]
 requires = ["setuptools>=61.0"]
