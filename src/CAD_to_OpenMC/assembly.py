@@ -135,8 +135,8 @@ class Assembly:
         self.tags=None
 
     def run(self,backend='stl',h5m_filename:str='dagmc.h5m',merge=True):
-      """conveniece function that assumes the stp_files field is set, etc and simply runs the mesher with theh set options
-#      """
+      """conveniece function that assumes the stp_files field is set, etc and simply runs the mesher with the set options
+      """
       self.import_stp_files(tags=self.tags)
       if(merge):
         self.merge_all()
