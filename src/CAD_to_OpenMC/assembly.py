@@ -370,10 +370,14 @@ class Assembly:
         meshgen=meshers.get(backend,**mesher_config)
         meshgen.set_verbosity(self.verbose)
         stl_list=meshgen.generate_stls()
+<<<<<<< HEAD
         if (self.verbose):
           print(f'SUMMARY: {"solid_id":8} {"material_tag":16} {"stl-file":16}')
           for i,a in zip(range(len(self.entities)),self.entities):
             print(f'SUMMARY: {i+1:8} {a.tag:16} {a.stl:16}')
+=======
+
+>>>>>>> fbeb14d (attempt WIP)
         if(heal):
           stl_list=self.heal_stls(stl_list)
         self.stl2h5m(stl_list,h5m_filename,True)
