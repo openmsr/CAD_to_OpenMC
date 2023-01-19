@@ -25,7 +25,7 @@ dependencies=[
         'Cython==0.29.32'
 ]
 
-        [project.urls]
+[project.urls]
 "Homepage" = "https://github.com/openmsr/CAD_to_OpenMC"
 "Bug Tracker" = "https://github.com/openmsr/CAD_to_OpenMC/issues"
 
