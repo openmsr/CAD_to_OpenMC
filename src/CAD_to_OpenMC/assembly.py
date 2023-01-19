@@ -371,6 +371,7 @@ class Assembly:
         meshgen=meshers.get(backend,**mesher_config)
         meshgen.set_verbosity(self.verbose)
         stl_list=meshgen.generate_stls()
+
         if(heal):
           stl_list=self.heal_stls(stl_list)
         self.stl2h5m(stl_list,h5m_filename,True)
@@ -427,7 +428,6 @@ class Assembly:
             if (self.remove_intermediate_files):
               p=pl.Path(e.stl)
               p.unlink()
-
         all_sets = moab_core.get_entities_by_handle(0)
 
         file_set = moab_core.create_meshset()
@@ -506,6 +506,12 @@ class Assembly:
             dag_material_tag = material_name
 
         moab_core.tag_set_data(tags["name"], group_set, dag_material_tag)
+        if material_name.lower() == 'graveyard':
+            dag_material_tag = "mat:hello_comp"
+            group_set = moab_core.create_meshset()
+            moab_core.tag_set_data(tags["category"], group_set, "Group")
+            moab_core.tag_set_data(tags["name"], group_set, dag_material_tag)
+
         moab_core.tag_set_data(tags["geom_dimension"], group_set, 4)
 
         # add the volume to this group set
