@@ -135,11 +135,12 @@ class Assembly:
         self.remove_intermediate_files=False
         self.tags=None
 
-    def run(self,backend='stl',h5m_filename:str='dagmc.h5m'):
+    def run(self,backend='stl',h5m_filename:str='dagmc.h5m',merge=True):
       """conveniece function that assumes the stp_files field is set, etc and simply runs the mesher with theh set options
       """
       self.import_stp_files(tags=self.tags)
-      self.merge_all()
+      if(merge):
+        self.merge_all()
       self.solids_to_h5m(backend=backend,h5m_filename=h5m_filename)
 
     def import_stp_files(self, tags:dict=None, match_anywhere:bool=False, default_tag:str='vacuum', scale=0.1,translate=[],rotate=[]):
@@ -407,7 +408,7 @@ class Assembly:
         return volume_mat_list
 
     def stl2h5m(self,stls:list,h5m_file:str='dagmc.h5m', vtk:bool=False) -> str:
-        """function that export the list of stls that we have presumably generated somehow
+        """function that exports the list of stls that we have presumably generated somehow
         and merges them into a DAGMC h5m-file by means of the MOAB-framework.
         """
 
