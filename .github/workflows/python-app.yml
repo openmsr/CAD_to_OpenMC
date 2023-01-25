@@ -63,4 +63,5 @@ jobs:
         pip install dist/CAD_to_OpenMC*.tar.gz
         python -c 'import CAD_to_OpenMC.assembly'
     - name: Run Tests
+      run: |
         pytest tests
