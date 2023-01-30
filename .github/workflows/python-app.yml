@@ -8,6 +8,7 @@ on:
     branches: [ main, develop ]
     paths:
       - 'src/**'
+      - 'tests/**'
   pull_request:
     branches: [ main ]
   workflow_dispatch:
@@ -16,10 +17,10 @@ permissions:
   contents: read
 env:
   PYTHONPATH: '/usr/local/lib'
-  
+
 jobs:
   build:
-    env: 
+    env:
       PYTHONPATH: "/usr/local/lib/python${{matrix.pyv}}/site-packages"
 
     runs-on: ubuntu-22.04
