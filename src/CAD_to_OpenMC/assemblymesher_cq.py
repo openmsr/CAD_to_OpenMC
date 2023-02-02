@@ -29,6 +29,7 @@ class MesherCQSTL(assemblymesher):
 
   def __init__(self, tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default, refine, threads, entities):
     self._set_meshpars(tolerance,angular_tolerance,min_mesh_size,max_mesh_size)
+    self._clear_face_hashtable()
     self.refine=refine
     self._set_entities(entities)
     self.default=default
@@ -53,6 +54,10 @@ class MesherCQSTL(assemblymesher):
     cls.cq_mesher_ang_tolerance=ang_tol
     cls.cq_mesher_min_mesh_size=min_sz
     cls.cq_mesher_max_mesh_size=max_sz
+
+  @classmethod
+  def _clear_face_hashtable(cls):
+    cls.cq_mesher_faceHash={}
 
   @classmethod
   def _set_entities(cls,entities):
@@ -131,6 +136,8 @@ class MesherCQSTL(assemblymesher):
         #merge the stls to a single .stl in the working directory
         merge_stl(str(cwd / volname), volumefaces,of='bin')
         e.stl=volname
+    # lear the hash table
+    self._clear_face_hashtable()
 
   @classmethod
   def _mesh_single(cls, fid, vid, refine):
@@ -157,4 +164,9 @@ class MesherCQSTLBuilder:
   def __call__(self, tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default, refine, threads, entities, **_ignored):
     if not self._instance:
       self._instance = MesherCQSTL(tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default,refine, threads, entities)
+    else:
+      #we are reusing a mesher instance. Hence reset the parameters and cleaar the hashtable
+      self._instance._set_entities(entities)
+      self._instance._set_meshpars(tolerance, angular_tolerance, min_mesh_size, max_mesh_size)
+      self._instance._clear_face_hashtable()
     return self._instance
