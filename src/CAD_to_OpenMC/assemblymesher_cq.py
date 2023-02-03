@@ -136,7 +136,7 @@ class MesherCQSTL(assemblymesher):
         #merge the stls to a single .stl in the working directory
         merge_stl(str(cwd / volname), volumefaces,of='bin')
         e.stl=volname
-    # lear the hash table
+    # clear the hash table
     self._clear_face_hashtable()
 
   @classmethod
