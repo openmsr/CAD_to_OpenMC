@@ -52,7 +52,7 @@ a=amb.Assembly(['7pin.step'])
 
 a.import_stp_files()
 a.merge_all()
-a.solids_to_h5m(backend='stl', h5m_file='output.h5m')
+a.solids_to_h5m(backend='stl', h5m_filename='output.h5m')
 
 #these 3 lines be shortend using the utility function run to:
 # a.run(backend='stl')
