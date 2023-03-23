@@ -10,6 +10,9 @@ class TestRun:
     self.a.import_stp_files()
     self.h5m = 'out.h5m'
 
+  def merge(self):
+    self.a.merge_all()
+
   def cleanup(self, h5m=None):
     pwd=pl.Path('.')
     for v in pwd.glob('volume_*.stl'):
