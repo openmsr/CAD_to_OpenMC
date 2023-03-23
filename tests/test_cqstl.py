@@ -28,4 +28,7 @@ class TestCqSTL(TestRun):
 def testcq():
   t = TestCqSTL()
   t.run()
+
+def testcq_wmerge():
+  t = TestCqSTL()
   t.run(merge=True)
