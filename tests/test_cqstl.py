@@ -5,9 +5,13 @@ class TestCqSTL(TestRun):
   def __init__(self):
     super().__init__()
 
-  def run(self):
+  def run(self,merge=False):
     print(f'stl: {self.a.stp_files})')
     print(self.h5m)
+
+    if merge:
+      self.merge()
+
     #self.a.solids_to_h5m(backend='stl')
     h5p = pl.Path('out_cqstl.h5m')
     self.a.solids_to_h5m(backend='stl',h5m_filename=str(h5p))
@@ -24,3 +28,4 @@ class TestCqSTL(TestRun):
 def testcq():
   t = TestCqSTL()
   t.run()
+  t.run(merge=True)
