@@ -145,13 +145,14 @@ class MesherCQSTL(assemblymesher):
     hh=hash(f)
     if hh in cls.cq_mesher_faceHash.keys():
       #surface is in table - use that file for this volume
-      print(f'reusing {hh} {cls.cq_mesher_faceHash[hh]}')
+      if (self.verbose):
+        print(f'INFO: mesher reusing {hh} {cls.cq_mesher_faceHash[hh]}')
       return(hh,cls.cq_mesher_faceHash[hh])
     else:
       facename=f'vol_{vid+1}_face{fid}.stl'
       cls.cq_mesher_faceHash[hh]=facename
       f.exportStl(facename, tolerance=cls.cq_mesher_tolerance, angularTolerance=cls.cq_mesher_ang_tolerance, ascii=True)
-      if(True or self.verbose>1):
+      if(self.verbose>1):
         print(f"INFO: cq export to file {facename}")
       if (refine):
         cls._refine_stls(facename,refine)
