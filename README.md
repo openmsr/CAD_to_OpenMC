@@ -84,6 +84,8 @@ meanings:
 This option has more than one meaning depending on which backend you have chosen.
 - If the cq/stl-backend is active and the *refine* option is non-zero or True, the mesh-refinment tool (mmg)[https://www.mmgtools.org] is called in sequence on each surface.
 - If the gmsh-backend is active and the *refine* option is non-zero the gmsh-refinement tool is called on the full geometry the given number of times. A value of True is the same as setting the option to 1, i.e. it triggers a single loop through the refinement algorithm.</dd> 
+   <dt>verbose</dt>
+      <dd>Output lots of information from the mesher backends.</dd>
 </dl>
 
 # Advanced example
