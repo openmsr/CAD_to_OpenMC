@@ -72,6 +72,8 @@ class Entity:
         vol_close=np.abs(self.volume-volume)/volume<tolerance
         return (cms_close and bb_close and vol_close)
 
+
+
     def export_stp(self):
         """export the entity to a step-file using its tag as filename through cadquery export"""
         pass
