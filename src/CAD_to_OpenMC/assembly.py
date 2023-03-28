@@ -57,7 +57,7 @@ class Entity:
 
     def similarity(self,center:tuple=(0,0,0),bb:tuple=(0,0,0),volume:float=1,
             tolerance=1e-2)->bool:
-        """method returns a value for the similary between the entity and the 3 parameters
+        """method returns a value for the similarity between the entity and the 3 parameters
            cms, bb, and volume"""
         cms_rel_dist= np.linalg.norm([self.center.x-center[0], self.center.y-center[1], self.center.z-center[2]])/np.linalg.norm(center)
         bb_rel_dist=np.linalg.norm([self.bb.xlen-bb[0],self.bb.ylen-bb[1],self.bb.zlen-bb[2]])/np.linalg.norm(bb)
@@ -71,8 +71,6 @@ class Entity:
         bb_close=np.linalg.norm([self.bb.xlen-bb[0],self.bb.ylen-bb[1],self.bb.zlen-bb[2]])/np.linalg.norm(bb)<tolerance
         vol_close=np.abs(self.volume-volume)/volume<tolerance
         return (cms_close and bb_close and vol_close)
-
-
 
     def export_stp(self):
         """export the entity to a step-file using its tag as filename through cadquery export"""
