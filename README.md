@@ -5,7 +5,7 @@
 This is intended to be a python package heavily inspired by [Paramak](https://github.com/fusion-energy/paramak), and borrows a lot from [step_to_h5m]( https://github.com/fusion-energy/step_to_h5m).
 It's "raison d'etre" is to establish an open source-based link between CAD tools in general and the neutron transport code OpenMC.
 
-Although most CAD-tools use some other internal and/or native representation for geometry, most, if not all, will be able to export to the STEP-file format. Therefore this is the format we use 
+Although most CAD-tools use some other internal and/or native representation for geometry, most, if not all, will be able to export to the STEP-file format. Therefore this is the format we use
 
 CAD_to_OpenMC uses cadQuery and its links to OCCT to enable import and imprinting/merging algorithms. This is a way of solving the problem with touching surfaces.
 
@@ -24,7 +24,7 @@ _replace \<name\> with an arbitrary name for your virtual environment_
       cd build; cmake .. -DENABLE_PYMOAB=1 -DCMAKE_INSTALL_PREFIX=<name>;
       make;
       make install;
-    ```    
+    ```
     3. Additionally you will need to build the python interface layer.
     ```bash
       cd pymoab
@@ -63,9 +63,9 @@ meanings:
 
 <dl>
     <dt>min_mesh_size</dt>
-        <dd>Minimum mesh element size (gmsh backend)</dd>
+        <dd>Minimum mesh element size (gmsh backend/mmg_refinement)</dd>
     <dt>max_mesh_size</dt>
-        <dd>Maximum mesh element size (gmsh backend)</dd>
+        <dd>Maximum mesh element size (gmsh backend/mmg_refinement)</dd>
     <dt>curve_samples</dt>
         <dd>The number of point samples used to approximate a curve, 1D-mesh. (gmsh backend)</dd>
     <dt>mesh_algorithm</dt>
@@ -75,15 +75,15 @@ meanings:
     <dt>threads</dt>
         <dd>The number of threads to be used to speed up the meshing algorithms. Useful for multicore-computers.</dd>
     <dt>tolerance</dt>
-        <ddRelative mesh tolerance (stl backend). Lower this to get a finer mesh.</dd>
+        <ddRelative mesh tolerance (cq/stl backend). Lower this to get a finer mesh.</dd>
     <dt>angular_tolerance</dt>
-        <dd>Relative angular mesh tolerance (stl backend) Lower this to get a better angular resolution.</dd>
+        <dd>Relative angular mesh tolerance (cq/stl backend) Lower this to get a better angular resolution.</dd>
     <dt>refine</dt>
         <dd>After the initial meshing step is done, should the mesh be refined?
-            
+
 This option has more than one meaning depending on which backend you have chosen.
 - If the cq/stl-backend is active and the *refine* option is non-zero or True, the mesh-refinment tool (mmg)[https://www.mmgtools.org] is called in sequence on each surface.
-- If the gmsh-backend is active and the *refine* option is non-zero the gmsh-refinement tool is called on the full geometry the given number of times. A value of True is the same as setting the option to 1, i.e. it triggers a single loop through the refinement algorithm.</dd> 
+- If the gmsh-backend is active and the *refine* option is non-zero the gmsh-refinement tool is called on the full geometry the given number of times. A value of True is the same as setting the option to 1, i.e. it triggers a single loop through the refinement algorithm.</dd>
    <dt>verbose</dt>
       <dd>Output lots of information from the mesher backends.</dd>
 </dl>
