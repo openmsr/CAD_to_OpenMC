@@ -27,9 +27,7 @@ class MesherCQSTL(assemblymesher):
 
   cq_mesher_faceHash={}
 
-  verbose=0
-
-  def __init__(self, tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default, refine, threads, verbose, entities):
+  def __init__(self, tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default, refine, threads, entities):
     self._set_meshpars(tolerance,angular_tolerance,min_mesh_size,max_mesh_size)
     self._clear_face_hashtable()
     self.refine=refine
@@ -38,7 +36,6 @@ class MesherCQSTL(assemblymesher):
     self.min_mesh_size=min_mesh_size
     self.max_mesh_size=max_mesh_size
     self.threads=threads
-    self.verbose=verbose
 
   @property
   def refine(self):
@@ -74,7 +71,7 @@ class MesherCQSTL(assemblymesher):
       j=i+1
       filename=f"volume_{j}.stl"
       e.solid.exportStl(filename,ascii=True,tolerance=self.tolerance,angularTolerance=self.angular_tolerance)
-      if(self.verbose>1):
+      if(self.verbosity_level>1):
         print(f"INFO: cq export to file {filename}")
       e.stl=filename
       if(self.refine):
@@ -148,14 +145,14 @@ class MesherCQSTL(assemblymesher):
     hh=hash(f)
     if hh in cls.cq_mesher_faceHash.keys():
       #surface is in table - use that file for this volume
-      if (cls.verbose):
+      if (cls.verbosity_level):
         print(f'INFO: mesher reusing {hh} {cls.cq_mesher_faceHash[hh]}')
       return(hh,cls.cq_mesher_faceHash[hh])
     else:
       facename=f'vol_{vid+1}_face{fid}.stl'
       cls.cq_mesher_faceHash[hh]=facename
       f.exportStl(facename, tolerance=cls.cq_mesher_tolerance, angularTolerance=cls.cq_mesher_ang_tolerance, ascii=True)
-      if(cls.verbose>1):
+      if(cls.verbosity_level>1):
         print(f"INFO: cq export to file {facename}")
       if (refine):
         cls._refine_stls(facename,refine)
@@ -165,9 +162,9 @@ class MesherCQSTLBuilder:
   def __init__(self):
     self._instance = None
 
-  def __call__(self, tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default, refine, threads, verbose,  entities, **_ignored):
+  def __call__(self, tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default, refine, threads, entities, **_ignored):
     if not self._instance:
-      self._instance = MesherCQSTL(tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default,refine, threads, verbose, entities)
+      self._instance = MesherCQSTL(tolerance, angular_tolerance, min_mesh_size, max_mesh_size, default,refine, threads, entities)
     else:
       #We are reusing a mesher instance. Hence reset the parameters and clear the hashtable
       self._instance._set_entities(entities)
