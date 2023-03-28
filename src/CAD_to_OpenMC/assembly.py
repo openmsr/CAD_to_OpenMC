@@ -143,13 +143,6 @@ class Assembly:
       self.merge_all()
       self.solids_to_h5m(backend=backend,h5m_filename=h5m_filename)
 
-    def run(self,backend='stl'):
-      """conveniece function that assumes the stp_files field is set, etc and simply runs the mesher with theh set options
-      """
-      self.import_stp_files()
-      self.merge_all()
-      self.solids_to_h5m(backend=backend)
-
     def import_stp_files(self, tags:dict=None, match_anywhere:bool=False, default_tag:str='vacuum', scale=0.1,translate=[],rotate=[]):
         tags_set=0
         #clear list to avoid double-import
