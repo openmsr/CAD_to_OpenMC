@@ -6,7 +6,7 @@ import math
 from .assemblymesher_base import *
 
 class MesherGMSH(assemblymesher):
-  def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, verbose, entities):
+  def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities):
     self.IntermediateLayer='brep'
     self.min_mesh_size=min_mesh_size
     self.max_mesh_size=max_mesh_size
@@ -16,7 +16,6 @@ class MesherGMSH(assemblymesher):
     self.entities=entities
     self.vetoed=vetoed
     self.threads=threads
-    self.verbose=verbose
     self.radial_threshold=radial_threshold
     self.refine=refine
     self._gmsh_init()
@@ -43,7 +42,7 @@ class MesherGMSH(assemblymesher):
       if not gmsh.isInitialized():
         gmsh.initialize()
 
-      if (self.verbose>1):
+      if (self.verbosity_level>1):
           gmsh.option.setNumber("General.Terminal",1)
       else:
           gmsh.option.setNumber("General.Terminal",0)
@@ -121,7 +120,7 @@ class MesherGMSH(assemblymesher):
       return iclose
 
   def _generate_mesh(self):
-      if(self.verbose>0):
+      if(self.verbosity_level>0):
           print("INFO: GMSH generate surface mesh")
       gmsh.model.mesh.generate(2)
       for i in range(self.refine):
@@ -164,12 +163,12 @@ class MesherGMSHBuilder:
   def __init__(self):
     self._instance = None
 
-  def __call__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, verbose, entities, **_ignored):
+  def __call__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities, **_ignored):
     if not self._instance:
-      self._instance = MesherGMSH(min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, verbose, entities)
+      self._instance = MesherGMSH(min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities)
     else:
       #need to do it this way since gmsh needs to be reinitialized
-      self._instance._set_pars(min_mesh_size,max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, verbose)
+      self._instance._set_pars(min_mesh_size,max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine)
     return self._instance
 
 def _radial_field(dim,tag, x, y, z, lc):

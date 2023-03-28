@@ -57,7 +57,7 @@ class Entity:
 
     def similarity(self,center:tuple=(0,0,0),bb:tuple=(0,0,0),volume:float=1,
             tolerance=1e-2)->bool:
-        """method returns a value for the similary between the entity and the 3 parameters
+        """method returns a value for the similarity between the entity and the 3 parameters
            cms, bb, and volume"""
         cms_rel_dist= np.linalg.norm([self.center.x-center[0], self.center.y-center[1], self.center.z-center[2]])/np.linalg.norm(center)
         bb_rel_dist=np.linalg.norm([self.bb.xlen-bb[0],self.bb.ylen-bb[1],self.bb.zlen-bb[2]])/np.linalg.norm(bb)
@@ -71,8 +71,6 @@ class Entity:
         bb_close=np.linalg.norm([self.bb.xlen-bb[0],self.bb.ylen-bb[1],self.bb.zlen-bb[2]])/np.linalg.norm(bb)<tolerance
         vol_close=np.abs(self.volume-volume)/volume<tolerance
         return (cms_close and bb_close and vol_close)
-
-
 
     def export_stp(self):
         """export the entity to a step-file using its tag as filename through cadquery export"""
@@ -371,6 +369,10 @@ class Assembly:
         meshgen=meshers.get(backend,**mesher_config)
         meshgen.set_verbosity(self.verbose)
         stl_list=meshgen.generate_stls()
+        if (self.verbose):
+          print(f'SUMMARY: {"solid_id":8} {"material_tag":16} {"stl-file":16}')
+          for i,a in zip(range(len(self.entities)),self.entities):
+            print(f'SUMMARY: {i+1:8} {a.tag:16} {a.stl:16}')
         if(heal):
           stl_list=self.heal_stls(stl_list)
         self.stl2h5m(stl_list,h5m_filename,True)
@@ -564,7 +566,8 @@ class Assembly:
           for j,orig in enumerate(unmerged):
             d_small = 1e9
             i_small = -1
-            print(f'INFO: {len(merged_solids)} merged solids left in list of originally {len(merged.Solids())}')
+            if (self.verbose>1):
+              print(f'INFO: {len(merged_solids)} merged solids left in list of originally {len(merged.Solids())}')
             for i,ms in enumerate(merged_solids):
               d = similar_solids(orig,ms)
               if d < d_small:
