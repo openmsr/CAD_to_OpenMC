@@ -136,7 +136,7 @@ class Assembly:
 
     def run(self,backend='stl',h5m_filename:str='dagmc.h5m',merge=True):
       """conveniece function that assumes the stp_files field is set, etc and simply runs the mesher with theh set options
-      """
+#      """
       self.import_stp_files(tags=self.tags)
       if(merge):
         self.merge_all()
@@ -370,7 +370,10 @@ class Assembly:
         meshgen=meshers.get(backend,**mesher_config)
         meshgen.set_verbosity(self.verbose)
         stl_list=meshgen.generate_stls()
-
+        if (self.verbose):
+          print(f'SUMMARY: {"solid_id":8} {"material_tag":16} {"stl-file":16}')
+          for i,a in zip(range(len(self.entities)),self.entities):
+            print(f'SUMMARY: {i+1:8} {a.tag:16} {a.stl:16}')
         if(heal):
           stl_list=self.heal_stls(stl_list)
         self.stl2h5m(stl_list,h5m_filename,True)
