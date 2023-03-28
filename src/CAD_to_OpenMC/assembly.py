@@ -566,7 +566,8 @@ class Assembly:
           for j,orig in enumerate(unmerged):
             d_small = 1e9
             i_small = -1
-            print(f'INFO: {len(merged_solids)} merged solids left in list of originally {len(merged.Solids())}')
+            if (self.verbose>1):
+              print(f'INFO: {len(merged_solids)} merged solids left in list of originally {len(merged.Solids())}')
             for i,ms in enumerate(merged_solids):
               d = similar_solids(orig,ms)
               if d < d_small:
