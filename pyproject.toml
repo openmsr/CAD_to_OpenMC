@@ -1,6 +1,6 @@
 [project]
 name="CAD_to_OpenMC"
-version="0.2.4rc4"
+version="0.2.5"
 authors = [
   { name="Erik B Knudsen", email="erik.knudsen@copenhagenatomics.com" },
 ]
