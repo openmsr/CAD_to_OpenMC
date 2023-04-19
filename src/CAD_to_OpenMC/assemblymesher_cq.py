@@ -120,7 +120,6 @@ class MesherCQSTL(assemblymesher):
     with cdtemp() as mngr:
       for i,e in enumerate(self.cq_mesher_entities):
         volname= f"volume_{i+1}.stl"
-        k=0
         mpargs=[(j,i,self.refine) for j,f in enumerate(e.solid.Faces())]
         if (single_thread_override):
           output=[]
