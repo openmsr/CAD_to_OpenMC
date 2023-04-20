@@ -414,6 +414,30 @@ class Assembly:
                 volume_mat_list[tagid]=default_tag
         return volume_mat_list
 
+    def stl2h5m_byface(self,h5m_file:str='dagmc.h5m', vtk:bool=False) -> str:
+      """function that creates a h5m-file with a moab structure and fills
+      it with the dagmc structure using the pymoab framework.
+      """
+      if(self.verbose>0):
+        print("INFO: reassembling stl-files into h5m structure")
+      h5m_p=pl.Path(h5m_file)
+
+      mbcore,mbtags = self.init_moab()
+      self.add_entities_to_moab_core(mbcore)
+
+      all_sets = moab_core.get_entities_by_handle(0)
+      file_set = moab_core.create_meshset()
+
+      mbcore.add_entities(file_set, all_sets)
+      if(self.verbose>0):
+          print(f"INFO: writing geometry to h5m: \"{h5m_file}\".")
+      mbcore.write_file(str(h5m_p))
+
+      self.check_h5m_file(h5m_file)
+      if(vtk):
+          moab_core.write_file(str(h5m_p.with_suffix('.vtk')))
+      return str(h5m_p)
+
     def stl2h5m(self,stls:list,h5m_file:str='dagmc.h5m', vtk:bool=False) -> str:
         """function that exports the list of stls that we have presumably generated somehow
         and merges them into a DAGMC h5m-file by means of the MOAB-framework.
@@ -456,6 +480,45 @@ class Assembly:
         if(magic_bytes!=b'\x89HDF\x0d\x0a\x1a\x0a'):
           print(f'ERROR: generated file {h5mfile} does not appear to be a hdf-file. Did you compile the moab libs with HDF enabled?')
           exit(-1)
+
+    def add_entities_to_moab_core(self, mb_core):
+      vid=0
+      sid=0
+      for i,e in enumerate(self.entities):
+        vset=mbcore.create_meshset()
+        vid+=1
+        mbcore.tag_set_data(tags["global_id"], vset, volume_id)
+        mbcore.tag_set_data(tags["geom_dimension"],vset,3)
+        mbcore.tag_set_data(tags["category"], vset, "Volume")
+
+        for j,f,sense in enumerate(e.stls):
+          breakpoint()
+          fset= mbcore.create_meshset()
+          sid+=1
+          mbcore.tag_set_data(tags["global_id"], fset, volume_id)
+          mbcore.tag_set_data(tags["geom_dimension"],fset,2)
+          mbcore.tag_set_data(tags["category"], fset, "Surface")
+
+          mbcore.add_parent_child(vset,fset)
+          mbcore.tag_set_data(tags["surf_sense"],fset,sense)
+          mbcore.load_file(f,fset)
+
+        #make this a group, this could ideally be a set of volumes with the same material
+        gset = mbcore.create_meshset()
+        mbcore.tag_set_data(tags["category"], gset, "Group")
+
+        # reflective is a special case that should not have mat: in front
+        if not e.tag == "reflective":
+          dag_material_tag = f"mat:{e.tag}"
+        else:
+          dag_material_tag = e.tag
+
+        mbcore.tag_set_data(tags["name"], gset, dag_material_tag)
+        mbcore.tag_set_data(tags["geom_dimension"], gset, 4)
+
+        # add the volume to this group set
+        mbcore.add_entity(group_set, volume_set)
+      return mbcore
 
     def add_stl_to_moab_core(self, moab_core: core.Core, surface_id: int, volume_id: int, material_name: str, tags: dict, stl_filename: str,
 ) -> core.Core:
