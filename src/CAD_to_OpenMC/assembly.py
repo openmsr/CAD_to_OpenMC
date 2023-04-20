@@ -134,15 +134,15 @@ class Assembly:
         self.remove_intermediate_files=False
         self.tags=None
 
-    def run(self,backend='stl',h5m_filename:str='dagmc.h5m',merge=True):
-      """conveniece function that assumes the stp_files field is set, etc and simply runs the mesher with the set options
+    def run(self,backend:str = 'stl', h5m_filename:str = 'dagmc.h5m', merge:bool = True):
+      """convenience function that assumes the stp_files field is set, etc and simply runs the mesher with the set options
       """
       self.import_stp_files(tags=self.tags)
       if(merge):
         self.merge_all()
       self.solids_to_h5m(backend=backend,h5m_filename=h5m_filename)
 
-    def import_stp_files(self, tags:dict=None, match_anywhere:bool=False, default_tag:str='vacuum', scale=0.1,translate=[],rotate=[]):
+    def import_stp_files(self, tags:dict = None, match_anywhere:bool = False, default_tag:str = 'vacuum', scale:float = 0.1,translate:iter=[],rotate:iter=[]):
         tags_set=0
         #clear list to avoid double-import
         self.entities=[]
