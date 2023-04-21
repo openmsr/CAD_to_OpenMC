@@ -142,7 +142,21 @@ class Assembly:
         self.merge_all()
       self.solids_to_h5m(backend=backend,h5m_filename=h5m_filename)
 
-    def import_stp_files(self, tags:dict = None, match_anywhere:bool = False, default_tag:str = 'vacuum', scale:float = 0.1,translate:iter=[],rotate:iter=[]):
+    def import_stp_files(self, tags:dict = None, match_anywhere:bool = False, default_tag:str = 'vacuum', scale:float = 0.1,translate:iter = [], rotate:iter = []):
+        """
+        Import a list of step-files.
+
+        Args:
+          tags: dictionary containing pairs of reg.exp. patterns and material tags. If not None, entities with
+              names matching the patterns will be assigned to corresponding tag. If no patterns match
+              the default_tag will be applied
+          match_anywhere: match patterns anywhere in the entitiy name
+          default_tag: The material tag that will be applied if no patterns are matched.
+          scale: overall scaling factor applied to all parts
+          translate: Translation vector to apply to all parts in the step-file.
+          rotate: Rotation angles to apply to the parts in the step-file.
+        """
+
         tags_set=0
         #clear list to avoid double-import
         self.entities=[]
@@ -370,14 +384,10 @@ class Assembly:
         meshgen=meshers.get(backend,**mesher_config)
         meshgen.set_verbosity(self.verbose)
         stl_list=meshgen.generate_stls()
-<<<<<<< HEAD
         if (self.verbose):
           print(f'SUMMARY: {"solid_id":8} {"material_tag":16} {"stl-file":16}')
           for i,a in zip(range(len(self.entities)),self.entities):
             print(f'SUMMARY: {i+1:8} {a.tag:16} {a.stl:16}')
-=======
-
->>>>>>> fbeb14d (attempt WIP)
         if(heal):
           stl_list=self.heal_stls(stl_list)
         self.stl2h5m(stl_list,h5m_filename,True)
