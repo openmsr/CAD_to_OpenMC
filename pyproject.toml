@@ -4,7 +4,7 @@ version="0.2.5"
 authors = [
   { name="Erik B Knudsen", email="erik.knudsen@copenhagenatomics.com" },
 ]
-description = "Package to automagically convert step-gometries to h5m descriptions for neutronics by OpenMC"
+description = "Package to automagically convert step-geometries to h5m descriptions for neutronics by OpenMC"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
