@@ -14,7 +14,7 @@ except:
 from .stl_utils import *
 from . import meshutils
 
-class Mesher_CQSTL2(asemblymesher):
+class MesherCQSTL2(assemblymesher):
   #these need to be class attributes to avoid pickling when spawning a multiprocessing-pool
   cq_mesher_entities=None
   cq_mesher_tolerance=None
@@ -81,11 +81,11 @@ class Mesher_CQSTL2(asemblymesher):
     #process the list of meshed faces.
     for i,e in enumerate(self.cq_mesher_entities):
       e.stls=[]
-      for k,v in cls.cq_mesher_faceHash:
+      for k,v in self.cq_mesher_faceHash.items():
         vids=v[1] # the volumes that this face belongs to
         if i in vids:
           #this face is part of this volume
-          e.stls.append[v]
+          e.stls.append(v)
     self._clear_face_hashtable
 
   @classmethod
@@ -103,10 +103,10 @@ class Mesher_CQSTL2(asemblymesher):
       cls.cq_mesher_faceHash[hh]=[facefilename,[vid]]
       f.exportStl(facefilename, tolerance=cls.cq_mesher_tolerance, angularTolerance=cls.cq_mesher_ang_tolerance, ascii=True)
       if(cls.verbosity_level>1):
-        print(f"INFO: cq export to file {facename}")
+        print(f"INFO: cq export to file {facefilename}")
       if (refine):
-        cls._refine_stls(facename,refine)
-      return(hh,facename)
+        cls._refine_stls(facefilename,refine)
+      return(hh,facefilename)
 
 class MesherCQSTL2Builder:
   def __init__(self):
