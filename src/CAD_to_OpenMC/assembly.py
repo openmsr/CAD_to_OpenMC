@@ -384,13 +384,20 @@ class Assembly:
         meshgen=meshers.get(backend,**mesher_config)
         meshgen.set_verbosity(self.verbose)
         stl_list=meshgen.generate_stls()
-        if (self.verbose):
-          print(f'SUMMARY: {"solid_id":8} {"material_tag":16} {"stl-file":16}')
-          for i,a in zip(range(len(self.entities)),self.entities):
-            print(f'SUMMARY: {i+1:8} {a.tag:16} {a.stl:16}')
-        if(heal):
-          stl_list=self.heal_stls(stl_list)
-        self.stl2h5m(stl_list,h5m_filename,True)
+        if(backend=='stl2'):
+          self.stl2h5m_byface(h5m_filename,True)
+          if (self.verbose):
+            print(f'SUMMARY: {"solid_id":8} {"material_tag":16} {"stl-file":16}')
+            for i,a in zip(range(len(self.entities)),self.entities):
+              print(f'SUMMARY: {i+1:8} {a.tag:16} ' + "".join( [f'{stl[0]:16}' for stl in a.stls] ) )
+        else:
+          if(heal):
+            stl_list=self.heal_stls(stl_list)
+          if (self.verbose):
+            print(f'SUMMARY: {"solid_id":8} {"material_tag":16} {"stl-file":16}')
+            for i,a in zip(range(len(self.entities)),self.entities):
+              print(f'SUMMARY: {i+1:8} {a.tag:16} {a.stl:16}')
+          self.stl2h5m(stl_list,h5m_filename,True)
 
     def tag_geometry_with_mats(self,volumes,implicit_complement_material_tag,graveyard, default_tag='vacuum'):
         """Tag all volumes with materials coming from the step files
