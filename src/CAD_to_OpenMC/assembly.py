@@ -499,11 +499,29 @@ class Assembly:
           exit(-1)
 
     def add_entities_to_moab_core(self, mbcore:core.Core, mbtags:dict):
+      # Generate a mapping from local volume ids to ids in the moab file.      
+      # This will be used for the sense tags. Each volume occupies 1(volume) + #surfaces + 1(group) slots. 
+      # Meaning that vid=0 corresponds to global id 1, whereas vid=1 => 2+len(vid)
+
+      cumlenstl=0
+      cumlenstl_list=[]
+      for e in self.entities:
+        cumlenstl+=len(e.stls)
+        cumlenstl_list.append(cumlenstl)
+      
+      vids={0:1} 
+      for i,c in enumerate(cumlenstl_list):
+        vids[i+1]=c+1
+      print(vids) 
       vid=0
       sid=0
+      gid=0
+      glob_id=0
+
       for i,e in enumerate(self.entities):
         vset=mbcore.create_meshset()
         vid+=1
+        glob_id+=1
         mbcore.tag_set_data(mbtags["global_id"], vset, vid)
         mbcore.tag_set_data(mbtags["geom_dimension"],vset,3)
         mbcore.tag_set_data(mbtags["category"], vset, "Volume")
@@ -512,19 +530,23 @@ class Assembly:
           f,sense=T
           fset= mbcore.create_meshset()
           sid+=1
-          mbcore.tag_set_data(mbtags["global_id"], fset, vid)
+          glob_id+=1
+          mbcore.tag_set_data(mbtags["global_id"], fset, sid)
           mbcore.tag_set_data(mbtags["geom_dimension"],fset,2)
           mbcore.tag_set_data(mbtags["category"], fset, "Surface")
 
           mbcore.add_parent_child(vset,fset)
+          breakpoint()
           if(len(sense)==2):
-            mbcore.tag_set_data(mbtags["surf_sense"],fset,np.uint64(sense))
+            mbcore.tag_set_data(mbtags["surf_sense"],fset,np.array( [vids[sense[0]] ,vids[sense[1]] ], dtype='uint64' ) )
           else:
-            mbcore.tag_set_data(mbtags["surf_sense"],fset,np.uint(sense+[0]))
+            mbcore.tag_set_data(mbtags["surf_sense"],fset,np.array( [vids[sense[0]], 0], dtype='uint64'))
           mbcore.load_file(f,fset)
 
         #make this a group, this could ideally be a set of volumes with the same material
         gset = mbcore.create_meshset()
+        gid+=1
+        glob_id+=1
         mbcore.tag_set_data(mbtags["category"], gset, "Group")
 
         # reflective is a special case that should not have mat: in front
