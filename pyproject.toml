@@ -16,7 +16,7 @@ classifiers = [
 ]
 dependencies=[
         'gmsh',
-        'pyparsing==2.4',
+        'pyparsing',
         'cadquery==2.2.0',
         'cadquery-ocp==7.7.0',
         'numpy',
