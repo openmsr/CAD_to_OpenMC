@@ -1,6 +1,6 @@
 [project]
 name="CAD_to_OpenMC"
-version="0.2.5"
+version="0.2.6a0"
 authors = [
   { name="Erik B Knudsen", email="erik.knudsen@copenhagenatomics.com" },
 ]
@@ -16,15 +16,15 @@ classifiers = [
 ]
 dependencies=[
         'gmsh',
-        'pyparsing==2.4',
-        'cadquery==2.2.0b2',
-        'cadquery-ocp==7.6.3a0',
+        'pyparsing',
+        'cadquery',
+        'cadquery-ocp',
         'numpy',
         'OCP',
         'meshio',
         'trimesh',
         'networkx',
-        'Cython==0.29.32'
+        'Cython'
 ]
 
 [project.urls]
