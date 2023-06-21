@@ -439,8 +439,7 @@ class Assembly:
         print("INFO: reassembling stl-files into h5m structure")
       h5m_p=pl.Path(h5m_file)
       mbcore,mbtags = self.init_moab()
-      self.add_entities_to_moab_core(mbcore,mbtags)
-
+      mbcore=self.add_entities_to_moab_core(mbcore,mbtags)
       all_sets = mbcore.get_entities_by_handle(0)
       file_set = mbcore.create_meshset()
 
@@ -498,35 +497,20 @@ class Assembly:
           exit(-1)
 
     def add_entities_to_moab_core(self, mbcore:core.Core, mbtags:dict):
-      # Generate a mapping from local volume ids to ids in the moab file.
-      # This will be used for the sense tags. Each volume occupies 1(volume) + #surfaces + 1(group) slots.
-      # Meaning that vid=0 corresponds to global id 1, whereas vid=1 => 2+len(vid)
-
-      cumlenstl=0
-      cumlenstl_list=[]
-      for e in self.entities:
-        cumlenstl+=len(e.stls)
-        cumlenstl_list.append(cumlenstl)
-
-      vids={0:1}
-      for i,c in enumerate(cumlenstl_list):
-        vids[i+1]=c+1
-      print(vids)
-      vid=0
-      sid=0
-      gid=0
+      vsets=[]
       glob_id=0
-
-      faces_added={}
-
-      for i,e in enumerate(self.entities):
+      for i in range(len(self.entities)):
         vset=mbcore.create_meshset()
-        vid+=1
+        vsets.append(vset)
         glob_id+=1
-        mbcore.tag_set_data(mbtags["global_id"], vset, vid)
+        mbcore.tag_set_data(mbtags["global_id"], vset, glob_id)
         mbcore.tag_set_data(mbtags["geom_dimension"],vset,3)
         mbcore.tag_set_data(mbtags["category"], vset, "Volume")
 
+      faces_added={}
+      sid=0
+      gid=0
+      for i,e in enumerate(self.entities):
         for j,T in enumerate(e.stls):
           f,sense=T
           if f not in faces_added:
@@ -535,26 +519,26 @@ class Assembly:
             glob_id+=1
             faces_added[f]=fset
 
-            mbcore.tag_set_data(mbtags["global_id"], fset, sid)
+            mbcore.tag_set_data(mbtags["global_id"], fset, glob_id)
             mbcore.tag_set_data(mbtags["geom_dimension"],fset,2)
             mbcore.tag_set_data(mbtags["category"], fset, "Surface")
 
-            mbcore.add_parent_child(vset,fset)
+            mbcore.add_parent_child(vsets[i],fset)
             if(len(sense)==2):
-              mbcore.tag_set_data(mbtags["surf_sense"],fset,np.array( [vids[sense[0]] ,vids[sense[1]] ], dtype='uint64' ) )
+              mbcore.tag_set_data(mbtags["surf_sense"],fset,np.array( [vsets[sense[0]],vsets[sense[1]] ], dtype='uint64' ) )
             else:
-              mbcore.tag_set_data(mbtags["surf_sense"],fset,np.array( [vids[sense[0]], 0], dtype='uint64'))
+              mbcore.tag_set_data(mbtags["surf_sense"],fset,np.array( [vsets[sense[0]], 0], dtype='uint64'))
             mbcore.load_file(f,fset)
           else:
             #this face has already been added so only add a parent child relation here
             fset=faces_added[f]
-            mbcore.add_parent_child(vset,fset)
+            mbcore.add_parent_child(vsets[i],fset)
+          print(fset)
         #make this a group, this could ideally be a set of volumes with the same material
         gset = mbcore.create_meshset()
         gid+=1
         glob_id+=1
         mbcore.tag_set_data(mbtags["category"], gset, "Group")
-
         # reflective is a special case that should not have mat: in front
         if not e.tag == "reflective":
           dagmc_material_tag = f"mat:{e.tag}"
@@ -565,7 +549,7 @@ class Assembly:
         mbcore.tag_set_data(mbtags["geom_dimension"], gset, 4)
 
         # add the volume to this group set
-        mbcore.add_entity(gset, vset)
+        mbcore.add_entity(gset, vsets[i])
       return mbcore
 
     def add_stl_to_moab_core(self, moab_core: core.Core, surface_id: int, volume_id: int, material_name: str, tags: dict, stl_filename: str,
