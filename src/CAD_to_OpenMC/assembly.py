@@ -5,6 +5,8 @@ from collections.abc import Iterable
 import pathlib as pl
 from typing import List, Optional, Tuple, Union
 
+from itertools import zip_longest
+
 import meshio
 import trimesh
 
@@ -145,7 +147,7 @@ class Assembly:
         self.merge_all()
       self.solids_to_h5m(backend=backend,h5m_filename=h5m_filename)
 
-    def import_stp_files(self, tags:dict = None, match_anywhere:bool = False, default_tag:str = 'vacuum', scale:float = 0.1,translate:iter = [], rotate:iter = []):
+    def import_stp_files(self, tags:dict = None, sequential_tags:iter = None, match_anywhere:bool = False, default_tag:str = 'vacuum', scale:float = 0.1,translate:iter = [], rotate:iter = []):
         """
         Import a list of step-files.
 
@@ -177,7 +179,7 @@ class Assembly:
                 e = Entity(solid=solid)
                 ents.append(e)
 
-            if( tags is None ):
+            if( tags is None and sequential_tags is None ):
                 #also import using gmsh to extract the material tags from the labels in the step files
                 gmsh.initialize()
                 vols=gmsh.model.occ.importShapes(stp)
@@ -225,6 +227,13 @@ class Assembly:
                         tag=default_tag
                     e.tag=tag
                 gmsh.finalize()
+            elif (sequential_tags):
+                for (e,t) in zip_longest(ents,sequential_tags[tags_set:],fillvalue=self.default_tag):
+                    # Apply tags to the imported volumes in the sequence they get imported.
+                    if(e==default_tag):
+                        #this means we have exhausted the ents list
+                        break
+                tags_set+=len(e)
 
             self.entities.extend(ents)
         if(tags_set!=len(self.entities)):
