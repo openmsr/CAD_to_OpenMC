@@ -1,9 +1,24 @@
 import abc
 from .assemblymesher_base import *
 from .object_factory import ObjectFactory
-from .assemblymesher_gmsh import *
-from .assemblymesher_cq import *
-from .assemblymesher_cq2 import *
+
+try:
+  from .assemblymesher_gmsh import *
+except ImportError as e:
+  nogmsh=e
+
+try:
+  from .assemblymesher_cq import *
+except ImportError as e:
+  nocq=e
+
+try:
+  from .assemblymesher_cq2 import *
+except ImportError as e:
+  npcq2=e
+
+if (nogmsh and nocq and nocq2):
+  raise ImportError("Could not import any of the mesher backends")
 
 class MesherFactory(ObjectFactory):
   def get(self,mesher_id,**kwargs):

@@ -1,4 +1,3 @@
-import gmsh
 import cadquery as cq
 import numpy as np
 import OCP
@@ -15,6 +14,10 @@ import os
 from pymoab import core, types
 
 from .assemblymesher import *
+try:
+  import gmsh
+except:
+  nogmsh=True
 
 mesher_config={
 #general opts
