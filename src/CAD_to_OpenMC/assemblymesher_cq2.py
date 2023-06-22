@@ -94,8 +94,8 @@ class MesherCQSTL2(assemblymesher):
     hh=hash(f)
     if hh in cls.cq_mesher_faceHash.keys():
       #surface is in table - simply add the vid to the hash-table
+      cls.cq_mesher_faceHash[hh][1].append(vid)
       if (cls.verbosity_level):
-        cls.cq_mesher_faceHash[hh][1].append(vid)
         print(f'INFO: mesher reusing {hh} {cls.cq_mesher_faceHash[hh]}')
       return(hh,cls.cq_mesher_faceHash[hh])
     else:
