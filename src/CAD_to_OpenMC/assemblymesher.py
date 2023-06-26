@@ -5,19 +5,19 @@ from .object_factory import ObjectFactory
 nogmsh=False
 try:
   from .assemblymesher_gmsh import *
-except ImportError,OSError as e:
+except (ImportError,OSError) as e:
   nogmsh=e
 
 nocq=False
 try:
   from .assemblymesher_cq import *
-except ImportError,OSError as e:
+except (ImportError,OSError) as e:
   nocq=e
 
 nocq2=False
 try:
   from .assemblymesher_cq2 import *
-except ImportError,OSError as e:
+except (ImportError,OSError) as e:
   npcq2=e
 
 if (nogmsh and nocq and nocq2):

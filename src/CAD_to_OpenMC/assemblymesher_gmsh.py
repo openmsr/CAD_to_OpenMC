@@ -1,6 +1,6 @@
 try:
   import gmsh
-except ImportError,OSError as e:
+except (ImportError,OSError) as e:
   raise e
 
 import cadquery as cq
