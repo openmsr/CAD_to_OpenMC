@@ -130,7 +130,7 @@ class Assembly:
     h5m scene, which may be used for neutronics.
     This class is based on (and borrows heavily from) logic from the paramak package.
     """
-    def __init__(self, stp_files=[], stl_files=[], verbose:int = 1, default_tag='vacuum'):
+    def __init__(self, stp_files=[], stl_files=[], verbose:int = 1, default_tag='vacuum', implicit_complement=None):
         self.stp_files=stp_files
         self.stl_files=stl_files
         self.entities=[]
@@ -138,6 +138,7 @@ class Assembly:
         self.default_tag=default_tag
         self.remove_intermediate_files=False
         self.tags=None
+        self.implicit_complement=implicit_complement
 
     def run(self,backend:str = 'stl', h5m_filename:str = 'dagmc.h5m', merge:bool = True):
       """convenience function that assumes the stp_files field is set, etc and simply runs the mesher with the set options
@@ -166,8 +167,11 @@ class Assembly:
         #clear list to avoid double-import
         self.entities=[]
 
+        assert ( (nogmsh and tags is None and sequential_tags is not None) or (not nogmsh) )
+        #if no gmsh module was imported we must rely on explicit sequential tags, so check they're there.
+
         for stp in self.stp_files:
-            solid = self.load_stp_file(stp,scale,translate,rotate)
+            solid  = self.load_stp_file(stp,scale,translate,rotate)
 
             ents=[]
             #try if solid is iterable
@@ -452,6 +456,10 @@ class Assembly:
       h5m_p=pl.Path(h5m_file)
       mbcore,mbtags = self.init_moab()
       mbcore=self.add_entities_to_moab_core(mbcore,mbtags)
+
+      if(self.implicit_complement):
+        mbcore=self.set_implicit_complement(mbcore, mbtags, self.implicit_complement)
+
       all_sets = mbcore.get_entities_by_handle(0)
       file_set = mbcore.create_meshset()
 
@@ -490,6 +498,7 @@ class Assembly:
         file_set = moab_core.create_meshset()
 
         moab_core.add_entities(file_set, all_sets)
+
         if(self.verbose>0):
             print(f"INFO: writing geometry to h5m: \"{h5m_file}\".")
         moab_core.write_file(str(h5m_p))
@@ -505,7 +514,7 @@ class Assembly:
       with open(h5m_file,"rb") as f:
         magic_bytes=f.read(8)
         if(magic_bytes!=b'\x89HDF\x0d\x0a\x1a\x0a'):
-          print(f'ERROR: generated file {h5mfile} does not appear to be a hdf-file. Did you compile the moab libs with HDF enabled?')
+          print(f'ERROR: generated file {h5m_file} does not appear to be a hdf-file. Did you compile the moab libs with HDF enabled?')
           exit(-1)
 
     def add_entities_to_moab_core(self, mbcore:core.Core, mbtags:dict):
@@ -564,6 +573,14 @@ class Assembly:
         mbcore.add_entity(gset, vsets[i])
       return mbcore
 
+    def set_implicit_complement(self,mbcore:core.Core, mbtags: dict, dagmc_material_tag:str = None):
+      if dagmc_material_tag:
+        gset=mbcore.create_meshset()
+        mbcore.tag_set_data(mbtags["category"], gset, "Group")
+        mbcore.tag_set_data(mbtags["name"], gset, f'mat:{dagmc_material_tag}_comp')
+        mbcore.tag_set_data(mbtags["geom_dimension"], gset, 4)
+      return mbcore
+
     def add_stl_to_moab_core(self, moab_core: core.Core, surface_id: int, volume_id: int, material_name: str, tags: dict, stl_filename: str,
 ) -> core.Core:
         """
@@ -619,11 +636,6 @@ class Assembly:
             dag_material_tag = material_name
 
         moab_core.tag_set_data(tags["name"], group_set, dag_material_tag)
-        if material_name.lower() == 'graveyard':
-            dag_material_tag = "mat:hello_comp"
-            group_set = moab_core.create_meshset()
-            moab_core.tag_set_data(tags["category"], group_set, "Group")
-            moab_core.tag_set_data(tags["name"], group_set, dag_material_tag)
 
         moab_core.tag_set_data(tags["geom_dimension"], group_set, 4)
 
