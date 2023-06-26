@@ -13,6 +13,7 @@ import trimesh
 import tempfile
 import re
 import os
+import math
 from pymoab import core, types
 
 from .assemblymesher import *
@@ -143,7 +144,7 @@ class Assembly:
     def run(self,backend:str = 'stl', h5m_filename:str = 'dagmc.h5m', merge:bool = True):
       """convenience function that assumes the stp_files field is set, etc and simply runs the mesher with the set options
       """
-      self.import_stp_files(tags=self.tags)
+      self.import_stp_files(tags=self.tags, sequential_tags=self.sequential_tags)
       if(merge):
         self.merge_all()
       self.solids_to_h5m(backend=backend,h5m_filename=h5m_filename)
@@ -166,8 +167,9 @@ class Assembly:
         tags_set=0
         #clear list to avoid double-import
         self.entities=[]
-
-        assert ( (nogmsh and tags is None and sequential_tags is not None) or (not nogmsh) )
+ 
+        message="Need gmsh python module installed to extract material tags from step-file. please supply a \'sequential_tags'-list instead"
+        assert (nogmsh and tags is None and sequential_tags is not None) or (not nogmsh), message 
         #if no gmsh module was imported we must rely on explicit sequential tags, so check they're there.
 
         for stp in self.stp_files:
@@ -237,7 +239,8 @@ class Assembly:
                     if(e==default_tag):
                         #this means we have exhausted the ents list
                         break
-                tags_set+=len(e)
+                    e.tag=t
+                tags_set+=len(ents)
 
             self.entities.extend(ents)
         if(tags_set!=len(self.entities)):
