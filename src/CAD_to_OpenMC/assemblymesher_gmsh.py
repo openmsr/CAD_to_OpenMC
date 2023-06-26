@@ -1,4 +1,8 @@
-import gmsh
+try:
+  import gmsh
+except ImportError,OSError as e:
+  raise e
+
 import cadquery as cq
 import os
 import tempfile
