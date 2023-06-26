@@ -5,19 +5,19 @@ from .object_factory import ObjectFactory
 nogmsh=False
 try:
   from .assemblymesher_gmsh import *
-except ImportError as e:
+except ImportError,OSError as e:
   nogmsh=e
 
 nocq=False
 try:
   from .assemblymesher_cq import *
-except ImportError as e:
+except ImportError,OSError as e:
   nocq=e
 
 nocq2=False
 try:
   from .assemblymesher_cq2 import *
-except ImportError as e:
+except ImportError,OSError as e:
   npcq2=e
 
 if (nogmsh and nocq and nocq2):
@@ -28,6 +28,9 @@ class MesherFactory(ObjectFactory):
     return self.create(mesher_id, **kwargs)
 
 meshers=MesherFactory()
-meshers.register_builder('gmsh',MesherGMSHBuilder())
-meshers.register_builder('stl',MesherCQSTLBuilder())
-meshers.register_builder('stl2',MesherCQSTL2Builder())
+if(not nogmsh):
+  meshers.register_builder('gmsh',MesherGMSHBuilder())
+if(not nocq):
+  meshers.register_builder('stl',MesherCQSTLBuilder())
+if(not nocq2):
+  meshers.register_builder('stl2',MesherCQSTL2Builder())
