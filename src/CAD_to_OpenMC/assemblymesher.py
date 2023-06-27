@@ -1,22 +1,22 @@
 import abc
-from .assemblymesher_base import *
+from .assemblymesher_base import assemblymesher
 from .object_factory import ObjectFactory
 
 nogmsh=False
 try:
-  from .assemblymesher_gmsh import *
+  from .assemblymesher_gmsh import MesherGMSHBuilder
 except (ImportError,OSError) as e:
   nogmsh=e
 
 nocq=False
 try:
-  from .assemblymesher_cq import *
+  from .assemblymesher_cq import MesherCQSTLBuilder
 except (ImportError,OSError) as e:
   nocq=e
 
 nocq2=False
 try:
-  from .assemblymesher_cq2 import *
+  from .assemblymesher_cq2 import MesherCQSTL2Builder
 except (ImportError,OSError) as e:
   npcq2=e
 

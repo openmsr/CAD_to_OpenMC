@@ -3,7 +3,7 @@ import subprocess as sp
 import pathlib as pl
 import hashlib as hl
 from CAD_to_OpenMC import cdtemp
-from .assemblymesher_base import *
+from .assemblymesher_base import assemblymesher
 
 single_thread_override=True
 try:

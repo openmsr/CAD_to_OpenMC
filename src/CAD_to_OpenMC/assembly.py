@@ -16,7 +16,8 @@ import os
 import math
 from pymoab import core, types
 
-from .assemblymesher import *
+import CAD_to_OpenMC.assemblymesher as am
+
 try:
   import gmsh
   nogmsh=False
@@ -402,7 +403,7 @@ class Assembly:
             delete_intermediate_stl_files:bool=False, backend:str="gmsh", heal:bool=True):
         #get a mesher object from the factory class
         mesher_config['entities']=self.entities
-        meshgen=meshers.get(backend,**mesher_config)
+        meshgen=am.meshers.get(backend,**mesher_config)
         meshgen.set_verbosity(self.verbose)
         stl_list=meshgen.generate_stls()
         if(backend=='stl2'):
