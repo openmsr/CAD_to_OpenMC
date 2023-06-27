@@ -19,6 +19,7 @@ from pymoab import core, types
 from .assemblymesher import *
 try:
   import gmsh
+  nogmsh=False
 except:
   nogmsh=True
 
@@ -139,6 +140,7 @@ class Assembly:
         self.default_tag=default_tag
         self.remove_intermediate_files=False
         self.tags=None
+        self.sequential_tags=None
         self.implicit_complement=implicit_complement
 
     def run(self,backend:str = 'stl', h5m_filename:str = 'dagmc.h5m', merge:bool = True):
@@ -167,9 +169,9 @@ class Assembly:
         tags_set=0
         #clear list to avoid double-import
         self.entities=[]
- 
+
         message="Need gmsh python module installed to extract material tags from step-file. please supply a \'sequential_tags'-list instead"
-        assert (nogmsh and tags is None and sequential_tags is not None) or (not nogmsh), message 
+        assert (nogmsh and tags is None and sequential_tags is not None) or (not nogmsh), message
         #if no gmsh module was imported we must rely on explicit sequential tags, so check they're there.
 
         for stp in self.stp_files:
