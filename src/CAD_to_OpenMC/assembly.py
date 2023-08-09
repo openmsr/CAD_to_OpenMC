@@ -411,7 +411,7 @@ class Assembly:
           if (self.verbose):
             print(f'SUMMARY: {"solid_id":8} {"material_tag":16} {"stl-file":16}')
             for i,a in zip(range(len(self.entities)),self.entities):
-              print(f'SUMMARY: {i+1:8} {a.tag:16} ' + "".join( [f'{stl[0]:16}' for stl in a.stls] ) )
+              print(f'SUMMARY: {i+1:8} {a.tag:16} ' + " ".join( [f'{stl[0]:16}' for stl in a.stls] ) )
         else:
           if(heal):
             stl_list=self.heal_stls(stl_list)
