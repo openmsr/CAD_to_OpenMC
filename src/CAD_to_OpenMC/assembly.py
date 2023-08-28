@@ -470,6 +470,7 @@ class Assembly:
       file_set = mbcore.create_meshset()
 
       mbcore.add_entities(file_set, all_sets)
+
       if(self.verbose>0):
           print(f"INFO: writing geometry to h5m: \"{h5m_file}\".")
       mbcore.write_file(str(h5m_p))
@@ -477,6 +478,9 @@ class Assembly:
       self.check_h5m_file(h5m_file)
       if(vtk):
           mbcore.write_file(str(h5m_p.with_suffix('.vtk')))
+
+      self.remove_intermediate()
+
       return str(h5m_p)
 
     def stl2h5m(self,stls:list,h5m_file:str='dagmc.h5m', vtk:bool=False) -> str:
@@ -788,3 +792,12 @@ class Assembly:
     def get_unique_tags(self):
         #extract a set of unique tags
         return { self.get_all_tags() }
+
+    def remove_intermediate(self, force=False):
+        #remove all the generated stl intermediate files
+        if(self.remove_intermediate_files or force):
+          for e in self.entities:
+            for s in e.stls:
+              p=pl.Path(s[0])
+              if p.exists():
+                p.unlink()
