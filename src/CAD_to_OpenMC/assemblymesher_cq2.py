@@ -5,9 +5,11 @@ import hashlib as hl
 from CAD_to_OpenMC import cdtemp
 from .assemblymesher_base import assemblymesher
 
-single_thread_override=True
+single_thread_override=False
 try:
-  import multiprocessing.pool as mp
+  import multiprocessing as mp
+  manager = mp.Manager()
+  lock = manager.Lock()
 except:
   single_thread_override=True
 
@@ -32,7 +34,10 @@ class MesherCQSTL2(assemblymesher):
     self.default=default
     self.min_mesh_size=min_mesh_size
     self.max_mesh_size=max_mesh_size
-    self.threads=threads
+    if(len(entities)<=threads):
+      self.threads=len(entities)
+    else:
+      self.threads=threads
 
   @property
   def refine(self):
@@ -67,10 +72,16 @@ class MesherCQSTL2(assemblymesher):
     #loop over all surfaces in all entities
     #and generate meshes (refined or otherwise)
     mpargs=[]
+    if (single_thread_override or self.threads==1):
+      face_hash_table={}
+    else:
+      #manager=mp.Manager()
+      face_hash_table=manager.dict()
+
     for i,e in enumerate(self.cq_mesher_entities):
-      mpargs.extend([(j,i,self.refine) for j,f in enumerate(e.solid.Faces())])
+      mpargs.extend([(j,i,self.refine,hash(f), face_hash_table) for j,f in enumerate(e.solid.Faces())])
     #we have a set of mesh jobs - scatter those
-    if (single_thread_override):
+    if (single_thread_override or self.threads==1):
       output=[]
       for args in mpargs:
         output.append(self._mesh_single(*args))
@@ -81,32 +92,32 @@ class MesherCQSTL2(assemblymesher):
     #process the list of meshed faces.
     for i,e in enumerate(self.cq_mesher_entities):
       e.stls=[]
-      for k,v in self.cq_mesher_faceHash.items():
+      for k,v in face_hash_table.items():
         vids=v[1] # the volumes that this face belongs to
         if i in vids:
           #this face is part of this volume
           e.stls.append(v)
-    self._clear_face_hashtable
 
   @classmethod
-  def _mesh_single(cls, fid, vid, refine):
+  def _mesh_single(cls, fid, vid, refine, hh, faceHash):
     f=cls.cq_mesher_entities[vid].solid.Faces()[fid]
-    hh=hash(f)
-    if hh in cls.cq_mesher_faceHash.keys():
+    if hh in faceHash.keys():
       #surface is in table - simply add the vid to the hash-table
-      cls.cq_mesher_faceHash[hh][1].append(vid)
+      with lock:
+        faceHash[hh][1].append(vid)
       if (cls.verbosity_level):
-        print(f'INFO: mesher reusing {hh} {cls.cq_mesher_faceHash[hh]}')
-      return(hh,cls.cq_mesher_faceHash[hh])
+        print(f'INFO: mesher reusing {hh} {faceHash[hh][1]}')
+      return(hh,faceHash[hh])
     else:
       facefilename=f'vol_{vid+1}_face{fid}.stl'
-      cls.cq_mesher_faceHash[hh]=[facefilename,[vid]]
+      with lock:
+        faceHash[hh]=[facefilename,manager.list([vid])]
       f.exportStl(facefilename, tolerance=cls.cq_mesher_tolerance, angularTolerance=cls.cq_mesher_ang_tolerance, ascii=True)
       if(cls.verbosity_level>1):
         print(f"INFO: cq export to file {facefilename}")
       if (refine):
         cls._refine_stls(facefilename,refine)
-      return(hh,facefilename)
+      return(hh,faceHash[hh])
 
 class MesherCQSTL2Builder:
   def __init__(self):
