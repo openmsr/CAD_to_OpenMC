@@ -1,4 +1,3 @@
-import gmsh
 import cadquery as cq
 import numpy as np
 import OCP
@@ -6,15 +5,24 @@ from collections.abc import Iterable
 import pathlib as pl
 from typing import List, Optional, Tuple, Union
 
+from itertools import zip_longest
+
 import meshio
 import trimesh
 
 import tempfile
 import re
 import os
+import math
 from pymoab import core, types
 
-from .assemblymesher import *
+import CAD_to_OpenMC.assemblymesher as am
+
+try:
+  import gmsh
+  nogmsh=False
+except:
+  nogmsh=True
 
 mesher_config={
 #general opts
@@ -125,7 +133,7 @@ class Assembly:
     h5m scene, which may be used for neutronics.
     This class is based on (and borrows heavily from) logic from the paramak package.
     """
-    def __init__(self, stp_files=[], stl_files=[], verbose:int = 1, default_tag='vacuum'):
+    def __init__(self, stp_files=[], stl_files=[], verbose:int = 1, default_tag='vacuum', implicit_complement=None):
         self.stp_files=stp_files
         self.stl_files=stl_files
         self.entities=[]
@@ -133,21 +141,42 @@ class Assembly:
         self.default_tag=default_tag
         self.remove_intermediate_files=False
         self.tags=None
+        self.sequential_tags=None
+        self.implicit_complement=implicit_complement
 
-    def run(self,backend='stl',h5m_filename:str='dagmc.h5m'):
+    def run(self,backend:str = 'stl', h5m_filename:str = 'dagmc.h5m', merge:bool = True):
       """convenience function that assumes the stp_files field is set, etc and simply runs the mesher with the set options
       """
-      self.import_stp_files(tags=self.tags)
-      self.merge_all()
+      self.import_stp_files(tags=self.tags, sequential_tags=self.sequential_tags)
+      if(merge):
+        self.merge_all()
       self.solids_to_h5m(backend=backend,h5m_filename=h5m_filename)
 
-    def import_stp_files(self, tags:dict=None, match_anywhere:bool=False, default_tag:str='vacuum', scale=0.1,translate=[],rotate=[]):
+    def import_stp_files(self, tags:dict = None, sequential_tags:iter = None, match_anywhere:bool = False, default_tag:str = 'vacuum', scale:float = 0.1,translate:iter = [], rotate:iter = []):
+        """
+        Import a list of step-files.
+
+        Args:
+          tags: dictionary containing pairs of reg.exp. patterns and material tags. If not None, entities with
+              names matching the patterns will be assigned to corresponding tag. If no patterns match
+              the default_tag will be applied
+          match_anywhere: match patterns anywhere in the entitiy name
+          default_tag: The material tag that will be applied if no patterns are matched.
+          scale: overall scaling factor applied to all parts
+          translate: Translation vector to apply to all parts in the step-file.
+          rotate: Rotation angles to apply to the parts in the step-file.
+        """
+
         tags_set=0
         #clear list to avoid double-import
         self.entities=[]
 
+        message="Need gmsh python module installed to extract material tags from step-file. please supply a \'sequential_tags'-list instead"
+        assert (nogmsh and tags is None and sequential_tags is not None) or (not nogmsh), message
+        #if no gmsh module was imported we must rely on explicit sequential tags, so check they're there.
+
         for stp in self.stp_files:
-            solid = self.load_stp_file(stp,scale,translate,rotate)
+            solid  = self.load_stp_file(stp,scale,translate,rotate)
 
             ents=[]
             #try if solid is iterable
@@ -159,7 +188,7 @@ class Assembly:
                 e = Entity(solid=solid)
                 ents.append(e)
 
-            if( tags is None ):
+            if( tags is None and sequential_tags is None ):
                 #also import using gmsh to extract the material tags from the labels in the step files
                 gmsh.initialize()
                 vols=gmsh.model.occ.importShapes(stp)
@@ -207,6 +236,14 @@ class Assembly:
                         tag=default_tag
                     e.tag=tag
                 gmsh.finalize()
+            elif (sequential_tags):
+                for (e,t) in zip_longest(ents,sequential_tags[tags_set:],fillvalue=self.default_tag):
+                    # Apply tags to the imported volumes in the sequence they get imported.
+                    if(e==default_tag):
+                        #this means we have exhausted the ents list
+                        break
+                    e.tag=t
+                tags_set+=len(ents)
 
             self.entities.extend(ents)
         if(tags_set!=len(self.entities)):
@@ -366,16 +403,23 @@ class Assembly:
             delete_intermediate_stl_files:bool=False, backend:str="gmsh", heal:bool=True):
         #get a mesher object from the factory class
         mesher_config['entities']=self.entities
-        meshgen=meshers.get(backend,**mesher_config)
+        meshgen=am.meshers.get(backend,**mesher_config)
         meshgen.set_verbosity(self.verbose)
         stl_list=meshgen.generate_stls()
-        if (self.verbose):
-          print(f'SUMMARY: {"solid_id":8} {"material_tag":16} {"stl-file":16}')
-          for i,a in zip(range(len(self.entities)),self.entities):
-            print(f'SUMMARY: {i+1:8} {a.tag:16} {a.stl:16}')
-        if(heal):
-          stl_list=self.heal_stls(stl_list)
-        self.stl2h5m(stl_list,h5m_filename,True)
+        if(backend=='stl2'):
+          self.stl2h5m_byface(h5m_filename,True)
+          if (self.verbose):
+            print(f'SUMMARY: {"solid_id":8} {"material_tag":16} {"stl-file":16}')
+            for i,a in zip(range(len(self.entities)),self.entities):
+              print(f'SUMMARY: {i+1:8} {a.tag:16} ' + " ".join( [f'{stl[0]:16}' for stl in a.stls] ) )
+        else:
+          if(heal):
+            stl_list=self.heal_stls(stl_list)
+          if (self.verbose):
+            print(f'SUMMARY: {"solid_id":8} {"material_tag":16} {"stl-file":16}')
+            for i,a in zip(range(len(self.entities)),self.entities):
+              print(f'SUMMARY: {i+1:8} {a.tag:16} {a.stl:16}')
+          self.stl2h5m(stl_list,h5m_filename,True)
 
     def tag_geometry_with_mats(self,volumes,implicit_complement_material_tag,graveyard, default_tag='vacuum'):
         """Tag all volumes with materials coming from the step files
@@ -409,8 +453,38 @@ class Assembly:
                 volume_mat_list[tagid]=default_tag
         return volume_mat_list
 
+    def stl2h5m_byface(self,h5m_file:str='dagmc.h5m', vtk:bool=False) -> str:
+      """function that creates a h5m-file with a moab structure and fills
+      it with the dagmc structure using the pymoab framework.
+      """
+      if(self.verbose>0):
+        print("INFO: reassembling stl-files into h5m structure")
+      h5m_p=pl.Path(h5m_file)
+      mbcore,mbtags = self.init_moab()
+      mbcore=self.add_entities_to_moab_core(mbcore,mbtags)
+
+      if(self.implicit_complement):
+        mbcore=self.set_implicit_complement(mbcore, mbtags, self.implicit_complement)
+
+      all_sets = mbcore.get_entities_by_handle(0)
+      file_set = mbcore.create_meshset()
+
+      mbcore.add_entities(file_set, all_sets)
+
+      if(self.verbose>0):
+          print(f"INFO: writing geometry to h5m: \"{h5m_file}\".")
+      mbcore.write_file(str(h5m_p))
+
+      self.check_h5m_file(h5m_file)
+      if(vtk):
+          mbcore.write_file(str(h5m_p.with_suffix('.vtk')))
+
+      self.remove_intermediate()
+
+      return str(h5m_p)
+
     def stl2h5m(self,stls:list,h5m_file:str='dagmc.h5m', vtk:bool=False) -> str:
-        """function that export the list of stls that we have presumably generated somehow
+        """function that exports the list of stls that we have presumably generated somehow
         and merges them into a DAGMC h5m-file by means of the MOAB-framework.
         """
 
@@ -429,12 +503,12 @@ class Assembly:
             if (self.remove_intermediate_files):
               p=pl.Path(e.stl)
               p.unlink()
-
         all_sets = moab_core.get_entities_by_handle(0)
 
         file_set = moab_core.create_meshset()
 
         moab_core.add_entities(file_set, all_sets)
+
         if(self.verbose>0):
             print(f"INFO: writing geometry to h5m: \"{h5m_file}\".")
         moab_core.write_file(str(h5m_p))
@@ -450,8 +524,72 @@ class Assembly:
       with open(h5m_file,"rb") as f:
         magic_bytes=f.read(8)
         if(magic_bytes!=b'\x89HDF\x0d\x0a\x1a\x0a'):
-          print(f'ERROR: generated file {h5mfile} does not appear to be a hdf-file. Did you compile the moab libs with HDF enabled?')
+          print(f'ERROR: generated file {h5m_file} does not appear to be a hdf-file. Did you compile the moab libs with HDF enabled?')
           exit(-1)
+
+    def add_entities_to_moab_core(self, mbcore:core.Core, mbtags:dict):
+      vsets=[]
+      glob_id=0
+      for i in range(len(self.entities)):
+        vset=mbcore.create_meshset()
+        vsets.append(vset)
+        glob_id+=1
+        mbcore.tag_set_data(mbtags["global_id"], vset, glob_id)
+        mbcore.tag_set_data(mbtags["geom_dimension"],vset,3)
+        mbcore.tag_set_data(mbtags["category"], vset, "Volume")
+
+      faces_added={}
+      sid=0
+      gid=0
+      for i,e in enumerate(self.entities):
+        for j,T in enumerate(e.stls):
+          f,sense=T
+          if f not in faces_added:
+            fset= mbcore.create_meshset()
+            sid+=1
+            glob_id+=1
+            faces_added[f]=fset
+
+            mbcore.tag_set_data(mbtags["global_id"], fset, glob_id)
+            mbcore.tag_set_data(mbtags["geom_dimension"],fset,2)
+            mbcore.tag_set_data(mbtags["category"], fset, "Surface")
+
+            mbcore.add_parent_child(vsets[i],fset)
+            if(len(sense)==2):
+              mbcore.tag_set_data(mbtags["surf_sense"],fset,np.array( [vsets[sense[0]],vsets[sense[1]] ], dtype='uint64' ) )
+            else:
+              mbcore.tag_set_data(mbtags["surf_sense"],fset,np.array( [vsets[sense[0]], 0], dtype='uint64'))
+            mbcore.load_file(f,fset)
+          else:
+            #this face has already been added so only add a parent child relation here
+            fset=faces_added[f]
+            mbcore.add_parent_child(vsets[i],fset)
+          print(fset)
+        #make this a group, this could ideally be a set of volumes with the same material
+        gset = mbcore.create_meshset()
+        gid+=1
+        glob_id+=1
+        mbcore.tag_set_data(mbtags["category"], gset, "Group")
+        # reflective is a special case that should not have mat: in front
+        if not e.tag == "reflective":
+          dagmc_material_tag = f"mat:{e.tag}"
+        else:
+          dagmc_material_tag = e.tag
+
+        mbcore.tag_set_data(mbtags["name"], gset, dagmc_material_tag)
+        mbcore.tag_set_data(mbtags["geom_dimension"], gset, 4)
+
+        # add the volume to this group set
+        mbcore.add_entity(gset, vsets[i])
+      return mbcore
+
+    def set_implicit_complement(self,mbcore:core.Core, mbtags: dict, dagmc_material_tag:str = None):
+      if dagmc_material_tag:
+        gset=mbcore.create_meshset()
+        mbcore.tag_set_data(mbtags["category"], gset, "Group")
+        mbcore.tag_set_data(mbtags["name"], gset, f'mat:{dagmc_material_tag}_comp')
+        mbcore.tag_set_data(mbtags["geom_dimension"], gset, 4)
+      return mbcore
 
     def add_stl_to_moab_core(self, moab_core: core.Core, surface_id: int, volume_id: int, material_name: str, tags: dict, stl_filename: str,
 ) -> core.Core:
@@ -508,6 +646,7 @@ class Assembly:
             dag_material_tag = material_name
 
         moab_core.tag_set_data(tags["name"], group_set, dag_material_tag)
+
         moab_core.tag_set_data(tags["geom_dimension"], group_set, 4)
 
         # add the volume to this group set
@@ -653,3 +792,12 @@ class Assembly:
     def get_unique_tags(self):
         #extract a set of unique tags
         return { self.get_all_tags() }
+
+    def remove_intermediate(self, force=False):
+        #remove all the generated stl intermediate files
+        if(self.remove_intermediate_files or force):
+          for e in self.entities:
+            for s in e.stls:
+              p=pl.Path(s[0])
+              if p.exists():
+                p.unlink()

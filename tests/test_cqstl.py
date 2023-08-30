@@ -1,5 +1,7 @@
 import pytest
+import CAD_to_OpenMC.assembly as ab
 from tests.testRun import *
+import pathlib as pl
 
 class TestCqSTL(TestRun):
   def __init__(self):
