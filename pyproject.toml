@@ -1,28 +1,30 @@
 [project]
 name="CAD_to_OpenMC"
-version="0.2.4rc4"
+version="0.2.6a0"
 authors = [
   { name="Erik B Knudsen", email="erik.knudsen@copenhagenatomics.com" },
 ]
-description = "Package to automagically convert step-gometries to h5m descriptions for neutronics by OpenMC"
+description = "Package to automagically convert step-geometries to h5m descriptions for neutronics by OpenMC"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
 ]
 dependencies=[
         'gmsh',
-        'pyparsing==2.4',
-        'cadquery==2.2.0b2',
-        'cadquery-ocp==7.6.3a0',
+        'pyparsing',
+        'cadquery>=2',
+        'cadquery-ocp>=7',
         'numpy',
         'OCP',
         'meshio',
         'trimesh',
         'networkx',
-        'Cython==0.29.32'
+        'Cython'
 ]
 
 [project.urls]

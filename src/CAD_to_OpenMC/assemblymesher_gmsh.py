@@ -1,9 +1,13 @@
-import gmsh
+try:
+  import gmsh
+except (ImportError,OSError) as e:
+  raise e
+
 import cadquery as cq
 import os
 import tempfile
 import math
-from .assemblymesher_base import *
+from .assemblymesher_base import assemblymesher
 
 class MesherGMSH(assemblymesher):
   def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities):
