@@ -11,8 +11,8 @@ try:
 except:
   single_thread_override=True
 
-import stl_utils as su
-import meshutils as mu
+from .stl_utils import *
+from .meshutils import *
 
 #following pattern here: https://thelaziestprogrammer.com/python/multiprocessing-pool-a-global-solution
 #to enable multiprocessing meshings
@@ -100,8 +100,8 @@ class MesherCQSTL(assemblymesher):
       buf,n=read_stl_ascii(fp)
     verts=buffer2vertices(buf)
     tris=buffer2triangles(buf,verts)
-    edges=np.array(mu.find_edges(tris))
-    mu.write_dotmesh(str(stlp.with_suffix('.mesh')),verts,tris,edges=edges,required_edges='all')
+    edges=np.array(find_edges(tris))
+    write_dotmesh(str(stlp.with_suffix('.mesh')),verts,tris,edges=edges,required_edges='all')
     cp=sp.run(['mmgs_O3','-hmin',f'{cls.cq_mesher_min_mesh_size}','-hmax',f'{cls.cq_mesher_max_mesh_size}','-optim','-in',stlp.with_suffix('.mesh'),'-out',stlp.with_suffix('.o.mesh')], capture_output=True)
     if(cls.verbosity_level and cls.verbosity_level>1):
       print(cp.stdout.decode())
@@ -133,7 +133,7 @@ class MesherCQSTL(assemblymesher):
           self.cq_mesher_faceHash[o[0]]=o[1]
           volumefaces.append(o[1])
         #merge the stls to a single .stl in the working directory
-        su.merge_stl(str(cwd / volname), volumefaces,of='bin')
+        merge_stl(str(cwd / volname), volumefaces,of='bin')
         e.stl=volname
     # clear the hash table
     self._clear_face_hashtable()
