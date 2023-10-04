@@ -569,7 +569,6 @@ class Assembly:
             #this face has already been added so only add a parent child relation here
             fset=faces_added[f]
             mbcore.add_parent_child(vsets[i],fset)
-          print(fset)
         #make this a group, this could ideally be a set of volumes with the same material
         gset = mbcore.create_meshset()
         gid+=1
