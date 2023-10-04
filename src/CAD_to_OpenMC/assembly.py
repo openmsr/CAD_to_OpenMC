@@ -152,7 +152,7 @@ class Assembly:
         self.merge_all()
       self.solids_to_h5m(backend=backend,h5m_filename=h5m_filename)
 
-    def import_stp_files(self, tags:dict = None, sequential_tags:iter = None, match_anywhere:bool = False, default_tag:str = 'vacuum', scale:float = 0.1,translate:iter = [], rotate:iter = []):
+    def import_stp_files(self, tags:dict = None, sequential_tags:iter = None, match_anywhere:bool = False, default_tag:str = 'vacuum', scale:float = 0.1,translate:iter = [], rotate:iter = [], vol_skip:iter=[]):
         """
         Import a list of step-files.
 
@@ -174,16 +174,19 @@ class Assembly:
         message="Need gmsh python module installed to extract material tags from step-file. please supply a \'sequential_tags'-list instead"
         assert (nogmsh and tags is None and sequential_tags is not None) or (not nogmsh), message
         #if no gmsh module was imported we must rely on explicit sequential tags, so check they're there.
-
+        i=1
         for stp in self.stp_files:
             solid  = self.load_stp_file(stp,scale,translate,rotate)
 
             ents=[]
             #try if solid is iterable
             try:
-                for s in solid:
-                    e = Entity(solid=s)
-                    ents.append(e)
+                for j in range(len(solid)):
+                    if j+i not in vol_skip:
+                      s=solid[j]
+                      e = Entity(solid=s)
+                      ents.append(e)
+                i=i+len(solid)
             except:
                 e = Entity(solid=solid)
                 ents.append(e)
