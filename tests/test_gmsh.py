@@ -18,5 +18,5 @@ class HarnessGmsh(HarnessRun):
     #self.cleanup()
 
 def testgmsh():
-  t = TestGmsh()
+  t = HarnessGmsh()
   t.run()

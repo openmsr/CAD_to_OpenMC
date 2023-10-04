@@ -28,7 +28,7 @@ class HarnessCqSTL(HarnessRun):
       v.unlink()
 
 def testcq():
-  t = HarnessCqStl()
+  t = HarnessCqSTL()
   t.run()
 
 def testcq_wmerge():
