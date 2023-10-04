@@ -409,12 +409,14 @@ class Assembly:
         meshgen=am.meshers.get(backend,**mesher_config)
         meshgen.set_verbosity(self.verbose)
         stl_list=meshgen.generate_stls()
+        for e,s in zip(self.entities,stl_list):
+          e.stl=s
         if(backend=='stl2'):
           self.stl2h5m_byface(h5m_filename,True)
           if (self.verbose):
             print(f'SUMMARY: {"solid_id":8} {"material_tag":16} {"stl-file":16}')
             for i,a in zip(range(len(self.entities)),self.entities):
-              print(f'SUMMARY: {i+1:8} {a.tag:16} ' + " ".join( [f'{stl[0]:16}' for stl in a.stls] ) )
+              print(f'SUMMARY: {i+1:8} {a.tag:16} ' + " ".join( [f'{stl[0]:16}' for stl in a.stl] ) )
         else:
           if(heal):
             stl_list=self.heal_stls(stl_list)
@@ -545,7 +547,7 @@ class Assembly:
       sid=0
       gid=0
       for i,e in enumerate(self.entities):
-        for j,T in enumerate(e.stls):
+        for j,T in enumerate(e.stl):
           f,sense=T
           if f not in faces_added:
             fset= mbcore.create_meshset()

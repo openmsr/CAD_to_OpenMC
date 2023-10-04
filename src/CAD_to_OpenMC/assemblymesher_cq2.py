@@ -66,7 +66,7 @@ class MesherCQSTL2(assemblymesher):
     cls.cq_mesher_entities=entities
 
   def generate_stls(self):
-    self._mesh_surfaces()
+    return self._mesh_surfaces()
 
   def _mesh_surfaces(self):
     #loop over all surfaces in all entities
@@ -90,13 +90,16 @@ class MesherCQSTL2(assemblymesher):
       output=pool.starmap(self._mesh_single, mpargs)
 
     #process the list of meshed faces.
+    stls=[]
     for i,e in enumerate(self.cq_mesher_entities):
-      e.stls=[]
+      face_stls=[]
       for k,v in face_hash_table.items():
         vids=v[1] # the volumes that this face belongs to
         if i in vids:
           #this face is part of this volume
-          e.stls.append(v)
+          face_stls.append(v)
+      stls.append(face_stls)
+    return stls
 
   @classmethod
   def _mesh_single(cls, fid, vid, refine, hh, faceHash):
