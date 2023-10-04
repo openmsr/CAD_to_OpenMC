@@ -735,7 +735,8 @@ class Assembly:
         #loop trough all objects in geometry and split and merge them accordingly
         #shapes should be a compund cq object or a list thereof
         for i,shape in enumerate(solids):
-          print(f'splitting obj {i} of {len(solids)}')
+          if (self.verbose):
+            print(f'splitting obj {i} of {len(solids)}')
           # checks if solid is a compound as .val() is not needed for compunds
           if isinstance(shape, cq.occ_impl.shapes.Compound):
             bldr.AddArgument(shape.wrapped)
