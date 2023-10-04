@@ -152,7 +152,7 @@ class Assembly:
         self.merge_all()
       self.solids_to_h5m(backend=backend,h5m_filename=h5m_filename)
 
-    def import_stp_files(self, tags:dict = None, sequential_tags:iter = None, match_anywhere:bool = False, default_tag:str = 'vacuum', scale:float = 0.1,translate:iter = [], rotate:iter = []):
+    def import_stp_files(self, tags:dict = None, sequential_tags:iter = None, match_anywhere:bool = False, default_tag:str = 'vacuum', scale:float = 0.1,translate:iter = [], rotate:iter = [], vol_skip:iter=[]):
         """
         Import a list of step-files.
 
@@ -174,16 +174,19 @@ class Assembly:
         message="Need gmsh python module installed to extract material tags from step-file. please supply a \'sequential_tags'-list instead"
         assert (nogmsh and tags is None and sequential_tags is not None) or (not nogmsh), message
         #if no gmsh module was imported we must rely on explicit sequential tags, so check they're there.
-
+        i=1
         for stp in self.stp_files:
             solid  = self.load_stp_file(stp,scale,translate,rotate)
 
             ents=[]
             #try if solid is iterable
             try:
-                for s in solid:
-                    e = Entity(solid=s)
-                    ents.append(e)
+                for j in range(len(solid)):
+                    if j+i not in vol_skip:
+                      s=solid[j]
+                      e = Entity(solid=s)
+                      ents.append(e)
+                i=i+len(solid)
             except:
                 e = Entity(solid=solid)
                 ents.append(e)
@@ -406,12 +409,14 @@ class Assembly:
         meshgen=am.meshers.get(backend,**mesher_config)
         meshgen.set_verbosity(self.verbose)
         stl_list=meshgen.generate_stls()
+        for e,s in zip(self.entities,stl_list):
+          e.stl=s
         if(backend=='stl2'):
           self.stl2h5m_byface(h5m_filename,True)
           if (self.verbose):
             print(f'SUMMARY: {"solid_id":8} {"material_tag":16} {"stl-file":16}')
             for i,a in zip(range(len(self.entities)),self.entities):
-              print(f'SUMMARY: {i+1:8} {a.tag:16} ' + " ".join( [f'{stl[0]:16}' for stl in a.stls] ) )
+              print(f'SUMMARY: {i+1:8} {a.tag:16} ' + " ".join( [f'{stl[0]:16}' for stl in a.stl] ) )
         else:
           if(heal):
             stl_list=self.heal_stls(stl_list)
@@ -542,7 +547,7 @@ class Assembly:
       sid=0
       gid=0
       for i,e in enumerate(self.entities):
-        for j,T in enumerate(e.stls):
+        for j,T in enumerate(e.stl):
           f,sense=T
           if f not in faces_added:
             fset= mbcore.create_meshset()
@@ -564,7 +569,6 @@ class Assembly:
             #this face has already been added so only add a parent child relation here
             fset=faces_added[f]
             mbcore.add_parent_child(vsets[i],fset)
-          print(fset)
         #make this a group, this could ideally be a set of volumes with the same material
         gset = mbcore.create_meshset()
         gid+=1
@@ -730,28 +734,37 @@ class Assembly:
         bldr.SetFuzzyValue(fuzzy_value)
         #loop trough all objects in geometry and split and merge them accordingly
         #shapes should be a compund cq object or a list thereof
-        for shape in solids:
+        for i,shape in enumerate(solids):
+          if (self.verbose):
+            print(f'splitting obj {i} of {len(solids)}')
           # checks if solid is a compound as .val() is not needed for compunds
           if isinstance(shape, cq.occ_impl.shapes.Compound):
             bldr.AddArgument(shape.wrapped)
           else:
+            try:
+              bldr.AddArgument(shape.val().wrapped)
+            except:
+              bldr.AddArgument(shape.wrapped)
+          for j,shape2 in enumerate(solids[i:]):
+            if isinstance(shape2, cq.occ_impl.shapes.Compound):
+              bldr.AddArgument(shape2.wrapped)
+            else:
               try:
-                  bldr.AddArgument(shape.val().wrapped)
+                bldr.AddArgument(shape2.val().wrapped)
               except:
-                  bldr.AddArgument(shape.wrapped)
-        bldr.SetParallelMode_s(True)
-        bldr.SetNonDestructive(False)
+                bldr.AddArgument(shape2.wrapped)
+            bldr.Perform()
 
         if(self.verbose>1):
             print("INFO: Commence perform step of merge")
         bldr.Perform()
 
         if(self.verbose>1):
-            print("INFO: Commence image step of merge")
+          print("INFO: Commence image step of merge")
         bldr.Images()
 
         if(self.verbose>1):
-            print("INFO: Generate compound shape")
+          print("INFO: Generate compound shape")
         merged = cq.Compound(bldr.Shape())
 
         return merged
@@ -775,15 +788,6 @@ class Assembly:
               p=pl.Path(e.stl)
               p.unlink()
             e.stl=new_filename
-
-    def tag_stls(self,stls):
-        stl_tagged=[]
-        for (stl,e) in zip(stl_list,self.entities):
-            try:
-                stl_tagged.append((stl[0],stl[1],e.tag))
-            except:
-                print("WARNING: list of material tags is exhausted. Tagging volume {stl[0]},{stl[1]} with \'vacuum\'")
-                stl_tagged.append(stl[0],stl[1],'vacuum')
 
     def get_all_tags(self):
         #extract_all_tags from the list of entities

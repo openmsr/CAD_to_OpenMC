@@ -11,8 +11,8 @@ try:
 except:
   single_thread_override=True
 
-import stl_utils as su
-import meshutils as mu
+from .stl_utils import *
+from .meshutils import *
 
 #following pattern here: https://thelaziestprogrammer.com/python/multiprocessing-pool-a-global-solution
 #to enable multiprocessing meshings
@@ -64,18 +64,8 @@ class MesherCQSTL(assemblymesher):
     cls.cq_mesher_entities=entities
 
   def generate_stls(self):
-    self._mesh_surfaces()
-    return
-    #created a cq-compund from list of entities
-    for i,e in enumerate(self.cq_mesher_entities):
-      j=i+1
-      filename=f"volume_{j}.stl"
-      e.solid.exportStl(filename,ascii=True,tolerance=self.tolerance,angularTolerance=self.angular_tolerance)
-      if(self.verbosity_level>1):
-        print(f"INFO: cq export to file {filename}")
-      e.stl=filename
-      if(self.refine):
-        self._refine_stls(e.stl)
+    stls=self._mesh_surfaces()
+    return stls
 
   @classmethod
   def _refine_stls(cls,stl,refine):
@@ -100,8 +90,8 @@ class MesherCQSTL(assemblymesher):
       buf,n=read_stl_ascii(fp)
     verts=buffer2vertices(buf)
     tris=buffer2triangles(buf,verts)
-    edges=np.array(mu.find_edges(tris))
-    mu.write_dotmesh(str(stlp.with_suffix('.mesh')),verts,tris,edges=edges,required_edges='all')
+    edges=np.array(find_edges(tris))
+    write_dotmesh(str(stlp.with_suffix('.mesh')),verts,tris,edges=edges,required_edges='all')
     cp=sp.run(['mmgs_O3','-hmin',f'{cls.cq_mesher_min_mesh_size}','-hmax',f'{cls.cq_mesher_max_mesh_size}','-optim','-in',stlp.with_suffix('.mesh'),'-out',stlp.with_suffix('.o.mesh')], capture_output=True)
     if(cls.verbosity_level and cls.verbosity_level>1):
       print(cp.stdout.decode())
@@ -115,6 +105,7 @@ class MesherCQSTL(assemblymesher):
   def _mesh_surfaces(self):
     #loop over all surfaces in all entities
     #and generate meshes (refined or otherwise)
+    stls=[]
     cwd=pl.Path.cwd()
     #create a workplace in tmp
     with cdtemp() as mngr:
@@ -133,10 +124,11 @@ class MesherCQSTL(assemblymesher):
           self.cq_mesher_faceHash[o[0]]=o[1]
           volumefaces.append(o[1])
         #merge the stls to a single .stl in the working directory
-        su.merge_stl(str(cwd / volname), volumefaces,of='bin')
-        e.stl=volname
+        merge_stl(str(cwd / volname), volumefaces,of='bin')
+        stls.append(volname)
     # clear the hash table
     self._clear_face_hashtable()
+    return stls
 
   @classmethod
   def _mesh_single(cls, fid, vid, refine):

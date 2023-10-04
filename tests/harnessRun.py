@@ -2,7 +2,7 @@ import pytest
 import CAD_to_OpenMC.assembly as ab
 import pathlib as pl
 
-class TestRun:
+class HarnessRun:
   def __init__(self):
     infile = 'examples/7pin.step'
     self.a = ab.Assembly(verbose=2)

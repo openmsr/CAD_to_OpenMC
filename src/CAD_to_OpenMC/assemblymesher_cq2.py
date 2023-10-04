@@ -1,8 +1,6 @@
 import cadquery as cq
 import subprocess as sp
 import pathlib as pl
-import hashlib as hl
-from CAD_to_OpenMC import cdtemp
 from .assemblymesher_base import assemblymesher
 
 single_thread_override=False
@@ -66,7 +64,7 @@ class MesherCQSTL2(assemblymesher):
     cls.cq_mesher_entities=entities
 
   def generate_stls(self):
-    self._mesh_surfaces()
+    return self._mesh_surfaces()
 
   def _mesh_surfaces(self):
     #loop over all surfaces in all entities
@@ -77,9 +75,10 @@ class MesherCQSTL2(assemblymesher):
     else:
       #manager=mp.Manager()
       face_hash_table=manager.dict()
-
+    k=0
     for i,e in enumerate(self.cq_mesher_entities):
-      mpargs.extend([(j,i,self.refine,hash(f), face_hash_table) for j,f in enumerate(e.solid.Faces())])
+      mpargs.extend([(k+j,j,i,self.refine,hash(f), face_hash_table) for j,f in enumerate(e.solid.Faces())])
+
     #we have a set of mesh jobs - scatter those
     if (single_thread_override or self.threads==1):
       output=[]
@@ -90,16 +89,19 @@ class MesherCQSTL2(assemblymesher):
       output=pool.starmap(self._mesh_single, mpargs)
 
     #process the list of meshed faces.
+    stls=[]
     for i,e in enumerate(self.cq_mesher_entities):
-      e.stls=[]
+      face_stls=[]
       for k,v in face_hash_table.items():
         vids=v[1] # the volumes that this face belongs to
         if i in vids:
           #this face is part of this volume
-          e.stls.append(v)
+          face_stls.append(v)
+      stls.append(face_stls)
+    return stls
 
   @classmethod
-  def _mesh_single(cls, fid, vid, refine, hh, faceHash):
+  def _mesh_single(cls, global_fid, fid, vid, refine, hh, faceHash):
     f=cls.cq_mesher_entities[vid].solid.Faces()[fid]
     if hh in faceHash.keys():
       #surface is in table - simply add the vid to the hash-table
@@ -109,7 +111,7 @@ class MesherCQSTL2(assemblymesher):
         print(f'INFO: mesher reusing {hh} {faceHash[hh][1]}')
       return(hh,faceHash[hh])
     else:
-      facefilename=f'vol_{vid+1}_face{fid}.stl'
+      facefilename=f'vol_{vid+1}_face{global_fid:04}.stl'
       with lock:
         faceHash[hh]=[facefilename,manager.list([vid])]
       f.exportStl(facefilename, tolerance=cls.cq_mesher_tolerance, angularTolerance=cls.cq_mesher_ang_tolerance, ascii=True)

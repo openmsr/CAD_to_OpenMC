@@ -1,9 +1,9 @@
 import pytest
 import CAD_to_OpenMC.assembly as ab
-from tests.testRun import *
+from tests.harnessRun import *
 import pathlib as pl
 
-class TestGmsh(TestRun):
+class HarnessGmsh(HarnessRun):
   def __init__(self):
     super().__init__()
 
@@ -18,5 +18,5 @@ class TestGmsh(TestRun):
     #self.cleanup()
 
 def testgmsh():
-  t = TestGmsh()
+  t = HarnessGmsh()
   t.run()
