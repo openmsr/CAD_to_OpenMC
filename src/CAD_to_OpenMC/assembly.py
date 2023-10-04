@@ -788,15 +788,6 @@ class Assembly:
               p.unlink()
             e.stl=new_filename
 
-    def tag_stls(self,stls):
-        stl_tagged=[]
-        for (stl,e) in zip(stl_list,self.entities):
-            try:
-                stl_tagged.append((stl[0],stl[1],e.tag))
-            except:
-                print("WARNING: list of material tags is exhausted. Tagging volume {stl[0]},{stl[1]} with \'vacuum\'")
-                stl_tagged.append(stl[0],stl[1],'vacuum')
-
     def get_all_tags(self):
         #extract_all_tags from the list of entities
         return [e.tag for e in self.entitites]
