@@ -735,28 +735,36 @@ class Assembly:
         bldr.SetFuzzyValue(fuzzy_value)
         #loop trough all objects in geometry and split and merge them accordingly
         #shapes should be a compund cq object or a list thereof
-        for shape in solids:
+        for i,shape in enumerate(solids):
+          print(f'splitting obj {i} of {len(solids)}')
           # checks if solid is a compound as .val() is not needed for compunds
           if isinstance(shape, cq.occ_impl.shapes.Compound):
             bldr.AddArgument(shape.wrapped)
           else:
+            try:
+              bldr.AddArgument(Argument(shape.val().wrapped))
+            except:
+              bldr.AddArgument(shape.wrapped)
+          for j,shape2 in enumerate(solids[i:]):
+            if isinstance(shape2, cq.occ_impl.shapes.Compound):
+              bldr.AddArgument(shape2.wrapped)
+            else:
               try:
-                  bldr.AddArgument(shape.val().wrapped)
+                bldr.AddArgument(Argument(shape2.val().wrapped))
               except:
-                  bldr.AddArgument(shape.wrapped)
-        bldr.SetParallelMode_s(True)
-        bldr.SetNonDestructive(False)
+                bldr.AddArgument(shape2.wrapped)
+            bldr.Perform()
 
         if(self.verbose>1):
             print("INFO: Commence perform step of merge")
         bldr.Perform()
 
         if(self.verbose>1):
-            print("INFO: Commence image step of merge")
+          print("INFO: Commence image step of merge")
         bldr.Images()
 
         if(self.verbose>1):
-            print("INFO: Generate compound shape")
+          print("INFO: Generate compound shape")
         merged = cq.Compound(bldr.Shape())
 
         return merged
