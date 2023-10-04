@@ -742,7 +742,7 @@ class Assembly:
             bldr.AddArgument(shape.wrapped)
           else:
             try:
-              bldr.AddArgument(Argument(shape.val().wrapped))
+              bldr.AddArgument(shape.val().wrapped)
             except:
               bldr.AddArgument(shape.wrapped)
           for j,shape2 in enumerate(solids[i:]):
@@ -750,7 +750,7 @@ class Assembly:
               bldr.AddArgument(shape2.wrapped)
             else:
               try:
-                bldr.AddArgument(Argument(shape2.val().wrapped))
+                bldr.AddArgument(shape2.val().wrapped)
               except:
                 bldr.AddArgument(shape2.wrapped)
             bldr.Perform()
