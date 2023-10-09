@@ -35,7 +35,8 @@ jobs:
         sudo apt-get -y install gcc cmake make build-essential cython3 libeigen3-dev libnetcdf-dev libnetcdf19 libnetcdf-mpi-dev libnetcdf-mpi-19 python3-netcdf4 libhdf5-103 libhdf5-cpp-103 libhdf5-dev python3-setuptools python3-build python3-pip libglu1-mesa
         pip install pytest
 
-    -name Build and install openmc
+    - name: Build and install openmc
+      run: |
         git clone --depth 1 https://github.com/openmsr/openmc_install_scripts
         cd openmc_install_scripts/Ubuntu_22.04
         ./install-all.sh
