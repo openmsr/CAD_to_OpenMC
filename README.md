@@ -21,7 +21,7 @@ _replace \<name\> with an arbitrary name for your virtual environment_
     2. Configure and build the code:
     ```bash
       mkdir build;
-      cd build; cmake .. -DENABLE_PYMOAB=1 -DCMAKE_INSTALL_PREFIX=<name>;
+      cd build; cmake .. -DENABLE_PYMOAB=1 -DENABLE_HDF5=1 -DCMAKE_INSTALL_PREFIX=<name>;
       make;
       make install;
     ```
