@@ -730,6 +730,22 @@ class Assembly:
             tmp_ents.append(ent)
           self.entities = tmp_ents
 
+    def imprint_all(self):
+      if(len(self.entities) > 0):
+        for e in self.entities:
+          print(e.solid.Faces())
+        unmerged = [e.solid for e in self.entities]
+        merged=self.imprint_solids(unmerged)
+        print(len(unmerged))
+        print(len(merged))
+        for (a,b) in zip(unmerged,merged):
+          print(a.Center(),b.Center())
+          print(a.isEqual(b))
+        print('----------------')
+        for e,m in zip(self.entities,merged):
+          print(e.solid.Center(),m.Center())
+          e.solid=m
+
     def _merge_solids(self,solids,fuzzy_value):
         """merge a set of cq-solids
            returns as cq-compound object
@@ -772,6 +788,135 @@ class Assembly:
         merged = cq.Compound(bldr.Shape())
 
         return merged
+
+    def imprint_solids(self,solids):
+      merged=solids
+      for i in range(len(merged)):
+        s0=merged[i]
+        if (self.verbose>0):
+          print(f'INFO: Self_imprinting {i}')
+        s0=self.imprint_solid_on_self(s0)
+        #s0.exportStl(f'test{i:02}.stl')
+        merged[i]=s0
+
+      for i in range(len(merged)):
+        if (self.verbose>0):
+          print(f'INFO: Imprint on solid {i}')
+        s0=merged[i]
+        for j in range(0,len(merged)):
+          if(j==i):
+            continue
+            #imprinting solid on itself - meaning we imprint its faces on each other.
+            s0=self.imprint_solid_on_self(s0)
+            s0.mesh(mesher_config['tolerance'])
+            #s0.exportStl('test.stl')
+            merged[i]=s0
+          else:
+            s1=merged[j]
+            if (self.verbose>1):
+              print(f'INFO: Imprinting solid {j} on {i}')
+            result=self.imprint_solid_on_solid(s0,s1)
+            if result is None:
+              if(self.verbose>1):
+                print(f'INFO: solid {j}\'s bounding box does not touch/overlap that of solid {i}. Skipping imprinting')
+              merged[i]=s0
+              merged[j]=s1
+            else:
+              if(self.verbose>1):
+                print(f'INFO: solid {j} is possibly connected to solid {i} - perform imprint.')
+              s0_i=result
+              for k,idx in enumerate([i,j]):
+                try:
+                  merged[idx]=s0_i.Solids()[k]
+                except:
+                  merged[idx]=merged[idx]
+      return merged
+
+    def imprint_solid_on_self(self,s0):
+      s0.mesh(mesher_config['tolerance'])
+      faces=s0.Faces()
+      bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
+      for fc in s0.Faces():
+        bldr.AddArgument(fc.wrapped)
+      bldr.Perform()
+      bldr.Images()
+      s1=cq.Solid(bldr.Shape())
+      return s1
+
+
+    def imprint_solid_on_self1(self,s0):
+      faces=s0.Faces()
+      for i in range(len(faces)):
+        for j in range(len(faces)):
+          if (j==i):
+            continue
+          f0=faces[i]
+          f1=faces[j]
+          edgec_pre=len(f0.Edges())
+          bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
+          bldr.AddArgument(f0.wrapped)
+          bldr.AddTool(f1.wrapped)
+          bldr.Perform()
+          bldr.Images()
+          results=bldr.Shape()
+          f2=cq.Face(bldr.Shape())
+          edgec_post=len(f2.Edges())
+          print(f'Info: imprinting face {j} on {i}, edgec {edgec_pre} => {edgec_post}')
+          #if(i==5):
+          #  breakpoint()
+          faces[i]=f2
+
+    def imprint_solid_on_self0(self,s0):
+      bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
+      edges=s0.Edges()
+      wires=s0.Wires()
+      faces=s0.Faces()
+      breakpoint()
+      bldr.AddArgument(faces[0].wrapped)
+      bldr.AddArgument(faces[1].wrapped)
+      #for i,w in enumerate(wires):
+        #for j,ee in enumerate(w.Edges()):
+          #print(i,j," ".join([f'{cd}' for cd in ee.Vertices()[0].toTuple()])," ".join([f'{cd}' for cd in ee.Vertices()[1].toTuple()]), len(ee.Vertices()) )
+      for i,fc in enumerate(faces):
+        for j,e in enumerate(fc.Edges()):
+          print(i,j,e.Vertices()[0].toTuple(), e.Vertices()[1].toTuple())
+      #for i,ee in enumerate(edges):
+      #  print(i,ee.Vertices()[0].toTuple(),ee.Vertices()[1].toTuple())
+      bldr.AddArgument(s0.wrapped)
+      bldr.Perform()
+      bldr.Images()
+      exit()
+
+    def overlap_bounding_boxes(self,solid1,solid2):
+      (bb1,bb2)=(solid1.BoundingBox(),solid2.BoundingBox())
+      outside = ( (bb2.xmin >bb1.xmax) or (bb2.xmax<bb1.xmin) or (bb2.ymin >bb1.ymax) or (bb2.ymax<bb1.ymin) or (bb2.zmin >bb1.zmax) or (bb2.zmax<bb1.zmin) )
+      return not outside
+
+    def imprint_solid_on_solid(self,solid0,solid1):
+      #if the bounding boxes of the solids don't overlap
+      #don't do anything
+      if not self.overlap_bounding_boxes(solid0,solid1):
+        return None
+
+      bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
+      if isinstance(solid0, cq.occ_impl.shapes.Compound):
+        bldr.AddArgument(solid0.wrapped)
+      else:
+        try:
+          bldr.AddArgument(Argument(solid0.val().wrapped))
+        except:
+          bldr.AddArgument(solid0.wrapped)
+      if isinstance(solid1, cq.occ_impl.shapes.Compound):
+        bldr.AddArgument(solid1.wrapped)
+      else:
+        try:
+          bldr.AddArgument(Argument(solid1.val().wrapped))
+        except:
+          bldr.AddArgument(solid1.wrapped)
+      bldr.Perform()
+      bldr.Images()
+      #breakpoint()
+      return cq.Compound(bldr.Shape())
 
     def heal_stls(self,stls):
         if(self.verbose>0):
