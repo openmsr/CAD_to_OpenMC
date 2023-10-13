@@ -587,9 +587,12 @@ class Assembly:
               print(f'This volume/entity will be skipped. Please examine the output volume carefully.')
             else:
               # Transfer the picked solid to the list of merged solids, removing (pop) it from the list
-              # This to avoid going through the whole listmore than once.
+              # This to avoid going through the whole list more than once.
               ent = self.entities[j]
               ent.solid = merged_solids.pop(i_small)
+              merged_vols.pop(i_small)
+              merged_bbs.pop(i_small)
+              merged_centers.pop(i_small)
             tmp_ents.append(ent)
           self.entities = tmp_ents
 
