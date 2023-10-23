@@ -557,6 +557,10 @@ class Assembly:
 
         # add the volume to this group set
         mbcore.add_entity(gset, vsets[i])
+
+      #finally set the faceting tolerance tag
+      mbcore.tag_set_data(mbtags["faceting_tol"],mbcore.get_root_set(),mesher_config['tolerance'])
+
       return mbcore
 
     def set_implicit_complement(self,mbcore:core.Core, mbtags: dict, dagmc_material_tag:str = None):
@@ -628,6 +632,9 @@ class Assembly:
         # add the volume to this group set
         moab_core.add_entity(group_set, volume_set)
 
+        #finally set the faceting tolerance tag
+        moab_core.tag_set_data(tags["faceting_tol"],moab_core.get_root_set(),mesher_config['tolerance'])
+
         return moab_core
 
     def init_moab(self):
@@ -657,6 +664,10 @@ class Assembly:
         tags["geom_dimension"] = moab_core.tag_get_handle(
             types.GEOM_DIMENSION_TAG_NAME, 1,
             types.MB_TYPE_INTEGER, types.MB_TAG_DENSE, create_if_missing=True,
+        )
+        tags["faceting_tol"] = moab_core.tag_get_handle(
+            "FACETING_TOL", 1,
+            types.MB_TYPE_DOUBLE, types.MB_TAG_DENSE, create_if_missing=True,
         )
         # Global ID is a default tag, just need the name to retrieve
         tags["global_id"] = moab_core.tag_get_handle(types.GLOBAL_ID_TAG_NAME)
