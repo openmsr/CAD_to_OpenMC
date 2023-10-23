@@ -8,8 +8,6 @@ import os
 import tempfile
 import math
 from .assemblymesher_base import assemblymesher
-import pdb
-pdb.set_trace()
 
 class MesherGMSH(assemblymesher):
   gmsh_mesher_entities=None
