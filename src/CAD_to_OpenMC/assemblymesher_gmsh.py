@@ -8,6 +8,8 @@ import os
 import tempfile
 import math
 from .assemblymesher_base import assemblymesher
+import pdb
+pdb.set_trace()
 
 class MesherGMSH(assemblymesher):
   gmsh_mesher_entities=None
@@ -97,7 +99,11 @@ class MesherGMSH(assemblymesher):
       #create a compund cq solid from entities
       solids=[e.solid for e in self.gmsh_mesher_entities]
       compound=cq.Compound.makeCompound(solids)
-      vols = gmsh.model.occ.importShapesNativePointer(compound)
+      with tempfile.TemporaryDirectory() as td:
+        outpath=os.path.join(td,'export.'+self.IntermediateLayer)
+        compound.exportBrep(outpath)
+        vols=gmsh.model.occ.importShapes(outpath)
+      #vols = gmsh.model.occ.importShapesNativePointer(compound)
       gmsh.model.occ.synchronize()
       self._reorder()
 
