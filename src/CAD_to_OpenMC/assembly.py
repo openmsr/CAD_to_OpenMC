@@ -430,38 +430,6 @@ class Assembly:
             stl_list=self.heal_stls(stl_list)
           self.stl2h5m(stl_list,h5m_filename,True)
 
-    def tag_geometry_with_mats(self,volumes,implicit_complement_material_tag,graveyard, default_tag='vacuum'):
-        """Tag all volumes with materials coming from the step files
-        """
-        volume_mat_list = {}
-        offset=0
-        #do auto-tags for all but the last volumue , which might be a graveyard
-        for entry in volumes[:-1]:
-            tagid=entry[1]
-            try:
-                s=gmsh.model.getEntityName(3,tagid)
-                part=s.split('/')[-1]
-                g=re.match(r'^([^\s_@]+)',part)
-                volume_mat_list[tagid]=g[0]
-            except:
-                volume_mat_list[tagid]=default_tag
-        if graveyard:
-            #we have added a graveyard at the end of the list
-            #tag it accordingly
-            volume_mat_list[volumes[-1][1]]='Graveyard'
-        else:
-            #assume that the graveyard (if needed) has been added beforehand
-            #use the tag from the file for the last element which may not be
-            #the graveyard
-            try:
-                tagid=volumes[-1][1]
-                s=gmsh.model.getEntityName(3,tagid)
-                mat=s.split('/')
-                volume_mat_list[tagid]=mat[1]
-            except:
-                volume_mat_list[tagid]=default_tag
-        return volume_mat_list
-
     def stl2h5m_byface(self,h5m_file:str='dagmc.h5m', vtk:bool=False) -> str:
       """function that creates a h5m-file with a moab structure and fills
       it with the dagmc structure using the pymoab framework.
