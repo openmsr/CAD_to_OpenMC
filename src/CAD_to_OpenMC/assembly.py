@@ -111,19 +111,17 @@ def idx_similar(entity_list,center,bounding_box,volume):
         print('INFO: No similar object found')
     return end_idx
 
-def similar_solids(solid1, solid2):
+def similar_solids(solid1_vol, solid1_bb, solid1_c, solid2_vol, solid2_bb, solid2_c):
   """This function compares two solids and reports their similarity constant.
   defined as the sum of:
     1. cubic root difference in volume
     2. difference of bounding box diagonal
     3. difference in location vector.
   """
-  dV = math.pow(math.fabs(solid1.Volume()-solid2.Volume()),0.3333333333333333333333333333333333)
-  bb1 = solid1.BoundingBox()
-  bb2 = solid2.BoundingBox()
-  dBB = math.fabs(bb1.DiagonalLength-bb2.DiagonalLength)
-  c1 = solid1.Center()
-  c2 = solid2.Center()
+  dV = math.pow(math.fabs(solid1_vol-solid2_vol),0.3333333333333333333333333333333333)
+  dBB = math.fabs(solid1_bb.DiagonalLength-solid2_bb.DiagonalLength)
+  c1 = solid1_c
+  c2 = solid2_c
   dCntr = math.sqrt( (c1.x-c2.x)*(c1.x-c2.x) + (c1.y-c2.y)*(c1.y-c2.y) + (c1.z-c2.z)*(c1.z-c2.z) )
   return dV+dBB+dCntr
 
@@ -678,6 +676,12 @@ class Assembly:
         if len(self.entities)>1:
           #extract cq solids backend algorithm
           unmerged = [e.solid for e in self.entities]
+
+          #Pre-calculate and cache the volume, bounding box, and center of each
+          unmerged_vols = [x.Volume() for x in unmerged]
+          unmerged_bbs = [x.BoundingBox() for x in unmerged]
+          unmerged_centers = [x.Center() for x in unmerged]
+          
           #do merge
           merged = self._merge_solids(unmerged, fuzzy_value=1e-6)
           #the merging process may result in extra volumes.
@@ -689,13 +693,19 @@ class Assembly:
           # Figure of which of the merged solids best corresponds to
           # each of the unmerged volumes.
           merged_solids = merged.Solids()
+
+          #Pre-calculate and cache the volume, bounding box, and center of each
+          merged_vols = [x.Volume() for x in merged_solids]
+          merged_bbs = [x.BoundingBox() for x in merged_solids]
+          merged_centers = [x.Center() for x in merged_solids]
+          
           for j,orig in enumerate(unmerged):
             d_small = 1e9
             i_small = -1
             if (self.verbose>1):
               print(f'INFO: {len(merged_solids)} merged solids left in list of originally {len(merged.Solids())}')
             for i,ms in enumerate(merged_solids):
-              d = similar_solids(orig,ms)
+              d = similar_solids(unmerged_vols[j],unmerged_bbs[j],unmerged_centers[j],merged_vols[i],merged_bbs[i],merged_centers[i])
               if d < d_small:
                 i_small,d_small = i,d
             if i_small == -1:
@@ -703,9 +713,12 @@ class Assembly:
               print(f'This volume/entity will be skipped. Please examine the output volume carefully.')
             else:
               # Transfer the picked solid to the list of merged solids, removing (pop) it from the list
-              # This to avoid going through the whole listmore than once.
+              # This to avoid going through the whole list more than once.
               ent = self.entities[j]
               ent.solid = merged_solids.pop(i_small)
+              merged_vols.pop(i_small)
+              merged_bbs.pop(i_small)
+              merged_centers.pop(i_small)
             tmp_ents.append(ent)
           self.entities = tmp_ents
 
