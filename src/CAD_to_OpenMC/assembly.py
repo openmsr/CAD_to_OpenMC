@@ -111,19 +111,17 @@ def idx_similar(entity_list,center,bounding_box,volume):
         print('INFO: No similar object found')
     return end_idx
 
-def similar_solids(solid1, solid2):
+def similar_solids(solid1_vol, solid1_bb, solid1_c, solid2_vol, solid2_bb, solid2_c):
   """This function compares two solids and reports their similarity constant.
   defined as the sum of:
     1. cubic root difference in volume
     2. difference of bounding box diagonal
     3. difference in location vector.
   """
-  dV = math.pow(math.fabs(solid1.Volume()-solid2.Volume()),0.3333333333333333333333333333333333)
-  bb1 = solid1.BoundingBox()
-  bb2 = solid2.BoundingBox()
-  dBB = math.fabs(bb1.DiagonalLength-bb2.DiagonalLength)
-  c1 = solid1.Center()
-  c2 = solid2.Center()
+  dV = math.pow(math.fabs(solid1_vol-solid2_vol),0.3333333333333333333333333333333333)
+  dBB = math.fabs(solid1_bb.DiagonalLength-solid2_bb.DiagonalLength)
+  c1 = solid1_c
+  c2 = solid2_c
   dCntr = math.sqrt( (c1.x-c2.x)*(c1.x-c2.x) + (c1.y-c2.y)*(c1.y-c2.y) + (c1.z-c2.z)*(c1.z-c2.z) )
   return dV+dBB+dCntr
 
@@ -678,6 +676,12 @@ class Assembly:
         if len(self.entities)>1:
           #extract cq solids backend algorithm
           unmerged = [e.solid for e in self.entities]
+
+          #Pre-calculate and cache the volume, bounding box, and center of each
+          unmerged_vols = [x.Volume() for x in unmerged]
+          unmerged_bbs = [x.BoundingBox() for x in unmerged]
+          unmerged_centers = [x.Center() for x in unmerged]
+          
           #do merge
           merged = self._merge_solids(unmerged, fuzzy_value=1e-6)
           #the merging process may result in extra volumes.
@@ -689,13 +693,19 @@ class Assembly:
           # Figure of which of the merged solids best corresponds to
           # each of the unmerged volumes.
           merged_solids = merged.Solids()
+
+          #Pre-calculate and cache the volume, bounding box, and center of each
+          merged_vols = [x.Volume() for x in merged_solids]
+          merged_bbs = [x.BoundingBox() for x in merged_solids]
+          merged_centers = [x.Center() for x in merged_solids]
+          
           for j,orig in enumerate(unmerged):
             d_small = 1e9
             i_small = -1
             if (self.verbose>1):
               print(f'INFO: {len(merged_solids)} merged solids left in list of originally {len(merged.Solids())}')
             for i,ms in enumerate(merged_solids):
-              d = similar_solids(orig,ms)
+              d = similar_solids(unmerged_vols[j],unmerged_bbs[j],unmerged_centers[j],merged_vols[i],merged_bbs[i],merged_centers[i])
               if d < d_small:
                 i_small,d_small = i,d
             if i_small == -1:
@@ -703,11 +713,30 @@ class Assembly:
               print(f'This volume/entity will be skipped. Please examine the output volume carefully.')
             else:
               # Transfer the picked solid to the list of merged solids, removing (pop) it from the list
-              # This to avoid going through the whole listmore than once.
+              # This to avoid going through the whole list more than once.
               ent = self.entities[j]
               ent.solid = merged_solids.pop(i_small)
+              merged_vols.pop(i_small)
+              merged_bbs.pop(i_small)
+              merged_centers.pop(i_small)
             tmp_ents.append(ent)
           self.entities = tmp_ents
+
+    def imprint_all(self):
+      if(len(self.entities) > 0):
+        for e in self.entities:
+          print(e.solid.Faces())
+        unmerged = [e.solid for e in self.entities]
+        merged=self.imprint_solids(unmerged)
+        print(len(unmerged))
+        print(len(merged))
+        for (a,b) in zip(unmerged,merged):
+          print(a.Center(),b.Center())
+          print(a.isEqual(b))
+        print('----------------')
+        for e,m in zip(self.entities,merged):
+          print(e.solid.Center(),m.Center())
+          e.solid=m
 
     def _merge_solids(self,solids,fuzzy_value):
         """merge a set of cq-solids
@@ -751,6 +780,91 @@ class Assembly:
         merged = cq.Compound(bldr.Shape())
 
         return merged
+
+    def imprint_solids(self,solids):
+      merged=solids
+      for i in range(len(merged)):
+        s0=merged[i]
+        if (self.verbose>0):
+          print(f'INFO: Self_imprinting {i}')
+        s0=self.imprint_solid_on_self(s0)
+        #s0.exportStl(f'test{i:02}.stl')
+        merged[i]=s0
+
+      for i in range(len(merged)):
+        if (self.verbose>0):
+          print(f'INFO: Imprint on solid {i}')
+        s0=merged[i]
+        for j in range(0,len(merged)):
+          if(j==i):
+            continue
+            #imprinting solid on itself - meaning we imprint its faces on each other.
+            s0=self.imprint_solid_on_self(s0)
+            s0.mesh(mesher_config['tolerance'])
+            #s0.exportStl('test.stl')
+            merged[i]=s0
+          else:
+            s1=merged[j]
+            if (self.verbose>1):
+              print(f'INFO: Imprinting solid {j} on {i}')
+            result=self.imprint_solid_on_solid(s0,s1)
+            if result is None:
+              if(self.verbose>1):
+                print(f'INFO: solid {j}\'s bounding box does not touch/overlap that of solid {i}. Skipping imprinting')
+              merged[i]=s0
+              merged[j]=s1
+            else:
+              if(self.verbose>1):
+                print(f'INFO: solid {j} is possibly connected to solid {i} - perform imprint.')
+              s0_i=result
+              for k,idx in enumerate([i,j]):
+                try:
+                  merged[idx]=s0_i.Solids()[k]
+                except:
+                  merged[idx]=merged[idx]
+      return merged
+
+    def imprint_solid_on_self(self,s0):
+      s0.mesh(mesher_config['tolerance'])
+      faces=s0.Faces()
+      bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
+      for fc in s0.Faces():
+        bldr.AddArgument(fc.wrapped)
+      bldr.Perform()
+      bldr.Images()
+      s1=cq.Solid(bldr.Shape())
+      return s1
+
+    def overlap_bounding_boxes(self,solid1,solid2):
+      (bb1,bb2)=(solid1.BoundingBox(),solid2.BoundingBox())
+      outside = ( (bb2.xmin >bb1.xmax) or (bb2.xmax<bb1.xmin) or (bb2.ymin >bb1.ymax) or (bb2.ymax<bb1.ymin) or (bb2.zmin >bb1.zmax) or (bb2.zmax<bb1.zmin) )
+      return not outside
+
+    def imprint_solid_on_solid(self,solid0,solid1):
+      #if the bounding boxes of the solids don't overlap
+      #don't do anything
+      if not self.overlap_bounding_boxes(solid0,solid1):
+        return None
+
+      bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
+      if isinstance(solid0, cq.occ_impl.shapes.Compound):
+        bldr.AddArgument(solid0.wrapped)
+      else:
+        try:
+          bldr.AddArgument(Argument(solid0.val().wrapped))
+        except:
+          bldr.AddArgument(solid0.wrapped)
+      if isinstance(solid1, cq.occ_impl.shapes.Compound):
+        bldr.AddArgument(solid1.wrapped)
+      else:
+        try:
+          bldr.AddArgument(Argument(solid1.val().wrapped))
+        except:
+          bldr.AddArgument(solid1.wrapped)
+      bldr.Perform()
+      bldr.Images()
+      #breakpoint()
+      return cq.Compound(bldr.Shape())
 
     def heal_stls(self,stls):
         if(self.verbose>0):

@@ -83,7 +83,7 @@ class MesherCQSTL2(assemblymesher):
     if (single_thread_override or self.threads==1):
       output=[]
       for args in mpargs:
-        output.append(self._mesh_single(*args))
+        output.append(self._mesh_single_nothread(*args))
     else:
       pool=mp.Pool(processes=self.threads)
       output=pool.starmap(self._mesh_single, mpargs)
@@ -99,6 +99,25 @@ class MesherCQSTL2(assemblymesher):
           face_stls.append(v)
       stls.append(face_stls)
     return stls
+
+  @classmethod
+  def _mesh_single_nothread(cls, global_fid, fid, vid, refine, hh, faceHash):
+    f=cls.cq_mesher_entities[vid].solid.Faces()[fid]
+    if hh in faceHash.keys():
+      #surface is in table - simply add the vid to the hash-table
+      faceHash[hh][1].append(vid)
+      if (cls.verbosity_level):
+        print(f'INFO: mesher reusing {hh} {faceHash[hh][1]}')
+      return(hh,faceHash[hh])
+    else:
+      facefilename=f'vol_{vid+1}_face{global_fid:04}.stl'
+      faceHash[hh]=[facefilename,manager.list([vid])]
+      f.exportStl(facefilename, tolerance=cls.cq_mesher_tolerance, angularTolerance=cls.cq_mesher_ang_tolerance, ascii=True)
+      if(cls.verbosity_level>1):
+        print(f"INFO: cq export to file {facefilename}")
+      if (refine):
+        cls._refine_stls(facefilename,refine)
+      return(hh,faceHash[hh])
 
   @classmethod
   def _mesh_single(cls, global_fid, fid, vid, refine, hh, faceHash):
