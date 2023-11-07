@@ -681,7 +681,7 @@ class Assembly:
           unmerged_vols = [x.Volume() for x in unmerged]
           unmerged_bbs = [x.BoundingBox() for x in unmerged]
           unmerged_centers = [x.Center() for x in unmerged]
-          
+
           #do merge
           merged = self._merge_solids(unmerged, fuzzy_value=1e-6)
           #the merging process may result in extra volumes.
@@ -698,7 +698,7 @@ class Assembly:
           merged_vols = [x.Volume() for x in merged_solids]
           merged_bbs = [x.BoundingBox() for x in merged_solids]
           merged_centers = [x.Center() for x in merged_solids]
-          
+
           for j,orig in enumerate(unmerged):
             d_small = 1e9
             i_small = -1
@@ -851,14 +851,14 @@ class Assembly:
         bldr.AddArgument(solid0.wrapped)
       else:
         try:
-          bldr.AddArgument(Argument(solid0.val().wrapped))
+          bldr.AddArgument(solid0.val().wrapped)
         except:
           bldr.AddArgument(solid0.wrapped)
       if isinstance(solid1, cq.occ_impl.shapes.Compound):
         bldr.AddArgument(solid1.wrapped)
       else:
         try:
-          bldr.AddArgument(Argument(solid1.val().wrapped))
+          bldr.AddArgument(solid1.val().wrapped)
         except:
           bldr.AddArgument(solid1.wrapped)
       bldr.Perform()
