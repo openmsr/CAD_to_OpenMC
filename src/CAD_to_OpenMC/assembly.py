@@ -822,50 +822,6 @@ class Assembly:
       s1=cq.Solid(bldr.Shape())
       return s1
 
-
-    def imprint_solid_on_self1(self,s0):
-      faces=s0.Faces()
-      for i in range(len(faces)):
-        for j in range(len(faces)):
-          if (j==i):
-            continue
-          f0=faces[i]
-          f1=faces[j]
-          edgec_pre=len(f0.Edges())
-          bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
-          bldr.AddArgument(f0.wrapped)
-          bldr.AddTool(f1.wrapped)
-          bldr.Perform()
-          bldr.Images()
-          results=bldr.Shape()
-          f2=cq.Face(bldr.Shape())
-          edgec_post=len(f2.Edges())
-          print(f'Info: imprinting face {j} on {i}, edgec {edgec_pre} => {edgec_post}')
-          #if(i==5):
-          #  breakpoint()
-          faces[i]=f2
-
-    def imprint_solid_on_self0(self,s0):
-      bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
-      edges=s0.Edges()
-      wires=s0.Wires()
-      faces=s0.Faces()
-      breakpoint()
-      bldr.AddArgument(faces[0].wrapped)
-      bldr.AddArgument(faces[1].wrapped)
-      #for i,w in enumerate(wires):
-        #for j,ee in enumerate(w.Edges()):
-          #print(i,j," ".join([f'{cd}' for cd in ee.Vertices()[0].toTuple()])," ".join([f'{cd}' for cd in ee.Vertices()[1].toTuple()]), len(ee.Vertices()) )
-      for i,fc in enumerate(faces):
-        for j,e in enumerate(fc.Edges()):
-          print(i,j,e.Vertices()[0].toTuple(), e.Vertices()[1].toTuple())
-      #for i,ee in enumerate(edges):
-      #  print(i,ee.Vertices()[0].toTuple(),ee.Vertices()[1].toTuple())
-      bldr.AddArgument(s0.wrapped)
-      bldr.Perform()
-      bldr.Images()
-      exit()
-
     def overlap_bounding_boxes(self,solid1,solid2):
       (bb1,bb2)=(solid1.BoundingBox(),solid2.BoundingBox())
       outside = ( (bb2.xmin >bb1.xmax) or (bb2.xmax<bb1.xmin) or (bb2.ymin >bb1.ymax) or (bb2.ymax<bb1.ymin) or (bb2.zmin >bb1.zmax) or (bb2.zmax<bb1.zmin) )
