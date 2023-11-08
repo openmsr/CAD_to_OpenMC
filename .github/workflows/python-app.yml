@@ -37,7 +37,7 @@ jobs:
     - name: setup a micromamba environment to get at openmc etc.
       uses: mamba-org/setup-micromamba@v1
       with:
-        environment-env: cad_to_openmc_Testing
+        environment-name: cad_to_openmc_Testing
         create-args: >-
           moab
           openmc
