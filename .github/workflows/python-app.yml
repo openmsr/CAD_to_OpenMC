@@ -35,7 +35,7 @@ jobs:
       with:
         python-version: ${{matrix.pyv}}
     - name: basic dependencies
-      run: apt install libhdf5-103 libglu1-mesa
+      run: sudo apt install libhdf5-103 libglu1-mesa
     - name: setup a micromamba environment to get at openmc etc.
       uses: mamba-org/setup-micromamba@v1
       with:
