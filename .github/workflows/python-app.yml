@@ -51,6 +51,7 @@ jobs:
         pip install flake8 build pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         micromamba list
+        python -c "import gmsh"
       shell: micromamba-shell {0}
     - name: Lint with flake8
       run: |
