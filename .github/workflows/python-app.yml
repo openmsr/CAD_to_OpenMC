@@ -44,6 +44,7 @@ jobs:
         init-shell: bash
     - name: Test OpenMC
       run: openmc --version
+      shell: micromamba-shell {0}
     - name: Install dependencies0
       run: |
         micromamba install moab openmc
