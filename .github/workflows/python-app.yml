@@ -40,9 +40,10 @@ jobs:
         environment-name: cad_to_openmc_Testing
         create-args: >-
           python=${{matrix.pyv}}
+        init-shell: bash
     - name: Install dependencies0
       run: |
-        micromamba install moab
+        micromamba install moab openmc
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
