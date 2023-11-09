@@ -722,7 +722,7 @@ class Assembly:
                     merged_bbs.pop(i_small)
                     merged_centers.pop(i_small)
                     tmp_ents.append(ent)
-                self.entities = tmp_ents
+            self.entities = tmp_ents
 
     def imprint_all(self):
         if(len(self.entities) > 0):
