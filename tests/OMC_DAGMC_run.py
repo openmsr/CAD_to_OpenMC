@@ -31,7 +31,7 @@ class DAGMC_template():
   def bld_sts(self):
     sets=openmc.Settings()
     sets.batches=5
-    sets.particles=10000
+    sets.particles=1000
     sets.incactive=2
     src=openmc.Source()
     src.space=openmc.stats.Point()
