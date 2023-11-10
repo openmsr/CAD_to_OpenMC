@@ -11,7 +11,7 @@ class OMC_DAGMC_harness(HarnessRun):
 
   def run(self):
     aa=ab.Assembly([str(self.path)],verbose=2)
-    aa.run(merge=True,h5m_filename=self.h5m)
+    aa.run(backend='stl2',merge=True,h5m_filename=self.h5m)
     assert self.h5m.exists()
     tt=DAGMC_template(self.h5m)
     tt.run()
@@ -27,6 +27,6 @@ def test_h5m_neutronics_p2():
   o=OMC_DAGMC_harness('examples/pincell2.step')
   o.run()
 
-if __name__=='__main__':
-  test_h5m_neutronics_p1()
-  test_h5m_neutronics_p2()
+#if __name__=='__main__':
+#  test_h5m_neutronics_p1()
+#  test_h5m_neutronics_p2()
