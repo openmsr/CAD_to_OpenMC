@@ -72,7 +72,7 @@ jobs:
         python -c 'import CAD_to_OpenMC.assembly'
       shell: micromamba-shell {0}
     - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v  3
+      uses: mxschmitt/action-tmate@v3
     - name: Run Tests
       run: |
         pytest -v --debug=debuglog.log tests
