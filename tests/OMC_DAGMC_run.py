@@ -77,3 +77,6 @@ class DAGMC_template():
     g2=glob.glob('*.h5')
     for g in g2:
       os.unlink(g)
+
+if __name__=='__main__':
+  pass
