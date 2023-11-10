@@ -47,11 +47,11 @@ class DAGMC_template():
     uo2.add_nuclide('U235',1.0/3.0*0.05,'ao')
     uo2.add_nuclide('U238',1.0/3.0*0.95,'ao')
     uo2.add_element('O',2.0/3.0,'ao')
-    uo2.set_density('g/cc',1.0)
+    uo2.set_density('g/cc',10.97)
 
     zirconium=openmc.Material(name='zirconium')
     zirconium.add_element('Zr',1.0,'ao')
-    zirconium.set_density('g/cc',1.0)
+    zirconium.set_density('g/cc',6.52)
 
     h2o=openmc.Material(name='h2o')
     h2o.add_element('O',1.0/3.0,'ao')
