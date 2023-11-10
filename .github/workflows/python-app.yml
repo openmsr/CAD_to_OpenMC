@@ -20,6 +20,7 @@ env:
 
 jobs:
   build:
+    timeout-minutes: 20
     env:
       PYTHONPATH: "/usr/local/lib/python${{matrix.pyv}}/site-packages"
 
