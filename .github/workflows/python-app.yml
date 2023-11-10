@@ -35,7 +35,10 @@ jobs:
       with:
         python-version: ${{matrix.pyv}}
     - name: basic dependencies
-      run: sudo apt install libhdf5-103 libglu1-mesa
+      run: |
+        sudo apt-get update
+        echo 'debconf debconf/frontend select Noninteractive' | sudo debconf-set-selections
+        sudo apt-get -y install libhdf5-103 xserver-xorg-core xserver-xorg-dev libx11-6 libgl1 libxcursor1 libglu1-mesa libxinerama1 libxft2
     - name: setup a micromamba environment to get at openmc etc.
       uses: mamba-org/setup-micromamba@v1
       with:
@@ -68,7 +71,9 @@ jobs:
         pip install dist/CAD_to_OpenMC*.tar.gz
         python -c 'import CAD_to_OpenMC.assembly'
       shell: micromamba-shell {0}
+    - name: Setup tmate session
+      uses: mxschmitt/action-tmate@v  3
     - name: Run Tests
       run: |
-        pytest -v tests
+        pytest -v --debug=debuglog.log tests
       shell: micromamba-shell {0}
