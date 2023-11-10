@@ -72,9 +72,9 @@ jobs:
         pip install dist/CAD_to_OpenMC*.tar.gz
         python -c 'import CAD_to_OpenMC.assembly'
       shell: micromamba-shell {0}
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
     - name: Run Tests
       run: |
         pytest -v --debug=debuglog.log tests
       shell: micromamba-shell {0}
+    -20name: Setup tmate session
+      uses: mxschmitt/action-tmate@v3
