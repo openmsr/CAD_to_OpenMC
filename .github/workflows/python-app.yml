@@ -70,5 +70,5 @@ jobs:
       shell: micromamba-shell {0}
     - name: Run Tests
       run: |
-        pytest tests
+        pytest -v tests
       shell: micromamba-shell {0}
