@@ -1,6 +1,6 @@
 import pytest
 import CAD_to_OpenMC.assembly as ab
-from tests.harnessRun import *
+from tests.harnessRun import HarnessRun
 import pathlib as pl
 
 class HarnessGmsh(HarnessRun):

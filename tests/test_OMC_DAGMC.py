@@ -1,8 +1,8 @@
 import pathlib
 import CAD_to_OpenMC.assembly as ab
 
-from tests.OMC_DAGMC_run import *
-from tests.harnessRun import *
+from tests.OMC_DAGMC_run import OMC_DAGMC_harness
+from tests.harnessRun import HarnessRun
 
 class OMC_DAGMC_harness(HarnessRun):
   def __init__(self, step):
