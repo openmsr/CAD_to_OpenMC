@@ -44,8 +44,7 @@ class DAGMC_template():
     if self.materials is not None:
       return
     uo2=openmc.Material(name='uo2')
-    uo2.add_nuclide('U235',1.0/3.0*0.05,'ao')
-    uo2.add_nuclide('U238',1.0/3.0*0.95,'ao')
+    uo2.add_nuclide('U231',1.0/3.0,'ao')
     uo2.add_element('O',2.0/3.0,'ao')
     uo2.set_density('g/cc',10.97)
 
@@ -66,9 +65,7 @@ class DAGMC_template():
 
   def run(self):
     self.export_to_xml()
-    openmc.lib.init()
-    openmc.lib.run()
-    openmc.lib.finalize()
+    openmc.run()
 
   def cleanup(self):
     g1=glob.glob('*.xml')
