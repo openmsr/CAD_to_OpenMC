@@ -1,6 +1,7 @@
 import pathlib
 import os
 import openmc
+import math
 
 import CAD_to_OpenMC.assembly as ab
 
@@ -34,7 +35,11 @@ def test_h5m_neutronics_p2():
   o.run()
 
 def test_h5m_neutronics_tors():
-  o=OMC_DAGMC_harness('examples/toroids.step')
+  o = OMC_DAGMC_harness('examples/toroids.step')
+  # override source spatial distribution
+  o.settings.source.space=openmc.stats.IndependentCylindrical(
+    openmc.stats.Discrete([100],[1.0]),openmc.stats.Discrete([0.0],[1.0]), openmc.stats.Uniform(0.0,2.0*math.pi)
+  )
   openmc.config['cross_sections']=str(o.nuclear_lib)
   o.run()
 
