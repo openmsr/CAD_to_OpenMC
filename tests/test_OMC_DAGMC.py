@@ -13,15 +13,15 @@ class OMC_DAGMC_harness(HarnessRun):
     self.path = pathlib.Path(step)
     self.h5m = self.path.with_suffix('.h5m')
     self.nuclear_lib = pathlib.Path('tests/nuclear_data_testlib/cross_sections.xml').absolute()
-    aa = ab.Assembly([str(self.path)], verbose = 2)
-    tt = DAGMC_template(self.h5m)
+    self.aa = ab.Assembly([str(self.path)], verbose = 2)
+    self.tt = DAGMC_template(self.h5m)
 
   def run(self):
-    aa.run(backend='stl2', merge = True, h5m_filename = self.h5m)
+    self.aa.run(backend='stl2', merge = True, h5m_filename = self.h5m)
     assert self.h5m.exists()
-    tt.run()
+    self.tt.run()
     assert pathlib.Path('statepoint.5.h5').exists()
-    tt.cleanup()
+    self.tt.cleanup()
     self.cleanup()
 
 def test_h5m_neutronics_p1():
