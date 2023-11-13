@@ -76,5 +76,3 @@ jobs:
       run: |
         pytest -v --debug=debuglog.log tests
       shell: micromamba-shell {0}
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
