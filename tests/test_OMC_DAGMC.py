@@ -10,15 +10,15 @@ from tests.harnessRun import HarnessRun
 
 class OMC_DAGMC_harness(HarnessRun):
   def __init__(self, step):
-    self.path=pathlib.Path(step)
-    self.h5m=self.path.with_suffix('.h5m')
-    self.nuclear_lib=pathlib.Path('tests/nuclear_data_testlib/cross_sections.xml').absolute()
+    self.path = pathlib.Path(step)
+    self.h5m = self.path.with_suffix('.h5m')
+    self.nuclear_lib = pathlib.Path('tests/nuclear_data_testlib/cross_sections.xml').absolute()
+    aa = ab.Assembly([str(self.path)], verbose = 2)
+    tt = DAGMC_template(self.h5m)
 
   def run(self):
-    aa=ab.Assembly([str(self.path)],verbose=2)
-    aa.run(backend='stl2',merge=True,h5m_filename=self.h5m)
+    aa.run(backend='stl2', merge = True, h5m_filename = self.h5m)
     assert self.h5m.exists()
-    tt=DAGMC_template(self.h5m)
     tt.run()
     assert pathlib.Path('statepoint.5.h5').exists()
     tt.cleanup()
@@ -37,7 +37,7 @@ def test_h5m_neutronics_p2():
 def test_h5m_neutronics_tors():
   o = OMC_DAGMC_harness('examples/toroids.step')
   # override source spatial distribution
-  o.settings.source.space=openmc.stats.CylindricalIndependent(
+  o.tt.settings.source.space=openmc.stats.CylindricalIndependent(
     openmc.stats.Discrete([100],[1.0]),openmc.stats.Discrete([0.0],[1.0]), openmc.stats.Uniform(0.0,2.0*math.pi)
   )
   openmc.config['cross_sections']=str(o.nuclear_lib)
