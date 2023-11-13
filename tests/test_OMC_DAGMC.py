@@ -33,6 +33,12 @@ def test_h5m_neutronics_p2():
   openmc.config['cross_sections']=str(o.nuclear_lib)
   o.run()
 
+def test_h5m_neutronics_tors():
+  o=OMC_DAGMC_harness('examples/toroids.step')
+  openmc.config['cross_sections']=str(o.nuclear_lib)
+  o.run()
+
 if __name__=='__main__':
   test_h5m_neutronics_p1()
   test_h5m_neutronics_p2()
+  test_h5m_neutronics_tors()
