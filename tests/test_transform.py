@@ -11,7 +11,7 @@ class HarnessTrans(HarnessRun):
   def run(self,merge=False, **kwargs):
     self.a.stp_files=[self.infile]
     print(f'stl: {self.a.stp_files})')
-    self.import_stp_files(**kwargs)
+    self.a.import_stp_files(**kwargs)
 
     #self.a.solids_to_h5m(backend='stl')
     h5p = pl.Path('out_transformed.h5m')
