@@ -144,10 +144,10 @@ class Assembly:
         self.sequential_tags=None
         self.implicit_complement=implicit_complement
 
-    def run(self,backend:str = 'stl', h5m_filename:str = 'dagmc.h5m', merge:bool = True):
+    def run(self,backend:str = 'stl', h5m_filename:str = 'dagmc.h5m', merge:bool = True, **kwargs : dict):
         """convenience function that assumes the stp_files field is set, etc and simply runs the mesher with the set options
         """
-        self.import_stp_files(tags=self.tags, sequential_tags=self.sequential_tags)
+        self.import_stp_files(tags=self.tags, sequential_tags = self.sequential_tags, **kwargs)
         if(merge):
             self.merge_all()
             self.solids_to_h5m(backend=backend,h5m_filename=h5m_filename)
