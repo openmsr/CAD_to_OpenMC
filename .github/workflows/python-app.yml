@@ -5,7 +5,7 @@ name: Python application
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, 'release*' ]
     paths:
       - 'src/**'
       - 'tests/**'
@@ -20,13 +20,14 @@ env:
 
 jobs:
   build:
+    timeout-minutes: 20
     env:
       PYTHONPATH: "/usr/local/lib/python${{matrix.pyv}}/site-packages"
 
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        pyv: ["3.8","3.9","3.10"]
+        pyv: ["3.9","3.10"]
 
     steps:
     - uses: actions/checkout@v3
@@ -34,35 +35,44 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: ${{matrix.pyv}}
+    - name: basic dependencies
+      run: |
+        sudo apt-get update
+        echo 'debconf debconf/frontend select Noninteractive' | sudo debconf-set-selections
+        sudo apt-get -y install libhdf5-103 xserver-xorg-core xserver-xorg-dev libx11-6 libgl1 libxcursor1 libglu1-mesa libxinerama1 libxft2
+    - name: setup a micromamba environment to get at openmc etc.
+      uses: mamba-org/setup-micromamba@v1
+      with:
+        environment-name: cad_to_openmc_Testing
+        create-args: >-
+          python=${{matrix.pyv}}
+          openmc
+        init-shell: bash
+    - name: Test OpenMC
+      run: openmc --version
+      shell: micromamba-shell {0}
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install flake8 build pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: build and install moab
-      run: |
-        sudo apt-get update
-        sudo apt-get -y install gcc cmake make build-essential cython3 libeigen3-dev libnetcdf-dev libnetcdf19 libnetcdf-mpi-dev libnetcdf-mpi-19 python3-netcdf4 libhdf5-103 libhdf5-cpp-103 libhdf5-dev python3-setuptools python3-build python3-pip libglu1-mesa
-        git clone --single-branch --branch 5.3.1 --depth 1 https://bitbucket.org/fathomteam/moab.git
-        cd moab
-        mkdir build
-        cd build
-        cmake .. -DENABLE_HDF5=ON -DENABLE_PYMOAB=ON -DBUILD_SHARED_LIBS=ON -DENABLE_FORTRAN=OFF -DCMAKE_INSTALL_PREFIX=/usr/local
-        make
-        sudo make install
-        cd pymoab
-        sudo env "PATH=$PATH" python setup.py install
+        micromamba list
+        python -c "import gmsh"
+      shell: micromamba-shell {0}
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=moab
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=moab
+      shell: micromamba-shell {0}
     - name: Build, pip-install, and test-import CAD_to_OpenMC with dependencies.
       run: |
         python -m build
         pip install dist/CAD_to_OpenMC*.tar.gz
         python -c 'import CAD_to_OpenMC.assembly'
+      shell: micromamba-shell {0}
     - name: Run Tests
       run: |
-        pytest tests
+        pytest -v --debug=debuglog.log tests
+      shell: micromamba-shell {0}

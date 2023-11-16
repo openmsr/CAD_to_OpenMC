@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<cross_sections>
+  <library materials="H1" path="H1.h5" type="neutron" />
+  <library materials="H2" path="H2.h5" type="neutron" />
+  <library materials="H3" path="H3.h5" type="neutron" />
+  <library materials="O16" path="O16.h5" type="neutron" />
+  <library materials="O17" path="O17.h5" type="neutron" />
+  <library materials="O18" path="O18.h5" type="neutron" />
+  <library materials="Zr90" path="Zr90.h5" type="neutron" />
+  <library materials="Zr91" path="Zr91.h5" type="neutron" />
+  <library materials="Zr92" path="Zr92.h5" type="neutron" />
+  <library materials="Zr93" path="Zr93.h5" type="neutron" />
+  <library materials="Zr94" path="Zr94.h5" type="neutron" />
+  <library materials="Zr95" path="Zr95.h5" type="neutron" />
+  <library materials="Zr96" path="Zr96.h5" type="neutron" />
+  <library materials="U231" path="U231.h5" type="neutron" />
+</cross_sections>

@@ -1,7 +1,9 @@
 import pytest
-from tests.testRun import *
+import CAD_to_OpenMC.assembly as ab
+from tests.harnessRun import HarnessRun
+import pathlib as pl
 
-class TestCqSTL(TestRun):
+class HarnessCqSTL(HarnessRun):
   def __init__(self):
     super().__init__()
 
@@ -26,9 +28,9 @@ class TestCqSTL(TestRun):
       v.unlink()
 
 def testcq():
-  t = TestCqSTL()
+  t = HarnessCqSTL()
   t.run()
 
 def testcq_wmerge():
-  t = TestCqSTL()
+  t = HarnessCqSTL()
   t.run(merge=True)

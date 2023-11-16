@@ -1,11 +1,18 @@
-import gmsh
+try:
+  import gmsh
+except (ImportError,OSError) as e:
+  raise e
+
 import cadquery as cq
 import os
 import tempfile
 import math
-from .assemblymesher_base import *
+from .assemblymesher_base import assemblymesher
 
 class MesherGMSH(assemblymesher):
+  gmsh_mesher_entities=None
+
+
   def __init__(self, min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities):
     self.IntermediateLayer='brep'
     self.min_mesh_size=min_mesh_size
@@ -13,13 +20,17 @@ class MesherGMSH(assemblymesher):
     self.curve_samples=curve_samples
     self.mesh_algorithm=mesh_algorithm
     self.default=default
-    self.entities=entities
+    self._set_entities(entities)
     self.vetoed=vetoed
     self.threads=threads
     self.radial_threshold=radial_threshold
     self.refine=refine
     self._gmsh_init()
     self._cq_solids_to_gmsh()
+
+  @classmethod
+  def _set_entities(cls,entities):
+    cls.gmsh_mesher_entities=entities
 
   @property
   def refine(self):
@@ -84,12 +95,13 @@ class MesherGMSH(assemblymesher):
   def _cq_solids_to_gmsh(self):
       import glob
       #create a compund cq solid from entities
-      solids=[e.solid for e in self.entities]
+      solids=[e.solid for e in self.gmsh_mesher_entities]
       compound=cq.Compound.makeCompound(solids)
       with tempfile.TemporaryDirectory() as td:
         outpath=os.path.join(td,'export.'+self.IntermediateLayer)
         compound.exportBrep(outpath)
         vols=gmsh.model.occ.importShapes(outpath)
+      #vols = gmsh.model.occ.importShapesNativePointer(compound)
       gmsh.model.occ.synchronize()
       self._reorder()
 
@@ -107,12 +119,12 @@ class MesherGMSH(assemblymesher):
       #tag_idx is now the reordered list of indices
       #use that to reorder the entities to match the newly imported
       #list of volumes in the gmsh geometry representation
-      self.entities=[self.entities[i] for i in tag_idx if i!=-1]
+      self.gmsh_mesher_entities=[self.gmsh_mesher_entities[i] for i in tag_idx if i!=-1]
 
   def _find_similar(self,cms,bb,vol):
       closest=1e12
       iclose=-1
-      for i,e in enumerate(self.entities):
+      for i,e in enumerate(self.gmsh_mesher_entities):
           simi=e.similarity(cms,bb,vol,tolerance=1e5)
           if (simi<closest):
               iclose=i
@@ -135,9 +147,9 @@ class MesherGMSH(assemblymesher):
       self._generate_mesh()
       stls=[]
       vols=gmsh.model.getEntities(3)
-      for i,e in enumerate(self.entities):
+      for k,e in enumerate(self.gmsh_mesher_entities):
         #gmsh volume ids run from 1
-        dim,vid=vols[i]
+        dim,vid=vols[k]
 
         if (dim!=3):
             #appears not to be a volume - skip
@@ -153,11 +165,12 @@ class MesherGMSH(assemblymesher):
         filename=f'volume_{vid}.stl'
         try:
             gmsh.write(filename)
-            e.stl=filename
+            stls.append(filename)
         except:
-            e.stl=None
+            stls.append('None')
             print(f'WARNING: Could not write volume {vid}. Skipping')
         gmsh.model.removePhysicalGroups([]) # remove group again
+      return stls
 
 class MesherGMSHBuilder:
   def __init__(self):
@@ -168,6 +181,7 @@ class MesherGMSHBuilder:
       self._instance = MesherGMSH(min_mesh_size, max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine, entities)
     else:
       #need to do it this way since gmsh needs to be reinitialized
+      self._instance._set_entities(entities)
       self._instance._set_pars(min_mesh_size,max_mesh_size, curve_samples, default, mesh_algorithm, vetoed, threads, radial_threshold, refine)
     return self._instance
 

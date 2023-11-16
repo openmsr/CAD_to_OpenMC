@@ -130,7 +130,6 @@ dmypy.json
 
 #data files
 *.brep
-*.step
 *.stl
 *.mesh
 *.o.mesh
