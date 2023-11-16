@@ -38,8 +38,18 @@ def test_h5m_neutronics_tors():
   o = OMC_DAGMC_harness('examples/toroids.step')
   # override source spatial distribution
   o.tt.settings.source.space=openmc.stats.CylindricalIndependent(
-    openmc.stats.Discrete([100],[1.0]), openmc.stats.Uniform(0.0,2.0*math.pi), openmc.stats.Discrete([0.0],[1.0])
+    openmc.stats.Discrete([100,85,77.5],[1.0/3.0,1.0/3.0, 1.0/3.0]), openmc.stats.Uniform(0.0,2.0*math.pi), openmc.stats.Discrete([0.0],[1.0])
   )
+  openmc.config['cross_sections']=str(o.nuclear_lib)
+  o.run()
+
+def test_h5m_neutronics_spheroids():
+  o = OMC_DAGMC_harness('examples/spheroids.step')
+  openmc.config['cross_sections']=str(o.nuclear_lib)
+  o.run()
+
+def test_h5m_neutronics_ellipsoids():
+  o = OMC_DAGMC_harness('examples/oblate_ellipsoids.step')
   openmc.config['cross_sections']=str(o.nuclear_lib)
   o.run()
 
@@ -47,3 +57,5 @@ if __name__=='__main__':
   test_h5m_neutronics_p1()
   test_h5m_neutronics_p2()
   test_h5m_neutronics_tors()
+  test_h5m_neutronics_spheroids()
+  test_h5m_neutronics_ellipsoids()
