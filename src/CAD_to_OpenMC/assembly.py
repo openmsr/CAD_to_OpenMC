@@ -708,8 +708,8 @@ class Assembly:
                     print(f'INFO: {len(merged_solids)} merged solids left in list of originally {len(merged.Solids())}')
                 for i,ms in enumerate(merged_solids):
                     d = similar_solids(unmerged_vols[j],unmerged_bbs[j],unmerged_centers[j],merged_vols[i],merged_bbs[i],merged_centers[i])
-                if d < d_small:
-                    i_small,d_small = i,d
+                    if d < d_small:
+                        i_small,d_small = i,d
                 if i_small == -1:
                     print(f'WARNING: Could not find a matching merged volume for volume {j+1}.',end=' ')
                     print(f'This volume/entity will be skipped. Please examine the output volume carefully.')
