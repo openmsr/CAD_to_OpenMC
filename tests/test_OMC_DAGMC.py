@@ -12,7 +12,7 @@ class OMC_DAGMC_harness(HarnessRun):
   def __init__(self, step):
     self.path = pathlib.Path(step)
     self.h5m = self.path.with_suffix('.h5m')
-    self.nuclear_lib = pathlib.Path('nuclear_data_testlib/cross_sections.xml').absolute()
+    self.nuclear_lib = pathlib.Path('tests/nuclear_data_testlib/cross_sections.xml').absolute()
     self.aa = ab.Assembly([str(self.path)], verbose = 2)
     self.tt = DAGMC_template(self.h5m)
 
