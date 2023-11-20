@@ -42,7 +42,6 @@ mesher_config = {
     'verbose': 0
 }
 
-
 # these are dummies that we still need to have defined
 def _replace(filename, string1, string2):
     pass
@@ -143,6 +142,26 @@ class Assembly:
         self.tags=None
         self.sequential_tags=None
         self.implicit_complement=implicit_complement
+
+    @classmethod
+    def hdf5_in_moab(cls):
+        a=Assembly()
+        res = a.dummy_h5m()
+        if not res:
+            print(
+                'Warning: Can\'t write a hdf-file. Did you compile moab with hdf5 support?
+                The resulting meshed file will actually be a vtk-file.'
+            )
+
+    def dummy_h5m(self):
+        mbc,mbt=self.init_moab()
+        mbc.write_file('dummy.h5m')
+        try:
+            self.check_h5m_file('dummy.h5m')
+        except:
+            return False
+        os.unlink('dummy.h5m')
+        return True
 
     def run(self,backend:str = 'stl', h5m_filename:str = 'dagmc.h5m', merge:bool = True, **kwargs : dict):
         """convenience function that assumes the stp_files field is set, etc and simply runs the mesher with the set options
@@ -501,8 +520,7 @@ class Assembly:
         with open(h5m_file,"rb") as f:
             magic_bytes=f.read(8)
             if(magic_bytes!=b'\x89HDF\x0d\x0a\x1a\x0a'):
-                print(f'ERROR: generated file {h5m_file} does not appear to be a hdf-file. Did you compile the moab libs with HDF enabled?')
-                exit(-1)
+                raise RunTimeError('Generated h5m-file does not appear to be a hdf-file') from error
 
     def add_entities_to_moab_core(self, mbcore:core.Core, mbtags:dict):
         vsets=[]
