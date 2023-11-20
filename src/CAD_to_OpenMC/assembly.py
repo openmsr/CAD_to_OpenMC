@@ -149,9 +149,11 @@ class Assembly:
         res = a.dummy_h5m()
         if not res:
             print(
-                'Warning: Can\'t write a hdf-file. Did you compile moab with hdf5 support?
-                The resulting meshed file will actually be a vtk-file.'
+                'Warning: Can\'t write a hdf-file. Did you compile moab with hdf5 support?'
+                'The resulting meshed file will actually be a vtk-file.'
             )
+            return False
+        return True
 
     def dummy_h5m(self):
         mbc,mbt=self.init_moab()
