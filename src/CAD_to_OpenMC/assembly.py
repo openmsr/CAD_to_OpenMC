@@ -746,18 +746,10 @@ class Assembly:
 
     def imprint_all(self):
         if(len(self.entities) > 0):
-            for e in self.entities:
-                print(e.solid.Faces())
             unmerged = [e.solid for e in self.entities]
             merged=self.imprint_solids(unmerged)
-            print(len(unmerged))
-            print(len(merged))
-            for (a,b) in zip(unmerged,merged):
-                print(a.Center(),b.Center())
-                print(a.isEqual(b))
             print('----------------')
             for e,m in zip(self.entities,merged):
-                print(e.solid.Center(),m.Center())
                 e.solid=m
 
     def _merge_solids(self,solids,fuzzy_value):
@@ -810,7 +802,6 @@ class Assembly:
             if (self.verbose>0):
                 print(f'INFO: Self_imprinting {i}')
             s0=self.imprint_solid_on_self(s0)
-            #s0.exportStl(f'test{i:02}.stl')
             merged[i]=s0
 
         for i in range(len(merged)):
