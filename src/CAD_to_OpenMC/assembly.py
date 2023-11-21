@@ -836,7 +836,6 @@ class Assembly:
 
     def imprint_solid_on_self(self,s0):
         s0.mesh(mesher_config['tolerance'])
-        faces=s0.Faces()
         bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
         for fc in s0.Faces():
             bldr.AddArgument(fc.wrapped)
@@ -880,7 +879,6 @@ class Assembly:
         if(self.verbose>0):
             print("INFO: checking surfaces and reparing normals")
 
-        healed=[]
         for e in self.entities:
             stl=e.stl
             mesh = trimesh.load_mesh(stl)
