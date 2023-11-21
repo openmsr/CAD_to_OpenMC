@@ -729,7 +729,7 @@ class Assembly:
                         i_small,d_small = i,d
                 if i_small == -1:
                     print(f'WARNING: Could not find a matching merged volume for volume {j+1}.',end=' ')
-                    print(f'This volume/entity will be skipped. Please examine the output volume carefully.')
+                    print('This volume/entity will be skipped. Please examine the output volume carefully.')
                 else:
                     # Transfer the picked solid to the list of merged solids, removing (pop) it from the list
                     # This to avoid going through the whole list more than once.
