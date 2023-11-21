@@ -46,12 +46,19 @@ The follwing code-snippet can now be run to explore the capabilities of Assembly
   a.import_stp_files()
   a.solids_to_h5m()
 ```
+as of version 0.2.6 a simpler version of this test-script may be used as we have added a small set of convenience functions. One possibility is:
+```python
+  import CAD_to_OpenMC.assembly as ab
+  a=ab.Assembly(['examples/7pin.step'])
+  a.run()
+```
+which will read the 7pin.step example file and output a file by the default name dagmc.h5m
 
 Unless anything else is specified this procedure simply uses the default CAD_to_OpenMC parameters to create meshes using the default choice of meshing backend - namely gmsh.
 E.g. for the "gmsh"-backend this means sampling curves 20 times, a minimum mesh-element size of 0.1, and a maximum mesh element size of 10.
 This procedure will in turn call OCP and gmsh to produce a mesh with merged surfaces in the output file "dagmc.h5m"
 
-The other available meshing backend is the stl-export from CadQuery (accessible by setting ```backend='stl'```) which uses the parameters ```tolerance``` and ```angular_tolerance``` to set meshing quality.
+The other available meshing backends are based on stl-export from CadQuery (accessible by setting ```backend='stl'```, or ```backend='stl2'```) which uses the parameters ```tolerance``` and ```angular_tolerance``` to set meshing quality.
 
 Parameters are changed by means of altering entries in the ```mesher_config```-dictionary defined  in the assembly module root namespace. Like:
 ```python
@@ -75,9 +82,9 @@ meanings:
     <dt>threads</dt>
         <dd>The number of threads to be used to speed up the meshing algorithms. Useful for multicore-computers.</dd>
     <dt>tolerance</dt>
-        <ddRelative mesh tolerance (cq/stl backend). Lower this to get a finer mesh.</dd>
+        <ddRelative mesh tolerance (stl/stl2 backends). Lower this to get a finer mesh.</dd>
     <dt>angular_tolerance</dt>
-        <dd>Relative angular mesh tolerance (cq/stl backend) Lower this to get a better angular resolution.</dd>
+        <dd>Relative angular mesh tolerance (stl/stl2 backends) Lower this to get a better angular resolution.</dd>
     <dt>refine</dt>
         <dd>After the initial meshing step is done, should the mesh be refined?
 
@@ -87,6 +94,18 @@ This option has more than one meaning depending on which backend you have chosen
    <dt>verbose</dt>
       <dd>Output lots of information from the mesher backends.</dd>
 </dl>
+
+## meshing backends
+At present three different backends exist for CAD_to_OpenMC: 'gmsh', 'stl', 'stl2'. It is possible to add another backend should another meshing library become available.
+
+### gmsh
+The inner workings of this backend is basically a simple call to gmsh to create a 2D-mesh of the entire geometry. This has the advantage that inhenrently boundary curves are meshed only once, meaning that in theory, they can be made to account for shared surfaces without unwanted artefacts. At its present stage however there may be problems with leakage when performing transport calculation on geometries with shared surfaces. A significant drawback todoing the entire geometry all at once, is that for larger geometries memory requirements may be prohibitive.
+
+### stl
+The stl backend takes a different approach. Instead each solid object in a step geometry is triangulated on its own. The triangulation itself is performed by calls to the underlying OpenCASCADE-library through the python layer cadquery. This procedure sidesteps the problem with large geometries, as each object in handled on its own. Objects cannot overlap however, and just as the case is for the gmsh-backend, surfaces should not be coincident.
+
+### stl2
+As its name implies the stl2 backend builds on concepts from the stl backend. However a major difference lies in the fact that objects can now have coincident surfaces. This is achieved by splitting the tringulation operation further and instead perform it in a face-by-face manner. This way we may skip the operation is one face (or surface) is a part of two solids. Furthermore, when the surfaces are assembled into a h5m datafile, the surfaces may be appropriately flagged such that transport algorithms can handle moving from one to another. If this is important for your problem, then this is the backend you should use.
 
 # Advanced example
 For a more advanced example of the use of CAD_to_OpenMC and OpenMC we may turn to the Zero Power Reactor Experiment. This was a full-scale reactor experiment that was carried out at Oak Rodge TN in the 1960's. Copenhagen Atomics provides a CAD-drawn model of this experiment, extracted from the original reports and drawings from the original experiment, in the form of a step-file. To get access simply clone the zpre github repository and run the scripts:
