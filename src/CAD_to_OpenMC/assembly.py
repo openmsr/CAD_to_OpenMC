@@ -18,7 +18,8 @@ import CAD_to_OpenMC.assemblymesher as am
 try:
     import gmsh
     nogmsh = False
-except:
+except ImportError as e:
+    print(f'Warning: import gmsh failed ({e})- material tag-list, must be supplied.')
     nogmsh = True
 
 mesher_config = {
@@ -88,10 +89,8 @@ def idx_similar(entity_list, center, bounding_box, volume):
        If no similar object is found return -1.
     """
     idx_found=[]
-    found=False
     for i,ent in enumerate(entity_list):
         if ent.similar([center.x,center.y,center.z],[bounding_box.xlen,bounding_box.ylen, bounding_box.zlen],volume, tolerance=1e1):
-            found=True
             idx_found.append(i)
     if(len(idx_found)>1):
         #we have multiple matches - pick the best one
@@ -143,13 +142,14 @@ class Assembly:
     @classmethod
     def hdf5_in_moab(cls):
         a=Assembly()
-        res = a.dummy_h5m()
-        if not res:
+        try:
+            a.dummy_h5m()
+        except RuntimeError as e:
             print(
                 'Warning: Can\'t write a hdf-file. Did you compile moab with hdf5 support?'
                 'The resulting meshed file will actually be a vtk-file.'
+                f'{e}'
             )
-            return False
         return True
 
     def dummy_h5m(self):
@@ -157,8 +157,8 @@ class Assembly:
         mbc.write_file('dummy.h5m')
         try:
             self.check_h5m_file('dummy.h5m')
-        except:
-            return False
+        except RuntimeError as e:
+            raise e
         os.unlink('dummy.h5m')
         return True
 
@@ -205,7 +205,7 @@ class Assembly:
                         e = Entity(solid=s)
                         ents.append(e)
                 i=i+len(solid)
-            except:
+            except Exception as _e:
                 e = Entity(solid=solid)
                 ents.append(e)
 
@@ -223,7 +223,7 @@ class Assembly:
                         tag=g[0]
                         if(self.verbose>1):
                             print(f"INFO: Tagging volume #{vid} label:{s} with material {tag}")
-                    except:
+                    except Exception as _e:
                         tag=default_tag
                     e.tag=tag
                     tags_set=tags_set+1
@@ -253,7 +253,7 @@ class Assembly:
                             tags_set=tags_set+1
                         if(self.verbose>1):
                             print(f"INFO: Tagging volume #{vid} label:{s} with material {tag}")
-                    except:
+                    except Exception as _e:
                         tag=default_tag
                     e.tag=tag
                 gmsh.finalize()
@@ -299,7 +299,7 @@ class Assembly:
         try:
             for p in scaled_part:
                 solid.extend(p.Solids())
-        except:
+        except Exception as _e:
             solid.extend(scaled_part.Solids())
 
         return solid
@@ -310,7 +310,7 @@ class Assembly:
             print(f'INFO: {str(filename)} imported - scaling')
         try:
             transformed_part = [p.scale(scale_factor) for p in part]
-        except:
+        except Exception as _e:
             transformed_part = part.scale(scale_factor)
 
         # translation
@@ -325,7 +325,7 @@ class Assembly:
                         print(f"INFO: Applying translation: {translations[v[0]]} to vol(s) {v[1]}")
                     for vol in v[1]:
                         transformed_part[vol-1] = transformed_part[vol-1].translate(translations[v[0]])
-            except:
+            except Exception as _e:
                 transformed_part = transformed_part.translate(translate[1])
 
         # rotation
@@ -339,7 +339,7 @@ class Assembly:
                         print(f"INFO: Applying rotation: {rotate[v[0]+3]} degrees about ax {rotate[v[0]+1]},{rotate[v[0]+2]} to vol(s) {v[1]}\n")
                     for vol in v[1]:
                         transformed_part[vol-1] = transformed_part[vol-1].rotate(rotate[4*v[0]+1],rotate[4*v[0]+2],rotate[4*v[0]+3])
-            except:
+            except Exception as _e:
                 transformed_part = transformed_part.rotate(rotate[1],rotate[2],rotate[3])
 
         return transformed_part
@@ -519,7 +519,7 @@ class Assembly:
         with open(h5m_file,"rb") as f:
             magic_bytes=f.read(8)
             if(magic_bytes!=b'\x89HDF\x0d\x0a\x1a\x0a'):
-                raise RunTimeError('Generated h5m-file does not appear to be a hdf-file') from error
+                raise RuntimeError('Generated h5m-file does not appear to be a hdf-file') from error
 
     def add_entities_to_moab_core(self, mbcore:core.Core, mbtags:dict):
         vsets=[]
@@ -766,7 +766,7 @@ class Assembly:
             else:
                 try:
                     bldr.AddArgument(shape.val().wrapped)
-                except:
+                except Exception as _e:
                     bldr.AddArgument(shape.wrapped)
             for j,shape2 in enumerate(solids[i:]):
                 if isinstance(shape2, cq.occ_impl.shapes.Compound):
@@ -774,7 +774,7 @@ class Assembly:
                 else:
                     try:
                         bldr.AddArgument(shape2.val().wrapped)
-                    except:
+                    except Exception as _e:
                         bldr.AddArgument(shape2.wrapped)
                 bldr.Perform()
 
@@ -830,7 +830,7 @@ class Assembly:
                     for k,idx in enumerate([i,j]):
                         try:
                             merged[idx]=s0_i.Solids()[k]
-                        except:
+                        except Exception as _e:
                             merged[idx]=merged[idx]
         return merged
 
@@ -862,14 +862,14 @@ class Assembly:
         else:
             try:
                 bldr.AddArgument(solid0.val().wrapped)
-            except:
+            except Exception as _e:
                 bldr.AddArgument(solid0.wrapped)
         if isinstance(solid1, cq.occ_impl.shapes.Compound):
             bldr.AddArgument(solid1.wrapped)
         else:
             try:
                 bldr.AddArgument(solid1.val().wrapped)
-            except:
+            except Exception as _e:
                 bldr.AddArgument(solid1.wrapped)
         bldr.Perform()
         bldr.Images()
