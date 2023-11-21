@@ -519,7 +519,7 @@ class Assembly:
         with open(h5m_file,"rb") as f:
             magic_bytes=f.read(8)
             if(magic_bytes!=b'\x89HDF\x0d\x0a\x1a\x0a'):
-                raise RuntimeError('Generated h5m-file does not appear to be a hdf-file') from error
+                raise RuntimeError('Generated h5m-file does not appear to be a hdf-file')
 
     def add_entities_to_moab_core(self, mbcore:core.Core, mbtags:dict):
         vsets=[]
