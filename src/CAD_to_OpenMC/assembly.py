@@ -1,16 +1,13 @@
 import cadquery as cq
 import numpy as np
 import OCP
-from collections.abc import Iterable
 import pathlib as pl
-from typing import List, Optional, Tuple, Union
+from typing import List, Optional, Union
 
 from itertools import zip_longest
 
-import meshio
 import trimesh
 
-import tempfile
 import re
 import os
 import math
