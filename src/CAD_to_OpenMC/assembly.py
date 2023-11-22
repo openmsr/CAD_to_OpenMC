@@ -742,24 +742,58 @@ class Assembly:
             self.entities = tmp_ents
 
     def imprint_all(self):
-        if(len(self.entities) > 0):
+        if len(self.entities) > 0:
             unmerged = [e.solid for e in self.entities]
-            merged=self.imprint_solids(unmerged)
-            print('----------------')
-            for e,m in zip(self.entities,merged):
-                e.solid=m
+            merged = self.imprint_solids(unmerged)
+            print("----------------")
+            for e, m in zip(self.entities, merged):
+                e.solid = m
 
-    def _merge_solids(self,solids,fuzzy_value):
-        """merge a set of cq-solids
-           returns as cq-compound object
+    def _merge_solids_full(self, solids, fuzzy_value=1e-6):
+        """
+        adds all solids on the solids-vector to the algorithm and
+        merges them as arguments. This is stabler, but more resource
+        intesive
         """
         bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
         bldr.SetFuzzyValue(fuzzy_value)
-        #loop trough all objects in geometry and split and merge them accordingly
-        #shapes should be a compund cq object or a list thereof
-        for i,shape in enumerate(solids):
-            if (self.verbose):
-                print(f'splitting obj {i} of {len(solids)}')
+        for shape in solids:
+            if isinstance(shape, cq.occ_impl.shapes.Compound):
+                bldr.AddArgument(shape.wrapped)
+            else:
+                try:
+                    bldr.AddArgument(shape.val().wrapped)
+                except Exception as _e:
+                    bldr.AddArgument(shape.wrapped)
+
+        bldr.SetParallelMode_s(True)
+        bldr.SetNonDestructive(False)
+
+        if self.verbose > 1:
+            print("INFO: Commence perform step of merge")
+        bldr.Perform()
+
+        if self.verbose > 1:
+            print("INFO: Commence image step of merge")
+        bldr.Images()
+
+        if self.verbose > 1:
+            print("INFO: Generate compound shape")
+        merged = cq.Compound(bldr.Shape())
+
+        return merged
+
+    def _merge_solids(self, solids, fuzzy_value):
+        """merge a set of cq-solids
+        returns as cq-compound object
+        """
+        bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
+        bldr.SetFuzzyValue(fuzzy_value)
+        # loop through all objects in geometry and split and merge them accordingly
+        # shapes should be a compund cq object or a list thereof
+        for i, shape in enumerate(solids):
+            if self.verbose:
+                print(f"splitting obj {i} of {len(solids)}")
             # checks if solid is a compound as .val() is not needed for compunds
             if isinstance(shape, cq.occ_impl.shapes.Compound):
                 bldr.AddArgument(shape.wrapped)
@@ -768,7 +802,11 @@ class Assembly:
                     bldr.AddArgument(shape.val().wrapped)
                 except Exception as _e:
                     bldr.AddArgument(shape.wrapped)
-            for j,shape2 in enumerate(solids[i:]):
+            for j, shape2 in enumerate(solids):
+                if i == j:
+                    # don't split an object with itself
+                    continue
+                print(f"splitting object {i} with object {j}")
                 if isinstance(shape2, cq.occ_impl.shapes.Compound):
                     bldr.AddArgument(shape2.wrapped)
                 else:
