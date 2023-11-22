@@ -558,22 +558,22 @@ class Assembly:
                     #this face has already been added so only add a parent child relation here
                     fset=faces_added[f]
                     mbcore.add_parent_child(vsets[i],fset)
-                #make this a group, this could ideally be a set of volumes with the same material
-                gset = mbcore.create_meshset()
-                gid+=1
-                glob_id+=1
-                mbcore.tag_set_data(mbtags["category"], gset, "Group")
-                # reflective is a special case that should not have mat: in front
-                if not e.tag == "reflective":
-                    dagmc_material_tag = f"mat:{e.tag}"
-                else:
-                    dagmc_material_tag = e.tag
+            #make this a group, this could ideally be a set of volumes with the same material
+            gset = mbcore.create_meshset()
+            gid+=1
+            glob_id+=1
+            mbcore.tag_set_data(mbtags["category"], gset, "Group")
+            # reflective is a special case that should not have mat: in front
+            if not e.tag == "reflective":
+                dagmc_material_tag = f"mat:{e.tag}"
+            else:
+                dagmc_material_tag = e.tag
 
-                mbcore.tag_set_data(mbtags["name"], gset, dagmc_material_tag)
-                mbcore.tag_set_data(mbtags["geom_dimension"], gset, 4)
+            mbcore.tag_set_data(mbtags["name"], gset, dagmc_material_tag)
+            mbcore.tag_set_data(mbtags["geom_dimension"], gset, 4)
 
-                # add the volume to this group set
-                mbcore.add_entity(gset, vsets[i])
+            # add the volume to this group set
+            mbcore.add_entity(gset, vsets[i])
 
         #finally set the faceting tolerance tag
         mbcore.tag_set_data(mbtags["faceting_tol"],mbcore.get_root_set(),mesher_config['tolerance'])
