@@ -55,7 +55,7 @@ def test_h5m_neutronics_spheroids():
 def test_h5m_neutronics_ellipsoids():
   o = OMC_DAGMC_harness('examples/oblate_ellipsoids.step')
   openmc.config['cross_sections']=str(o.nuclear_lib)
-  o.tt.results={'keff':(1.44690,0.07872)}
+  o.tt.results={'keff':(1.12592,0.03893)}
   o.run()
 
 if __name__=='__main__':

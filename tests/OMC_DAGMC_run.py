@@ -67,7 +67,7 @@ class DAGMC_template():
 
   def run(self):
     self.export_to_xml()
-    openmc.run(output=False)
+    openmc.run(output=True)
 
   def check_results(self):
     g=glob.glob('statepoint*')
