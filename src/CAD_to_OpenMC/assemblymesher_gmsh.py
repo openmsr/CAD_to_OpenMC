@@ -47,7 +47,7 @@ class MesherGMSH(assemblymesher):
       self._refine=abs(int(ref))
 
   def __del__(self):
-    if gmsh.isInitilialized():
+    if gmsh.isInitialized():
         gmsh.finalize()
 
   def _gmsh_init(self):
