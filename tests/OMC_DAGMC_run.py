@@ -2,9 +2,11 @@ import openmc
 import openmc.lib
 import glob
 import os
+import pytest
 
 class DAGMC_template():
   def __init__(self,dagmc=None):
+    self.results=None
     self.dagmc=dagmc
     self.materials=None
     self.bld_sts()
@@ -65,7 +67,19 @@ class DAGMC_template():
 
   def run(self):
     self.export_to_xml()
-    openmc.run()
+    openmc.run(output=True)
+
+  def check_results(self):
+    g=glob.glob('statepoint*')
+    assert len(g) == 1, "0 or multiple statepoints."
+    assert g[0].endswith('.h5'), "statepoint file is not h5"
+    if self.results is None:
+        return
+    with openmc.StatePoint(g[0]) as sp:
+      if sp.run_mode != 'eigenvalue':
+        return
+      for k,v in self.results.items():
+        assert sp.keff.n == pytest.approx(v[0],abs=v[1])
 
   def cleanup(self):
     g1=glob.glob('*.xml')
