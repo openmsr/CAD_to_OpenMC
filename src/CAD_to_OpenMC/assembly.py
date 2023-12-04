@@ -865,7 +865,7 @@ class Assembly:
 
     def merge_all(self):
         # merging a single object does not really make sense
-        if len(self.entities) > 1:
+        if len(self.entities) > 0:
             # extract cq solids backend algorithm
             unmerged = [e.solid for e in self.entities]
 
