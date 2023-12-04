@@ -1,6 +1,7 @@
 import cadquery as cq
 import subprocess as sp
 import pathlib as pl
+import OCP
 from .assemblymesher_base import assemblymesher
 
 single_thread_override = False
@@ -88,6 +89,9 @@ class MesherCQSTL2(assemblymesher):
             face_hash_table = manager.dict()
         k = 0
         for i, e in enumerate(self.cq_mesher_entities):
+            if self.verbosity_level:
+                print(f"INFO: triangulating solid {i}")
+            e.solid=self._triangulate_solid(e.solid)
             mpargs.extend(
                 [
                     (k + j, j, i, self.refine, hash(f), face_hash_table)
@@ -116,6 +120,15 @@ class MesherCQSTL2(assemblymesher):
             stls.append(face_stls)
         return stls
 
+    def _triangulate_solid(self, solid, tol: float = 1e-3, atol: float = 1e-1):
+        """ create a mesh /by means of the underlying OCCT IncrementalMesh
+            on a single solid. This will later be split into surfaces.
+            This should be done since othgerwise a single solid can get leaky
+            When surfaces do not connect
+        """
+        solid.mesh(tol,atol)
+        return solid
+
     @classmethod
     def _mesh_single_nothread(cls, global_fid, fid, vid, refine, hh, faceHash):
         f = cls.cq_mesher_entities[vid].solid.Faces()[fid]
@@ -128,12 +141,9 @@ class MesherCQSTL2(assemblymesher):
         else:
             facefilename = f"vol_{vid+1}_face{global_fid:04}.stl"
             faceHash[hh] = [facefilename, manager.list([vid])]
-            f.exportStl(
-                facefilename,
-                tolerance=cls.cq_mesher_tolerance,
-                angularTolerance=cls.cq_mesher_ang_tolerance,
-                ascii=True,
-            )
+            wr=OCP.StlAPI.StlAPI_Writer()
+            wr.ASCIIMode=True
+            wr.Write(f.wrapped,facefilename)
             if cls.verbosity_level > 1:
                 print(f"INFO: cq export to file {facefilename}")
             if refine:
@@ -154,12 +164,9 @@ class MesherCQSTL2(assemblymesher):
             facefilename = f"vol_{vid+1}_face{global_fid:04}.stl"
             with lock:
                 faceHash[hh] = [facefilename, manager.list([vid])]
-            f.exportStl(
-                facefilename,
-                tolerance=cls.cq_mesher_tolerance,
-                angularTolerance=cls.cq_mesher_ang_tolerance,
-                ascii=True,
-            )
+            wr=OCP.StlAPI.StlAPI_Writer()
+            wr.ASCIIMode=True
+            wr.Write(f.wrapped,facefilename)
             if cls.verbosity_level > 1:
                 print(f"INFO: cq export to file {facefilename}")
             if refine:
