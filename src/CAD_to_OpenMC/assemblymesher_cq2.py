@@ -15,7 +15,6 @@ except:
 from .stl_utils import *
 from . import meshutils
 
-
 class MesherCQSTL2(assemblymesher):
     # these need to be class attributes to avoid pickling when spawning a multiprocessing-pool
     cq_mesher_entities = None

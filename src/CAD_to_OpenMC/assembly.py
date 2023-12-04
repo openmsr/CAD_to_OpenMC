@@ -933,7 +933,6 @@ class Assembly:
         if len(self.entities) > 0:
             unmerged = [e.solid for e in self.entities]
             merged = self.imprint_solids(unmerged)
-            print("----------------")
             for e, m in zip(self.entities, merged):
                 e.solid = m
 
@@ -943,8 +942,7 @@ class Assembly:
         merges them as arguments. This is stabler, but more resource
         intesive
         """
-        bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
-        bldr.SetFuzzyValue(fuzzy_value)
+        bldr = OCP.BOPAlgo.BOPAlgo_MakeConnected()
         for shape in solids:
             if isinstance(shape, cq.occ_impl.shapes.Compound):
                 bldr.AddArgument(shape.wrapped)
@@ -954,16 +952,8 @@ class Assembly:
                 except Exception as _e:
                     bldr.AddArgument(shape.wrapped)
 
-        bldr.SetParallelMode_s(True)
-        bldr.SetNonDestructive(False)
-
-        if self.verbose > 1:
-            print("INFO: Commence perform step of merge")
+        bldr.SetRunParallel(False)
         bldr.Perform()
-
-        if self.verbose > 1:
-            print("INFO: Commence image step of merge")
-        bldr.Images()
 
         if self.verbose > 1:
             print("INFO: Generate compound shape")
@@ -1037,7 +1027,6 @@ class Assembly:
                     # imprinting solid on itself - meaning we imprint its faces on each other.
                     s0 = self.imprint_solid_on_self(s0)
                     s0.mesh(mesher_config["tolerance"])
-                    # s0.exportStl('test.stl')
                     merged[i] = s0
                 else:
                     s1 = merged[j]
@@ -1065,13 +1054,12 @@ class Assembly:
         return merged
 
     def imprint_solid_on_self(self, s0):
-        s0.mesh(mesher_config["tolerance"])
-        bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
+        bldr = OCP.BOPAlgo.BOPAlgo_MakeConnected()
         for fc in s0.Faces():
             bldr.AddArgument(fc.wrapped)
+        bldr.SetUseOBB(True)
         bldr.Perform()
-        bldr.Images()
-        s1 = cq.Solid(bldr.Shape())
+        s1 = cq.Shape(bldr.Shape())
         return s1
 
     def overlap_bounding_boxes(self, solid1, solid2):
@@ -1092,7 +1080,7 @@ class Assembly:
         if not self.overlap_bounding_boxes(solid0, solid1):
             return None
 
-        bldr = OCP.BOPAlgo.BOPAlgo_Splitter()
+        bldr = OCP.BOPAlgo.BOPAlgo_MakeConnected()
         if isinstance(solid0, cq.occ_impl.shapes.Compound):
             bldr.AddArgument(solid0.wrapped)
         else:
@@ -1107,9 +1095,8 @@ class Assembly:
                 bldr.AddArgument(solid1.val().wrapped)
             except Exception as _e:
                 bldr.AddArgument(solid1.wrapped)
+        bldr.SetUseOBB(True)
         bldr.Perform()
-        bldr.Images()
-        # breakpoint()
         return cq.Compound(bldr.Shape())
 
     def heal_stls(self, stls):
