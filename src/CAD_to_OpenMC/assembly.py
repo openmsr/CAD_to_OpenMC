@@ -229,6 +229,7 @@ class Assembly:
         backend: str = "stl",
         h5m_filename: str = "dagmc.h5m",
         merge: bool = True,
+        imprint: bool = False,
         **kwargs: dict,
     ):
         """convenience function that assumes the stp_files field is set, etc and simply runs the mesher with the set options"""
@@ -237,7 +238,9 @@ class Assembly:
         )
         if merge:
             self.merge_all()
-            self.solids_to_h5m(backend=backend, h5m_filename=h5m_filename)
+        elif imprint:
+            self.imprint_all()
+        self.solids_to_h5m(backend=backend, h5m_filename=h5m_filename)
 
     def import_stp_files(
         self,
