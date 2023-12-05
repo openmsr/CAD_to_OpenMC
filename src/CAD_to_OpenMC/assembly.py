@@ -720,9 +720,12 @@ class Assembly:
             mbcore.add_entity(gset, vsets[i])
 
         # finally set the faceting tolerance tag
+        # this needs to be attached to some entity so create a dummy vertex
+        vh=mbcore.create_vertices(np.array([1,1,1],dtype='float64'))
         mbcore.tag_set_data(
-            mbtags["faceting_tol"], mbcore.get_root_set(), mesher_config["tolerance"]
+            mbtags["faceting_tol"], vh, np.array((mesher_config["tolerance"],))
         )
+        data=mbcore.tag_get_data(mbtags["faceting_tol"], vh)
 
         return mbcore
 
@@ -805,9 +808,12 @@ class Assembly:
         moab_core.add_entity(group_set, volume_set)
 
         # finally set the faceting tolerance tag
-        moab_core.tag_set_data(
-            tags["faceting_tol"], moab_core.get_root_set(), mesher_config["tolerance"]
+        # this needs to be attached to some entity so create a dummy vertex
+        vh=mbcore.create_vertices(np.array([1,1,1],dtype='float64'))
+        mbcore.tag_set_data(
+            mbtags["faceting_tol"], vh, np.array((mesher_config["tolerance"],))
         )
+        data=mbcore.tag_get_data(mbtags["faceting_tol"], vh)
 
         return moab_core
 
@@ -958,7 +964,6 @@ class Assembly:
         if self.verbose > 1:
             print("INFO: Generate compound shape")
         merged = cq.Compound(bldr.Shape())
-
         return merged
 
     def _merge_solids(self, solids, fuzzy_value):
