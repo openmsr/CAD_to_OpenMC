@@ -739,9 +739,9 @@ class Assembly:
             mbcore.tag_set_data(mbtags["geom_dimension"], gset, 4)
         return mbcore
 
-    def add_stl_to_moab_core(
+    def add_stl_to_mbcore(
         self,
-        moab_core: core.Core,
+        mbcore: core.Core,
         surface_id: int,
         volume_id: int,
         material_name: str,
@@ -752,7 +752,7 @@ class Assembly:
         Appends a set of surfaces (comprising a volume) from an stl-file to a moab.Core object and returns the updated object
 
         Args:
-            moab_core: A moab core object
+            mbcore: A moab core object
             surface_id: the id number to apply to the surface
             volume_id: the id numbers to apply to the volumes
             material_name: the material tag name to add. the value provided will
@@ -765,34 +765,34 @@ class Assembly:
             An updated pymoab.core.Core() instance
         """
 
-        surface_set = moab_core.create_meshset()
-        volume_set = moab_core.create_meshset()
+        surface_set = mbcore.create_meshset()
+        volume_set = mbcore.create_meshset()
 
         # recent versions of MOAB handle this automatically
         # but best to go ahead and do it manually
-        moab_core.tag_set_data(tags["global_id"], volume_set, volume_id)
-        moab_core.tag_set_data(tags["global_id"], surface_set, surface_id)
+        mbcore.tag_set_data(tags["global_id"], volume_set, volume_id)
+        mbcore.tag_set_data(tags["global_id"], surface_set, surface_id)
 
         # set geom IDs
-        moab_core.tag_set_data(tags["geom_dimension"], volume_set, 3)
-        moab_core.tag_set_data(tags["geom_dimension"], surface_set, 2)
+        mbcore.tag_set_data(tags["geom_dimension"], volume_set, 3)
+        mbcore.tag_set_data(tags["geom_dimension"], surface_set, 2)
         # set category tag values
-        moab_core.tag_set_data(tags["category"], volume_set, "Volume")
-        moab_core.tag_set_data(tags["category"], surface_set, "Surface")
+        mbcore.tag_set_data(tags["category"], volume_set, "Volume")
+        mbcore.tag_set_data(tags["category"], surface_set, "Surface")
 
         # establish parent-child relationship
-        moab_core.add_parent_child(volume_set, surface_set)
+        mbcore.add_parent_child(volume_set, surface_set)
 
         # Set surface sense
         # This should be fixed - we should know which volume comes next, instead of just setting it to be 0
         sense_data = [volume_set, np.uint64(0)]
-        moab_core.tag_set_data(tags["surf_sense"], surface_set, sense_data)
+        mbcore.tag_set_data(tags["surf_sense"], surface_set, sense_data)
 
         # load the stl triangles/vertices into the surface set
-        moab_core.load_file(stl_filename, surface_set)
+        mbcore.load_file(stl_filename, surface_set)
 
-        group_set = moab_core.create_meshset()
-        moab_core.tag_set_data(tags["category"], group_set, "Group")
+        group_set = mbcore.create_meshset()
+        mbcore.tag_set_data(tags["category"], group_set, "Group")
 
         # reflective is a special case that should not have mat: in front
         if not material_name == "reflective":
@@ -800,12 +800,12 @@ class Assembly:
         else:
             dag_material_tag = material_name
 
-        moab_core.tag_set_data(tags["name"], group_set, dag_material_tag)
+        mbcore.tag_set_data(tags["name"], group_set, dag_material_tag)
 
-        moab_core.tag_set_data(tags["geom_dimension"], group_set, 4)
+        mbcore.tag_set_data(tags["geom_dimension"], group_set, 4)
 
         # add the volume to this group set
-        moab_core.add_entity(group_set, volume_set)
+        mbcore.add_entity(group_set, volume_set)
 
         # finally set the faceting tolerance tag
         # this needs to be attached to some entity so create a dummy vertex
@@ -815,7 +815,7 @@ class Assembly:
         )
         data=mbcore.tag_get_data(mbtags["faceting_tol"], vh)
 
-        return moab_core
+        return mb_core
 
     def init_moab(self):
         """Creates a MOAB Core instance which can be built up by adding sets of
