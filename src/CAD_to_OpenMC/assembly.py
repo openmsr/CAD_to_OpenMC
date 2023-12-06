@@ -815,7 +815,7 @@ class Assembly:
         )
         data=mbcore.tag_get_data(mbtags["faceting_tol"], vh)
 
-        return mb_core
+        return mbcore
 
     def init_moab(self):
         """Creates a MOAB Core instance which can be built up by adding sets of
