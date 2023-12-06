@@ -745,7 +745,7 @@ class Assembly:
         surface_id: int,
         volume_id: int,
         material_name: str,
-        tags: dict,
+        mbtags: dict,
         stl_filename: str,
     ) -> core.Core:
         """
@@ -758,7 +758,7 @@ class Assembly:
             material_name: the material tag name to add. the value provided will
                 be prepended with "mat:" unless it is "reflective" which is
                 a special case and therefore will remain as is.
-            tags: A dictionary of the MOAB tags
+            mbtags: A dictionary of the MOAB tags
             stl_filename: the filename of the stl file to load into the moab core
 
         Returns:
@@ -770,15 +770,15 @@ class Assembly:
 
         # recent versions of MOAB handle this automatically
         # but best to go ahead and do it manually
-        mbcore.tag_set_data(tags["global_id"], volume_set, volume_id)
-        mbcore.tag_set_data(tags["global_id"], surface_set, surface_id)
+        mbcore.tag_set_data(mbtags["global_id"], volume_set, volume_id)
+        mbcore.tag_set_data(mbtags["global_id"], surface_set, surface_id)
 
         # set geom IDs
-        mbcore.tag_set_data(tags["geom_dimension"], volume_set, 3)
-        mbcore.tag_set_data(tags["geom_dimension"], surface_set, 2)
+        mbcore.tag_set_data(mbtags["geom_dimension"], volume_set, 3)
+        mbcore.tag_set_data(mbtags["geom_dimension"], surface_set, 2)
         # set category tag values
-        mbcore.tag_set_data(tags["category"], volume_set, "Volume")
-        mbcore.tag_set_data(tags["category"], surface_set, "Surface")
+        mbcore.tag_set_data(mbtags["category"], volume_set, "Volume")
+        mbcore.tag_set_data(mbtags["category"], surface_set, "Surface")
 
         # establish parent-child relationship
         mbcore.add_parent_child(volume_set, surface_set)
@@ -786,13 +786,13 @@ class Assembly:
         # Set surface sense
         # This should be fixed - we should know which volume comes next, instead of just setting it to be 0
         sense_data = [volume_set, np.uint64(0)]
-        mbcore.tag_set_data(tags["surf_sense"], surface_set, sense_data)
+        mbcore.tag_set_data(mbtags["surf_sense"], surface_set, sense_data)
 
         # load the stl triangles/vertices into the surface set
         mbcore.load_file(stl_filename, surface_set)
 
         group_set = mbcore.create_meshset()
-        mbcore.tag_set_data(tags["category"], group_set, "Group")
+        mbcore.tag_set_data(mbtags["category"], group_set, "Group")
 
         # reflective is a special case that should not have mat: in front
         if not material_name == "reflective":
@@ -800,9 +800,9 @@ class Assembly:
         else:
             dag_material_tag = material_name
 
-        mbcore.tag_set_data(tags["name"], group_set, dag_material_tag)
+        mbcore.tag_set_data(mbtags["name"], group_set, dag_material_tag)
 
-        mbcore.tag_set_data(tags["geom_dimension"], group_set, 4)
+        mbcore.tag_set_data(mbtags["geom_dimension"], group_set, 4)
 
         # add the volume to this group set
         mbcore.add_entity(group_set, volume_set)
