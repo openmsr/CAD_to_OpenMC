@@ -46,7 +46,7 @@ jobs:
         environment-name: cad_to_openmc_Testing
         create-args: >-
           python=${{matrix.pyv}}
-          openmc
+          openmc=0.13.3=dagmc_mpi_openmpi*
         init-shell: bash
     - name: Test OpenMC
       run: openmc --version
