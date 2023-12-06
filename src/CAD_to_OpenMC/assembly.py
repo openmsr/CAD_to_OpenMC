@@ -739,7 +739,7 @@ class Assembly:
             mbcore.tag_set_data(mbtags["geom_dimension"], gset, 4)
         return mbcore
 
-    def add_stl_to_mbcore(
+    def add_stl_to_moab_core(
         self,
         mbcore: core.Core,
         surface_id: int,
