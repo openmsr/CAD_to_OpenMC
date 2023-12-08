@@ -26,6 +26,7 @@ jobs:
 
     runs-on: ubuntu-22.04
     strategy:
+      fail-fast: false
       matrix:
         pyv: ["3.9","3.10"]
 
