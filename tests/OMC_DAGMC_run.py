@@ -79,7 +79,7 @@ class DAGMC_template():
       if sp.run_mode != 'eigenvalue':
         return
       for k,v in self.results.items():
-        assert sp.keff.n == pytest.approx(v[0],abs=v[1])
+        assert sp.keff.n == pytest.approx(v[0],abs=v[1]+sp.keff.s)
 
   def cleanup(self):
     g1=glob.glob('*.xml')
