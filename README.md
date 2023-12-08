@@ -107,6 +107,17 @@ The stl backend takes a different approach. Instead each solid object in a step 
 ### stl2
 As its name implies the stl2 backend builds on concepts from the stl backend. However a major difference lies in the fact that objects can now have coincident surfaces. This is achieved by splitting the tringulation operation further and instead perform it in a face-by-face manner. This way we may skip the operation is one face (or surface) is a part of two solids. Furthermore, when the surfaces are assembled into a h5m datafile, the surfaces may be appropriately flagged such that transport algorithms can handle moving from one to another. If this is important for your problem, then this is the backend you should use.
 
+## implicit complement
+CAD_to_OpenMC supports the notion of an implicit complement material, i.e. a material that fills all the space within the geometry which has _not_ been claimed by any part in the CAD-assembly. For instance if one wanted to submerge a pincell in in water it is possible to only define the pincell as part and set the implicit complement material to water. To do so we would use code like:
+```python
+import CAD_to_OpenMC.assembly as ab
+a=ab.Assembly()
+a.implicit_complement='water'
+...
+```
+Of course, this means that the subsequent OpenMC transport simulation needs to define a material (with the wanted properties) named 'water'.
+
+
 # Advanced example
 For a more advanced example of the use of CAD_to_OpenMC and OpenMC we may turn to the Zero Power Reactor Experiment. This was a full-scale reactor experiment that was carried out at Oak Rodge TN in the 1960's. Copenhagen Atomics provides a CAD-drawn model of this experiment, extracted from the original reports and drawings from the original experiment, in the form of a step-file. To get access simply clone the zpre github repository and run the scripts:
 ```bash
