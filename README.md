@@ -117,6 +117,13 @@ a.implicit_complement='water'
 ```
 Of course, this means that the subsequent OpenMC transport simulation needs to define a material (with the wanted properties) named 'water'.
 
+## Intermediate datafiles
+In the process of generating an .h5m-geometry file CAD_to_OpenMC also generates a sometimes large amount of intermediary datafiles, these may be retained for debugging purposes (default), but by setting a flag CAD_to_OpenMC can be directed to delete them automatically once they're no longer needed.
+```python
+import CAD_to_OpenMC.assembly as ab
+a=ab.Assembly()
+a.delete_intermediate=True
+```
 
 # Advanced example
 For a more advanced example of the use of CAD_to_OpenMC and OpenMC we may turn to the Zero Power Reactor Experiment. This was a full-scale reactor experiment that was carried out at Oak Rodge TN in the 1960's. Copenhagen Atomics provides a CAD-drawn model of this experiment, extracted from the original reports and drawings from the original experiment, in the form of a step-file. To get access simply clone the zpre github repository and run the scripts:

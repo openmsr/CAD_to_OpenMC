@@ -196,7 +196,7 @@ class Assembly:
         self.entities = []
         self.verbose = verbose
         self.default_tag = default_tag
-        self.remove_intermediate_files = False
+        self.delete_intermediate = False
         self.tags = None
         self.sequential_tags = None
         self.implicit_complement = implicit_complement
@@ -629,7 +629,7 @@ class Assembly:
             )
             vid += 1
             sid += 1
-            if self.remove_intermediate_files:
+            if self.delete_intermediate:
                 p = pl.Path(e.stl)
                 p.unlink()
 
@@ -1128,7 +1128,7 @@ class Assembly:
             )  # reqired as gmsh stl export from brep can get the inside outside mixed up
             new_filename = stl[:-4] + "_with_corrected_face_normals.stl"
             mesh.export(new_filename)
-            if self.remove_intermediate_files:
+            if self.delete_intermediate:
                 p = pl.Path(e.stl)
                 p.unlink()
             e.stl = new_filename
@@ -1143,7 +1143,7 @@ class Assembly:
 
     def remove_intermediate(self, force=False):
         # remove all the generated stl intermediate files
-        if self.remove_intermediate_files or force:
+        if self.delete_intermediate or force:
             for e in self.entities:
                 for s in e.stls:
                     p = pl.Path(s[0])
