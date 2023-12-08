@@ -598,6 +598,8 @@ class Assembly:
 
         self.check_h5m_file(h5m_file)
         if vtk:
+            if self.verbose > 0:
+                print(f'INFO: writing geometry to vtk: ' + str(h5m_p.with_suffix(".vtk")) )
             mbcore.write_file(str(h5m_p.with_suffix(".vtk")))
 
         self.remove_intermediate()
