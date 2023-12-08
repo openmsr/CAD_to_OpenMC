@@ -582,11 +582,6 @@ class Assembly:
         mbcore, mbtags = self.init_moab()
         mbcore = self.add_entities_to_moab_core(mbcore, mbtags)
 
-        if self.implicit_complement:
-            mbcore = self.set_implicit_complement(
-                mbcore, mbtags, self.implicit_complement
-            )
-
         all_sets = mbcore.get_entities_by_handle(0)
         file_set = mbcore.create_meshset()
 
@@ -619,19 +614,25 @@ class Assembly:
         moab_core, moab_tags = self.init_moab()
 
         sid, vid = (1, 1)
+        is_last=False
         for e in self.entities:
             if self.verbose > 1:
                 print(
                     f'INFO: add stl-file "{e.stl}" with tag "{e.tag}" to MOAB structure'
                 )
+            if (e == self.entities[-1]):
+                is_last=True
+
             moab_core = self.add_stl_to_moab_core(
-                moab_core, sid, vid, e.tag, moab_tags, e.stl
+                moab_core, sid, vid, e.tag, moab_tags, e.stl,
+                last=is_last
             )
             vid += 1
             sid += 1
             if self.remove_intermediate_files:
                 p = pl.Path(e.stl)
                 p.unlink()
+
         all_sets = moab_core.get_entities_by_handle(0)
 
         file_set = moab_core.create_meshset()
@@ -721,24 +722,21 @@ class Assembly:
             # add the volume to this group set
             mbcore.add_entity(gset, vsets[i])
 
+        # if wanted add an implicit complement material
+        if ( self.implicit_complement is not None ):
+            gset = mbcore.create_meshset()
+            mbcore.tag_set_data(mbtags["category"], gset, "Group")
+            mbcore.tag_set_data(mbtags["name"], gset, f"mat:{self.implicit_complement}_comp")
+            mbcore.tag_set_data(mbtags["geom_dimension"], gset, 4)
+            mbcore.add_entity(gset, vsets[-1])
+
         # finally set the faceting tolerance tag
         # this needs to be attached to some entity so create a dummy vertex
         vh=mbcore.create_vertices(np.array([1,1,1],dtype='float64'))
         mbcore.tag_set_data(
             mbtags["faceting_tol"], vh, np.array((mesher_config["tolerance"],))
         )
-        data=mbcore.tag_get_data(mbtags["faceting_tol"], vh)
 
-        return mbcore
-
-    def set_implicit_complement(
-        self, mbcore: core.Core, mbtags: dict, dagmc_material_tag: str = None
-    ):
-        if dagmc_material_tag:
-            gset = mbcore.create_meshset()
-            mbcore.tag_set_data(mbtags["category"], gset, "Group")
-            mbcore.tag_set_data(mbtags["name"], gset, f"mat:{dagmc_material_tag}_comp")
-            mbcore.tag_set_data(mbtags["geom_dimension"], gset, 4)
         return mbcore
 
     def add_stl_to_moab_core(
@@ -749,6 +747,7 @@ class Assembly:
         material_name: str,
         mbtags: dict,
         stl_filename: str,
+        last: bool = False
     ) -> core.Core:
         """
         Appends a set of surfaces (comprising a volume) from an stl-file to a moab.Core object and returns the updated object
@@ -809,13 +808,22 @@ class Assembly:
         # add the volume to this group set
         mbcore.add_entity(group_set, volume_set)
 
-        # finally set the faceting tolerance tag
-        # this needs to be attached to some entity so create a dummy vertex
-        vh=mbcore.create_vertices(np.array([1,1,1],dtype='float64'))
-        mbcore.tag_set_data(
-            mbtags["faceting_tol"], vh, np.array((mesher_config["tolerance"],))
-        )
-        data=mbcore.tag_get_data(mbtags["faceting_tol"], vh)
+        # if this is the last element also add some extra information
+        if ( last ):
+            # if wanted add an implicit complement material
+            if ( self.implicit_complement is not None ):
+                gset = mbcore.create_meshset()
+                mbcore.tag_set_data(mbtags["category"], gset, "Group")
+                mbcore.tag_set_data(mbtags["name"], gset, f"mat:{self.implicit_complement}_comp")
+                mbcore.tag_set_data(mbtags["geom_dimension"], gset, 4)
+                mbcore.add_entity(gset, volume_set)
+
+            # finally set the faceting tolerance tag
+            # this needs to be attached to some entity so create a dummy vertex
+            vh=mbcore.create_vertices(np.array([1,1,1],dtype='float64'))
+            mbcore.tag_set_data(
+                mbtags["faceting_tol"], vh, np.array((mesher_config["tolerance"],))
+            )
 
         return mbcore
 
