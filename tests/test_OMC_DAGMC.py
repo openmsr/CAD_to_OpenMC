@@ -28,13 +28,13 @@ class OMC_DAGMC_harness(HarnessRun):
 def test_h5m_neutronics_p1():
   o = OMC_DAGMC_harness('examples/pincell1.step')
   openmc.config['cross_sections']=str(o.nuclear_lib)
-  o.tt.results={'keff':(0.08651,0.00446)}
+  o.tt.results={'keff':(0.07944,0.00070)}
   o.run()
 
 def test_h5m_neutronics_p2():
   o = OMC_DAGMC_harness('examples/pincell2.step')
   openmc.config['cross_sections']=str(o.nuclear_lib)
-  o.tt.results={'keff':(0.08735,0.00802)}
+  o.tt.results={'keff':(0.07786,0.0008)}
   o.run()
 
 def test_h5m_neutronics_tors():
@@ -44,18 +44,19 @@ def test_h5m_neutronics_tors():
     openmc.stats.Discrete([100,85,77.5],[1.0/3.0,1.0/3.0, 1.0/3.0]), openmc.stats.Uniform(0.0,2.0*math.pi), openmc.stats.Discrete([0.0],[1.0])
   )
   openmc.config['cross_sections']=str(o.nuclear_lib)
-  o.tt.results={'keff':(1.16942,0.47448)}
+  o.tt.results={'keff':(1.61936,0.08562)}
   o.run()
 
 def test_h5m_neutronics_spheroids():
   o = OMC_DAGMC_harness('examples/spheroids.step')
   openmc.config['cross_sections']=str(o.nuclear_lib)
+  o.tt.results={'keff':(1.39082,0.01622)}
   o.run()
 
 def test_h5m_neutronics_ellipsoids():
   o = OMC_DAGMC_harness('examples/oblate_ellipsoids.step')
   openmc.config['cross_sections']=str(o.nuclear_lib)
-  o.tt.results={'keff':(1.12592,0.03893)}
+  o.tt.results={'keff':(1.05396,0.01514)}
   o.run()
 
 if __name__=='__main__':
