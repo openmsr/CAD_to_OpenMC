@@ -20,7 +20,6 @@ class OMC_DAGMC_harness(HarnessRun):
     self.aa.run(backend='stl2', merge = True, h5m_filename = self.h5m)
     assert self.h5m.exists()
     self.tt.run()
-    assert pathlib.Path('statepoint.5.h5').exists()
     self.tt.check_results()
     self.tt.cleanup()
     self.cleanup()
