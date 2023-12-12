@@ -60,8 +60,13 @@ E.g. for the "gmsh"-backend this means sampling curves 20 times, a minimum mesh-
 This procedure will in turn call OCP and gmsh to produce a mesh with merged surfaces in the output file "dagmc.h5m"
 
 The other available meshing backends are based on stl-export from CadQuery (accessible by setting ```backend='stl'```, or ```backend='stl2'```) which uses the parameters ```tolerance``` and ```angular_tolerance``` to set meshing quality.
+E.g. choosing the 'stl2' backend would alter the call to run to:
+```python
+  a.run(backend='stl2')
+```
+Similarly the output filename may be set using the parameter h5m_filename.
 
-Parameters are changed by means of altering entries in the ```mesher_config```-dictionary defined  in the assembly module root namespace. Like:
+Meshing parameters are changed by means of altering entries in the ```mesher_config```-dictionary defined  in the assembly module root namespace. Like:
 ```python
  ab.mesher_config['min_mesh_size']=0.2
  ```
