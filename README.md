@@ -1,4 +1,5 @@
 [![Python application](https://github.com/openmsr/CAD_to_OpenMC/actions/workflows/python-app.yml/badge.svg)](https://github.com/openmsr/CAD_to_OpenMC/actions/workflows/python-app.yml)
+![GitHub License](https://img.shields.io/github/license/openmsr/CAD_to_OpenMC)
 
 # CAD_to_OpenMC
 
