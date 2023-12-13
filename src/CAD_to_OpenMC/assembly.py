@@ -555,7 +555,7 @@ class Assembly:
     def _datadir_name(self,h5m_filename=""):
         h5mf=pl.Path(h5m_filename)
         if self.datadir==".":
-            self.datadir=datetime.now().strftime(f"{h5mf.stem}_%Y%m%d_%H%M%S")
+            self.datadir=datetime.now().strftime(f"{h5mf.stem}_%Y%m%d_%H%M%S.%f")
         if (self.verbose):
             print(f"INFO: storing temporary data in directory: {self.datadir}")
         return self.datadir
