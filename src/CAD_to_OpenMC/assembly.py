@@ -11,9 +11,12 @@ import trimesh
 import re
 import os
 import math
+from datetime import datetime
+
 from pymoab import core, types
 
 import CAD_to_OpenMC.assemblymesher as am
+from CAD_to_OpenMC.datadirectory import mesher_datadir
 
 try:
     import gmsh
@@ -197,6 +200,8 @@ class Assembly:
         self.verbose = verbose
         self.default_tag = default_tag
         self.delete_intermediate = False
+        self.cleanup = False
+        self.datadir="."
         self.tags = None
         self.sequential_tags = None
         self.implicit_complement = implicit_complement
@@ -252,6 +257,7 @@ class Assembly:
         translate: iter = [],
         rotate: iter = [],
         vol_skip: iter = [],
+        **kwargs: dict,
     ):
         """
         Import a list of step-files.
@@ -546,35 +552,46 @@ class Assembly:
             else:
                 print(f"SUMMARY: {i+1:8} {a.tag:16} {a.stl:16}")
 
+    def _datadir_name(self,h5m_filename=""):
+        h5mf=pl.Path(h5m_filename)
+        if self.datadir==".":
+            self.datadir=datetime.now().strftime(f"{h5mf.stem}_%Y%m%d_%H%M%S")
+        if (self.verbose):
+            print(f"INFO: storing temporary data in directory: {self.datadir}")
+        return self.datadir
+
     def solids_to_h5m(
         self,
         brep_filename: str = None,
         h5m_filename: str = "dagmc.h5m",
         samples: int = 100,
-        delete_intermediate_stl_files: bool = False,
         backend: str = "gmsh",
         heal: bool = True,
-    ):
-        # get a mesher object from the factory class
-        mesher_config["entities"] = self.entities
-        meshgen = am.meshers.get(backend, **mesher_config)
-        meshgen.set_verbosity(self.verbose)
-        stl_list = meshgen.generate_stls()
 
-        for e, s in zip(self.entities, stl_list):
-            e.stl = s
-        if self.verbose:
-            self.print_summary()
-        if backend == "stl2":
-            self.stl2h5m_byface(h5m_filename, True)
-        else:
-            if heal:
-                stl_list = self.heal_stls(stl_list)
-            self.stl2h5m(stl_list, h5m_filename, True)
+        **kwargs: dict,
+    ):
+        with mesher_datadir(self._datadir_name(h5m_filename),self.cleanup) as datadir:
+            mesher_config["entities"] = self.entities
+            meshgen = am.meshers.get(backend, **mesher_config)
+            meshgen.set_verbosity(self.verbose)
+            stl_list = meshgen.generate_stls()
+
+            for e, s in zip(self.entities, stl_list):
+                e.stl = s
+            if self.verbose:
+                self.print_summary()
+            if backend == "stl2":
+                self.stl2h5m_byface(h5m_filename, True)
+            else:
+                if heal:
+                    stl_list = self.heal_stls(stl_list)
+                self.stl2h5m(stl_list, h5m_filename, True)
+            #self.cleanup()
 
     def stl2h5m_byface(self, h5m_file: str = "dagmc.h5m", vtk: bool = False) -> str:
-        """function that creates a h5m-file with a moab structure and fills
-        it with the dagmc structure using the pymoab framework.
+        """create a h5m-file with a moab structure and fills
+        it with the dagmc structure using the pymoab framework. Optionally creates
+        a vtk-file.
         """
         if self.verbose > 0:
             print("INFO: reassembling stl-files into h5m structure")
@@ -596,8 +613,6 @@ class Assembly:
             if self.verbose > 0:
                 print(f'INFO: writing geometry to vtk: ' + str(h5m_p.with_suffix(".vtk")) )
             mbcore.write_file(str(h5m_p.with_suffix(".vtk")))
-
-        self.remove_intermediate()
 
         return str(h5m_p)
 
@@ -1140,12 +1155,3 @@ class Assembly:
     def get_unique_tags(self):
         # extract a set of unique tags
         return {self.get_all_tags()}
-
-    def remove_intermediate(self, force=False):
-        # remove all the generated stl intermediate files
-        if self.delete_intermediate or force:
-            for e in self.entities:
-                for s in e.stls:
-                    p = pl.Path(s[0])
-                    if p.exists():
-                        p.unlink()
