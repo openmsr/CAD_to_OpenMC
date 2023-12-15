@@ -238,14 +238,12 @@ class Assembly:
         **kwargs: dict,
     ):
         """convenience function that assumes the stp_files field is set, etc and simply runs the mesher with the set options"""
-        self.import_stp_files(
-            tags=self.tags, sequential_tags=self.sequential_tags, **kwargs
-        )
+        self.import_stp_files(**kwargs)
         if merge:
             self.merge_all()
         elif imprint:
             self.imprint_all()
-        self.solids_to_h5m(backend=backend, h5m_filename=h5m_filename)
+        self.solids_to_h5m(backend=backend, h5m_filename=h5m_filename, **kwargs)
 
     def import_stp_files(
         self,
