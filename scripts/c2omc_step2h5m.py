@@ -71,7 +71,7 @@ parser.add_argument(
 parser.add_argument(
     "--cleanup",
     action='store_true',
-    help="leave intermediate files in place instead of deleting them."
+    help="delete intermediate files instead of leaving them in place."
 )
 
 args = parser.parse_args()
