@@ -78,6 +78,12 @@ class MesherCQSTL2(assemblymesher):
     def generate_stls(self):
         return self._mesh_surfaces()
 
+    @classmethod
+    def surface_hash(self,surface):
+        part1=hash(surface)
+        part2=abs(hash(surface.Center().toTuple()))
+        return int(str(part1)+str(part2))
+
     def _mesh_surfaces(self):
         # loop over all surfaces in all entities
         # and generate meshes (refined or otherwise)
@@ -94,7 +100,7 @@ class MesherCQSTL2(assemblymesher):
             e.solid=self._triangulate_solid(e.solid)
             mpargs.extend(
                 [
-                    (k + j, j, i, self.refine, hash(f), face_hash_table)
+                    (k + j, j, i, self.refine, self.surface_hash(f), face_hash_table)
                     for j, f in enumerate(e.solid.Faces())
                 ]
             )
@@ -123,8 +129,8 @@ class MesherCQSTL2(assemblymesher):
     def _triangulate_solid(self, solid, tol: float = 1e-3, atol: float = 1e-1):
         """ create a mesh /by means of the underlying OCCT IncrementalMesh
             on a single solid. This will later be split into surfaces.
-            This should be done since othgerwise a single solid can get leaky
-            When surfaces do not connect
+            This has to be done since otherwise a single solid can get leaky
+            when surfaces do not connect
         """
         solid.mesh(tol,atol)
         return solid
@@ -140,10 +146,18 @@ class MesherCQSTL2(assemblymesher):
             return (hh, faceHash[hh])
         else:
             facefilename = f"vol_{vid+1}_face{global_fid:04}.stl"
-            faceHash[hh] = [facefilename, manager.list([vid])]
             wr=OCP.StlAPI.StlAPI_Writer()
             wr.ASCIIMode=True
-            wr.Write(f.wrapped,facefilename)
+            status=False
+            status=wr.Write(f.wrapped,facefilename)
+            k=0
+            while (not status):
+                print(f'WARNING: failed to write file {facefilename}, retrying (iter{k})')
+                status=wr.Write(f.wrapped,facefilename)
+                if(k>8):
+                    print(f'ERROR: could not write  file {facefilename}, volume {vid+1} will likely be leaking')
+                return None
+            faceHash[hh] = [facefilename, manager.list([vid])]
             if cls.verbosity_level > 1:
                 print(f"INFO: cq export to file {facefilename}")
             if refine:
