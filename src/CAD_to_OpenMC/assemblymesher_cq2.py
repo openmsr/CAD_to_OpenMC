@@ -154,9 +154,10 @@ class MesherCQSTL2(assemblymesher):
             while (not status):
                 print(f'WARNING: failed to write file {facefilename}, retrying (iter{k})')
                 status=wr.Write(f.wrapped,facefilename)
+                k=k+1
                 if(k>8):
                     print(f'ERROR: could not write  file {facefilename}, volume {vid+1} will likely be leaking')
-                return None
+                    return None
             faceHash[hh] = [facefilename, manager.list([vid])]
             if cls.verbosity_level > 1:
                 print(f"INFO: cq export to file {facefilename}")
