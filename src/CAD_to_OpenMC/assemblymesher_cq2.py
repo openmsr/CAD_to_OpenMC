@@ -80,9 +80,9 @@ class MesherCQSTL2(assemblymesher):
 
     @classmethod
     def surface_hash(self,surface):
-        part1=hash(surface)
-        part2=abs(hash(surface.Center().toTuple()))
-        return int(str(part1)+str(part2))
+        part1=surface
+        part2=surface.Center().toTuple()
+        return hash( (part1,part2) )
 
     def _mesh_surfaces(self):
         # loop over all surfaces in all entities
@@ -127,7 +127,7 @@ class MesherCQSTL2(assemblymesher):
         return stls
 
     def _triangulate_solid(self, solid, tol: float = 1e-3, atol: float = 1e-1):
-        """ create a mesh /by means of the underlying OCCT IncrementalMesh
+        """ create a mesh by means of the underlying OCCT IncrementalMesh
             on a single solid. This will later be split into surfaces.
             This has to be done since otherwise a single solid can get leaky
             when surfaces do not connect

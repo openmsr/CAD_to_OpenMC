@@ -239,10 +239,10 @@ class Assembly:
     ):
         """convenience function that assumes the stp_files field is set, etc and simply runs the mesher with the set options"""
         self.import_stp_files(**kwargs)
+        if imprint:
+            self.imprint_all()
         if merge:
             self.merge_all()
-        elif imprint:
-            self.imprint_all()
         self.solids_to_h5m(backend=backend, h5m_filename=h5m_filename, **kwargs)
 
     def import_stp_files(
@@ -969,7 +969,7 @@ class Assembly:
         """
         adds all solids on the solids-vector to the algorithm and
         merges them as arguments. This is stabler, but more resource
-        intesive
+        intensive
         """
         bldr = OCP.BOPAlgo.BOPAlgo_MakeConnected()
         for shape in solids:
