@@ -1153,3 +1153,44 @@ class Assembly:
     def get_unique_tags(self):
         # extract a set of unique tags
         return {self.get_all_tags()}
+
+def merge2h5m(assemblies =[], h5m_file: str ="dagmc.h5m", vtk: bool = True, verbose: int = 1):
+    """
+    function that (re)performs the assembly of an h5m_file from a set of already triangularized
+    assemblies.
+
+    Usage:
+        a=Assembly(['stepfileA.step'])
+        a.run( ... )
+        b=Assembly(['stepfileB.step'])
+        b.run( ... )
+        merge2h5m([a,b],h5m_file='c.h5m')
+
+    params:
+        assemblies: Iterable of Assemblies
+        h5m_file: Filename of merged file
+        vtk: If True, also write a vtk-file of the structure
+        verbose; If == 0 do not write status messages
+    """
+
+    #create a dummy object - this will not actually be used for anything.
+    amb=assemblies[0]
+    if verbose > 0:
+        print(f"INFO: reassembling stl-files into h5m structure {h5m_file}")
+    h5m_p = pl.Path(h5m_file)
+    mbcore, mbtags = amb.init_moab()
+    all_sets = mbcore.get_entities_by_handle(0)
+
+    for a in assemblies[:-1]:
+        mbcore = a.add_entities_to_moab_core(mbcore, mbtags, noimplicit=True, in_datadir=a.datadir)
+    assemblies[-1].add_entities_to_moab_core(mbcore, mbtags, noimplicit=False, in_datadir=assemblies[-1].datadir)
+
+    if verbose > 0:
+        print(f'INFO: writing geometry to h5m: "{h5m_file}".')
+    mbcore.write_file(str(h5m_p))
+
+    amb.check_h5m_file(h5m_file)
+    if vtk:
+        if verbose > 0:
+            print(f'INFO: writing geometry to vtk: ' + str(h5m_p.with_suffix(".vtk")) )
+        mbcore.write_file(str(h5m_p.with_suffix(".vtk")))
