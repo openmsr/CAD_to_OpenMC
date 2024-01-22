@@ -4,11 +4,12 @@ from pathlib import Path
 from shutil import rmtree
 
 @contextlib.contextmanager
-def mesher_datadir(path,delete_intermediate=False):
+def mesher_datadir(path,delete_intermediate=True, movein=False):
     """Changes working directory and returns to previous on exit."""
     prev_cwd = Path.cwd()
     Path(path).mkdir(parents=True, exist_ok=False)
-    os.chdir(path)
+    if movein:
+        os.chdir(path)
     try:
         yield
     finally:

@@ -568,7 +568,8 @@ class Assembly:
 
         **kwargs: dict,
     ):
-        with mesher_datadir(self._datadir_name(h5m_filename),self.cleanup) as datadir:
+        self._datadir_name
+        with mesher_datadir(self._datadir_name(h5m_filename),self.cleanup, movein=True) as datadir:
             mesher_config["entities"] = self.entities
             meshgen = am.meshers.get(backend, **mesher_config)
             meshgen.set_verbosity(self.verbose)
@@ -671,7 +672,7 @@ class Assembly:
                     "Generated h5m-file does not appear to be a hdf-file"
                 )
 
-    def add_entities_to_moab_core(self, mbcore: core.Core, mbtags: dict):
+    def add_entities_to_moab_core(self, mbcore: core.Core, mbtags: dict, noimplicit=False, in_datadir="."):
         vsets = []
         glob_id = 0
         for i in range(len(self.entities)):
@@ -713,7 +714,7 @@ class Assembly:
                             fset,
                             np.array([vsets[sense[0]], 0], dtype="uint64"),
                         )
-                    mbcore.load_file(f, fset)
+                    mbcore.load_file(str(pl.Path(in_datadir) / f), fset)
                 else:
                     # this face has already been added so only add a parent child relation here
                     fset = faces_added[f]
@@ -736,7 +737,7 @@ class Assembly:
             mbcore.add_entity(gset, vsets[i])
 
         # if wanted add an implicit complement material
-        if ( self.implicit_complement is not None ):
+        if ( self.implicit_complement is not None and not noimplicit):
             gset = mbcore.create_meshset()
             mbcore.tag_set_data(mbtags["category"], gset, "Group")
             mbcore.tag_set_data(mbtags["name"], gset, f"mat:{self.implicit_complement}_comp")
