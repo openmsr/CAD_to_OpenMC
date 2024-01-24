@@ -65,6 +65,8 @@ as of version 0.2.6 a simpler version of this test-script may be used as we have
 ```
 which will read the 7pin.step example file and output a file by the default name dagmc.h5m
 
+as usual.
+
 Unless anything else is specified this procedure simply uses the default CAD_to_OpenMC parameters to create meshes using the default choice of meshing backend - namely gmsh.
 E.g. for the "gmsh"-backend this means sampling curves 20 times, a minimum mesh-element size of 0.1, and a maximum mesh element size of 10.
 This procedure will in turn call OCP and gmsh to produce a mesh with merged surfaces in the output file "dagmc.h5m"
@@ -110,6 +112,16 @@ This option has more than one meaning depending on which backend you have chosen
    <dt>verbose</dt>
       <dd>Output lots of information from the mesher backends.</dd>
 </dl>
+
+As of version 0.3 We also distribute a utility script (in the scripts directory) that should be helpful in creating meshes. An example run could look like this, which furthermore sets the implicit complement to be air. (See below for more on implicit complement):
+```bash
+  c2omc_step2h5m examples/7pin.step --threads=1 --verbose=2 --implc=air --backend=stl2
+```
+For a description of all available command line options simply run
+```bash
+  c2omc_step2h5m --help
+```
+One noteable difference is that the default meshing backend is in this case 'stl2'
 
 ## meshing backends
 At present three different backends exist for CAD_to_OpenMC: 'gmsh', 'stl', 'stl2'. It is possible to add another backend should another meshing library become available.
