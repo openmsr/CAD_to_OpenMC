@@ -142,7 +142,7 @@ class MesherCQSTL2(assemblymesher):
             # surface is in table - simply add the vid to the hash-table
             faceHash[hh][1].append(vid)
             if cls.verbosity_level:
-                print(f"INFO: mesher reusing {hh} {faceHash[hh][1]}")
+                print(f"INFO: mesher reusing {hh} ({faceHash[hh][0]},faceHash[hh][1]})")
             return (hh, faceHash[hh])
         else:
             facefilename = f"vol_{vid+1}_face{global_fid:04}.stl"
