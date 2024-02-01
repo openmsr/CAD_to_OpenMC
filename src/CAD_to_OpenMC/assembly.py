@@ -568,8 +568,11 @@ class Assembly:
 
         **kwargs: dict,
     ):
-        self._datadir_name
-        with mesher_datadir(self._datadir_name(h5m_filename),self.cleanup, movein=True) as datadir:
+        #if h5m_filename is not in cwd, run where it resides.
+        cwd=pl.Path.cwd()
+        h5m_path=pl.Path(h5m_filename)
+        os.chdir(h5m_path.parent)
+        with mesher_datadir(self._datadir_name(h5m_path.name),self.cleanup, movein=True) as datadir:
             mesher_config["entities"] = self.entities
             meshgen = am.meshers.get(backend, **mesher_config)
             meshgen.set_verbosity(self.verbose)
@@ -580,12 +583,12 @@ class Assembly:
             if self.verbose:
                 self.print_summary()
             if backend == "stl2":
-                self.stl2h5m_byface(h5m_filename, True)
+                self.stl2h5m_byface(h5m_path.name, True)
             else:
                 if heal:
                     stl_list = self.heal_stls(stl_list)
-                self.stl2h5m(stl_list, h5m_filename, True)
-            #self.cleanup()
+                self.stl2h5m(stl_list, h5m_path.name, True)
+        os.chdir(cwd)
 
     def stl2h5m_byface(self, h5m_file: str = "dagmc.h5m", vtk: bool = False) -> str:
         """create a h5m-file with a moab structure and fills
