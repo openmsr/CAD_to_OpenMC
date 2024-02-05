@@ -97,7 +97,7 @@ class MesherCQSTL2(assemblymesher):
         for i, e in enumerate(self.cq_mesher_entities):
             if self.verbosity_level:
                 print(f"INFO: triangulating solid {i}")
-            e.solid=self._triangulate_solid(e.solid)
+            e.solid=self._triangulate_solid(e.solid,self.cq_mesher_tolerance,self.cq_mesher_ang_tolerance)
             mpargs.extend(
                 [
                     (k + j, j, i, self.refine, self.surface_hash(f), face_hash_table)
