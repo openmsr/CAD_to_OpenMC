@@ -18,6 +18,9 @@ from pymoab import core, types
 import CAD_to_OpenMC.assemblymesher as am
 from CAD_to_OpenMC.datadirectory import mesher_datadir
 
+import pdb
+#pdb.set_trace()
+
 try:
     import gmsh
 
@@ -459,84 +462,6 @@ class Assembly:
                 )
 
         return transformed_part
-
-    # export entire assembly to stp
-    def export_stp(
-        self,
-        filename: Union[List[str], str] = None,
-        mode: Optional[str] = "solid",
-        units: Optional[str] = "mm",
-    ) -> Union[List[str], str]:
-        """Exports the assembly as a stp file or files.
-
-        Args:
-            filename: Accepts a single filename as a string which exports the
-                full reactor model to a single file. Alternativley filename can
-                also accept a list of strings where each string is the filename
-                of the the individual shapes that make it up. This will result
-                in separate files for each shape in the reactor. Defaults to
-                None which uses the Reactor.name with '.stp' appended to the end
-                of each entry.
-            mode: the object to export can be either 'solid' which exports 3D
-                solid shapes or the 'wire' which exports the wire edges of the
-                shape.
-            units: the units of the stp file, options are 'cm' or 'mm'.
-                Default is mm.
-        Returns:
-            The stp filename(s) created
-        """
-
-        if isinstance(filename, str):
-            # exports a single file for the whole model
-            assembly = cq.Assembly(name="reactor")
-            for entry in self.entities:
-                if entry.color is None:
-                    assembly.add(entry.solid)
-                else:
-                    assembly.add(entry.solid, color=cq.Color(*entry.color))
-
-            assembly.save(filename, exportType="STEP")
-
-            if units == "cm":
-                _replace(
-                    filename, "SI_UNIT(.MILLI.,.METRE.)", "SI_UNIT(.CENTI.,.METRE.)"
-                )
-
-            return [filename]
-
-        if filename is None:
-            if None in self.name:
-                msg = (
-                    "Shape.name is None and therefore it can't be used "
-                    "to name a stp file. Try setting Shape.name for all "
-                    "shapes in the reactor"
-                )
-                raise ValueError(msg)
-            filename = [f"{name}.stp" for name in self.name]
-
-        # exports the assembly solid as a separate stp files
-        if len(filename) != len(self.entities):
-            msg = (
-                f"The Assembly contains {len(self.shapes_and_components)} "
-                f"Shapes and {len(filename)} filenames have be provided. "
-                f"The names of the shapes are {self.name}"
-            )
-            raise ValueError(msg)
-
-        for stp_filename, entry in zip(filename, self.entities):
-            entry.export_stp(
-                filename=stp_filename,
-                mode=mode,
-                units=units,
-                verbose=False,
-            )
-
-            if units == "cm":
-                _replace(
-                    stp_filename, "SI_UNIT(.MILLI.,.METRE.)", "SI_UNIT(.CENTI.,.METRE.)"
-                )
-
-        return filename
 
     def print_summary(self):
         # output a summary of the meshing results
