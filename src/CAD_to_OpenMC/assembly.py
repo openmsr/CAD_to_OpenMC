@@ -673,10 +673,8 @@ class Assembly:
             mbcore.add_entity(gset, vsets[-1])
 
         # finally set the faceting tolerance tag
-        # this needs to be attached to some entity so create a dummy vertex
-        vh=mbcore.create_vertices(np.array([1,1,1],dtype='float64'))
         mbcore.tag_set_data(
-            mbtags["faceting_tol"], vh, np.array((mesher_config["tolerance"],))
+            mbtags["faceting_tol"], moab_core.get_root_set(), np.array((mesher_config["tolerance"],))
         )
 
         return mbcore
@@ -761,10 +759,8 @@ class Assembly:
                 mbcore.add_entity(gset, volume_set)
 
             # finally set the faceting tolerance tag
-            # this needs to be attached to some entity so create a dummy vertex
-            vh=mbcore.create_vertices(np.array([1,1,1],dtype='float64'))
             mbcore.tag_set_data(
-                mbtags["faceting_tol"], vh, np.array((mesher_config["tolerance"],))
+                mbtags["faceting_tol"], moab_core.get_root_set(), np.array((mesher_config["tolerance"],))
             )
 
         return mbcore
