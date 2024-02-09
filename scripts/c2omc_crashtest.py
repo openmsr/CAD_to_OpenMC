@@ -57,11 +57,12 @@ class MeshPlot():
     def bld_geom(self):
         du=openmc.DAGMCUniverse(self.h5mf, auto_geom_ids=True)
         bb=du.bounding_box
+        print(f"bounding box of geometry: lower left={bb[0]}, upper_right={bb[1]}")
         if(self.cyl):
             rad=np.linalg.norm(0.5*(bb[1]-bb[0])[:2])
             ztop=openmc.ZPlane(z0=bb[1][2],boundary_type='vacuum')
             zbot=openmc.ZPlane(z0=bb[0][2],boundary_type='vacuum')
-            bcyl=openmc.ZCylinder(r=rad,boundary_type='vacuum')
+            bcyl=openmc.ZCylinder(r=rad,x0=0.5*(bb[1]+bb[0])[0],y0=0.5*(bb[1]+bb[0])[1],boundary_type='vacuum')
             uc=openmc.Cell(region=(-bcyl & -ztop & +zbot), fill=du)
         else:
             min_r=np.linalg.norm(0.5*(bb[1]-bb[0]))
