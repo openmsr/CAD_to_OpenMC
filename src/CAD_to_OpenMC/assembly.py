@@ -674,7 +674,7 @@ class Assembly:
 
         # finally set the faceting tolerance tag
         mbcore.tag_set_data(
-            mbtags["faceting_tol"], moab_core.get_root_set(), np.array((mesher_config["tolerance"],))
+            mbtags["faceting_tol"], mbcore.get_root_set(), np.array((mesher_config["tolerance"],))
         )
 
         return mbcore
@@ -760,7 +760,7 @@ class Assembly:
 
             # finally set the faceting tolerance tag
             mbcore.tag_set_data(
-                mbtags["faceting_tol"], moab_core.get_root_set(), np.array((mesher_config["tolerance"],))
+                mbtags["faceting_tol"], mbcore.get_root_set(), np.array((mesher_config["tolerance"],))
             )
 
         return mbcore
