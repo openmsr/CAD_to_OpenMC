@@ -47,6 +47,10 @@ If instead you prefer to use a conda-environment, this can also be done. There's
 
 This procedure has proven to work quite well, and avoid the bother of building moab from source. The team is working on getting a native conda-package up and running.
 
+# Known problems 
+- At present the parallel meshing option is buggy - it is therefore highly recommended to set the mesher to only use 1 thread. The team is working on a solution for this. See issue [#80](https://github.com/openmsr/CAD_to_OpenMC/issues/80)
+- Geometries which lead to degenerate toroidal surfaces in the step-files, can have problems. See issue [#94](https://github.com/openmsr/CAD_to_OpenMC/issues/94)
+
 # Run a test case:
 The follwing code-snippet can now be run to explore the capabilities of Assembly/step_to_h5m. We supply a couple of example .step-files in the examples directory. In this example we'll be using a geometry with a set of 7 pin-cells.
 
@@ -146,11 +150,12 @@ a.implicit_complement='water'
 Of course, this means that the subsequent OpenMC transport simulation needs to define a material (with the wanted properties) named 'water'.
 
 ## Intermediate datafiles
-In the process of generating an .h5m-geometry file CAD_to_OpenMC also generates a sometimes large amount of intermediary datafiles, these may be retained for debugging purposes (default), but by setting a flag CAD_to_OpenMC can be directed to delete them automatically once they're no longer needed.
+In the process of generating an .h5m-geometry file CAD_to_OpenMC also generates a sometimes large amount of intermediary datafiles, these may be retained for debugging purposes (the default), but by setting a flag, CAD_to_OpenMC can be directed to delete them automatically once they're no longer needed. Since version 0.3 the intermediate datafiles are put in a newly created subdirectory, named <h5m_file_stem>_DATE_TIME.
+The cleanup-flag is set as such:
 ```python
 import CAD_to_OpenMC.assembly as ab
 a=ab.Assembly()
-a.delete_intermediate=True
+a.cleanup=True
 ```
 
 ## Merging a set of geometries
