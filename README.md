@@ -40,10 +40,10 @@ Should you wish to install the development version of this package you may do so
 _replace \<name\> with an arbitrary name for your virtual environment_
 
 If instead you prefer to use a conda-environment, this can also be done. There's no native conda-package for CAD_to_OpenMC yet, but we've had good mileage from using pip within a conda-environment. First install conda, mamba, or micromamba.
-1. create an environment, e.g. conda create -n <name>
-2. activate it: conda activate <name>
-3. install moab using native conda packaging: conda install moab -c conda_forge
-4. pip-install the main package along with dependencies: pip install CAD_to_OpenMC
+1. create an environment, e.g. ```conda create -n <name>```
+2. activate it: ```conda activate <name>```
+3. install moab (and a supportng library for gmsh) using native conda packaging: ```conda install moab libglu -c conda_forge```
+4. pip-install the main package along with dependencies: ```pip install CAD_to_OpenMC```
 
 This procedure has proven to work quite well, and avoid the bother of building moab from source. The team is working on getting a native conda-package up and running.
 
