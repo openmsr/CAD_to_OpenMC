@@ -40,12 +40,16 @@ Should you wish to install the development version of this package you may do so
 _replace \<name\> with an arbitrary name for your virtual environment_
 
 If instead you prefer to use a conda-environment, this can also be done. There's no native conda-package for CAD_to_OpenMC yet, but we've had good mileage from using pip within a conda-environment. First install conda, mamba, or micromamba.
-1. create an environment, e.g. conda create -n <name>
-2. activate it: conda activate <name>
-3. install moab using native conda packaging: conda install moab -c conda_forge
-4. pip-install the main package along with dependencies: pip install CAD_to_OpenMC
+1. create an environment, e.g. ```conda create -n <name>```
+2. activate it: ```conda activate <name>```
+3. install moab (and a supportng library for gmsh) using native conda packaging: ```conda install moab libglu -c conda_forge```
+4. pip-install the main package along with dependencies: ```pip install CAD_to_OpenMC```
 
 This procedure has proven to work quite well, and avoid the bother of building moab from source. The team is working on getting a native conda-package up and running.
+
+# Known problems 
+- At present the parallel meshing option is buggy - it is therefore highly recommended to set the mesher to only use 1 thread. The team is working on a solution for this. See issue [#80](https://github.com/openmsr/CAD_to_OpenMC/issues/80)
+- Geometries which lead to degenerate toroidal surfaces in the step-files, can have problems. See issue [#94](https://github.com/openmsr/CAD_to_OpenMC/issues/94)
 
 # Run a test case:
 The follwing code-snippet can now be run to explore the capabilities of Assembly/step_to_h5m. We supply a couple of example .step-files in the examples directory. In this example we'll be using a geometry with a set of 7 pin-cells.
@@ -146,12 +150,29 @@ a.implicit_complement='water'
 Of course, this means that the subsequent OpenMC transport simulation needs to define a material (with the wanted properties) named 'water'.
 
 ## Intermediate datafiles
-In the process of generating an .h5m-geometry file CAD_to_OpenMC also generates a sometimes large amount of intermediary datafiles, these may be retained for debugging purposes (default), but by setting a flag CAD_to_OpenMC can be directed to delete them automatically once they're no longer needed.
+In the process of generating an .h5m-geometry file CAD_to_OpenMC also generates a sometimes large amount of intermediary datafiles, these may be retained for debugging purposes (the default), but by setting a flag, CAD_to_OpenMC can be directed to delete them automatically once they're no longer needed. Since version 0.3 the intermediate datafiles are put in a newly created subdirectory, named <h5m_file_stem>_DATE_TIME.
+The cleanup-flag is set as such:
 ```python
 import CAD_to_OpenMC.assembly as ab
 a=ab.Assembly()
-a.delete_intermediate=True
+a.cleanup=True
 ```
+
+## Merging a set of geometries
+If you have non-overlapping geometries, it can be convenient to mesh them separately, e.g. to save memory, only to merge them at a later stage. In CAD_to_OpenMC this is supported (since 0.3.1) through a utility function merge2h5m.
+Imagine you have two step-files: one.step and two.step which you know to not overlap, but you would like them to belong to the same geometry/scene. In this case you may create a single h5m-file containing them both by means of the follwing procedure.
+````python
+import CAD_to_OpenMC.assembly as ab
+One = ab.Assembly(['one.step])
+One.run(backend='stl2', merge=True, h5m_filename='one.h5m')
+
+Two = ab.Assembly(['two.step])
+Two.run(backend='stl2', merge=True, h5m_filename='two.h5m')
+
+ab.merge2h5m([One,Two],h5m_file='three.h5')
+```
+This will run the normal triangulization procedure for one and two separately, but also create a single h5m-file: three.h5m which contains both of the geometries.
+
 
 # Advanced example
 For a more advanced example of the use of CAD_to_OpenMC and OpenMC we may turn to the Zero Power Reactor Experiment. This was a full-scale reactor experiment that was carried out at Oak Rodge TN in the 1960's. Copenhagen Atomics provides a CAD-drawn model of this experiment, extracted from the original reports and drawings from the original experiment, in the form of a step-file. To get access simply clone the zpre github repository and run the scripts:
