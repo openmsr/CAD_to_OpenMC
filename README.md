@@ -153,6 +153,22 @@ a=ab.Assembly()
 a.delete_intermediate=True
 ```
 
+## Merging a set of geometries
+If you have non-overlapping geometries, it can be convenient to mesh them separately, e.g. to save memory, only to merge them at a later stage. In CAD_to_OpenMC this is supported (since 0.3.1) through a utility function merge2h5m.
+Imagine you have two step-files: one.step and two.step which you know to not overlap, but you would like them to belong to the same geometry/scene. In this case you may create a single h5m-file containing them both by means of the follwing procedure.
+````python
+import CAD_to_OpenMC.assembly as ab
+One = ab.Assembly(['one.step])
+One.run(backend='stl2', merge=True, h5m_filename='one.h5m')
+
+Two = ab.Assembly(['two.step])
+Two.run(backend='stl2', merge=True, h5m_filename='two.h5m')
+
+ab.merge2h5m([One,Two],h5m_file='three.h5')
+```
+This will run the normal triangulization procedure for one and two separately, but also create a single h5m-file: three.h5m which contains both of the geometries.
+
+
 # Advanced example
 For a more advanced example of the use of CAD_to_OpenMC and OpenMC we may turn to the Zero Power Reactor Experiment. This was a full-scale reactor experiment that was carried out at Oak Rodge TN in the 1960's. Copenhagen Atomics provides a CAD-drawn model of this experiment, extracted from the original reports and drawings from the original experiment, in the form of a step-file. To get access simply clone the zpre github repository and run the scripts:
 ```bash
