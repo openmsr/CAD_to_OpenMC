@@ -2,16 +2,22 @@
 ![GitHub License](https://img.shields.io/github/license/openmsr/CAD_to_OpenMC)
 
 # CAD_to_OpenMC
-
-This is intended to be a python package heavily inspired by [Paramak](https://github.com/fusion-energy/paramak), and borrows a lot from [step_to_h5m]( https://github.com/fusion-energy/step_to_h5m).
-It's "raison d'etre" is to establish an open source-based link between CAD tools in general and the neutron transport code OpenMC.
+This is a python package intended to establish an open source link between CAD tools in general and the nuetron and photon transport code OpenMC. It is inspired by [Paramak](https://github.com/fusion-energy/paramak), and borrows concepts from [step_to_h5m]( https://github.com/fusion-energy/step_to_h5m).
 
 Although most CAD-tools use some other internal and/or native representation for geometry, most, if not all, will be able to export to the STEP-file format. Therefore this is the format we use
 
-CAD_to_OpenMC uses cadQuery and its links to OCCT to enable import and imprinting/merging algorithms. This is a way of solving the problem with touching surfaces.
+CAD_to_OpenMC uses cadQuery and its links to OCCT
 
 The code structure relies on a main class *Assembly*, which maintains the geometry in terms of a list of instances of the subclass Entity.
 A geometry is imported from a (set of) .step files into the entity-list. This list is passed on to a mesher-class which generates a meshed geometry.
+
+# Other options
+
+CAD_to_OpenMC is certainly not the only package that tries to solve this problem. Other options include:
+- [cad_to_dagmc]( https://github.com/fusion-energy/cad_to_dagmc )
+- [stellarmesher]( https://github.com/Thea-Energy/stellarmesh )
+
+These two packages solve the same problem as CAD_to_OpenMC, and in fact in many cases are interchangeable. See for instance [benchmark-zoo] ( https://github.com/fusion-energy/model_benchmark_zoo ).
 
 # To install/set up in a virtual python environment
 _replace \<name\> with an arbitrary name for your virtual environment_
@@ -51,7 +57,31 @@ This procedure has proven to work quite well, and avoid the bother of building m
 - At present the parallel meshing option is buggy - it is therefore highly recommended to set the mesher to only use 1 thread. The team is working on a solution for this. See issue [#80](https://github.com/openmsr/CAD_to_OpenMC/issues/80)
 - Geometries which lead to degenerate toroidal surfaces in the step-files, can have problems. See issue [#94](https://github.com/openmsr/CAD_to_OpenMC/issues/94)
 
-# Run a test case:
+# Use cases
+
+We will show a few very simple uses-cases below to get you started using CAD_to_OpenMC, starting with a simply utility script, and then some more examples showing a few of the options later.
+
+## Simple utility script
+This is the fastest way of getting up and running. A very basic script to process the file 'geometry.step' into a geometry useful for OpenMC in the 'geometry.h5m':
+```python
+import CAD_to_OpenMC.assembly as ab
+
+A=ab.Assembly('geometry.step')
+ab.mesher_config['threads']=1
+ab.mesher_config['tolerance']=1e-2
+ab.mesher_config['angular_tolerance']=1e-2
+A.run(h5m_filename='geometry.h5m',backend='stl2')
+```
+
+This may then be included in an openmc-geometry by this snippet e.g.:
+```python
+import openmc
+universe=openmc.DAGMCUniverse('geometry.h5m').bounded_universe(padding_distance=10)
+geometry=openmc.Geometry(universe)
+```
+Please note that you also have to define materials according to the tags in the h5m-file for openmc to run.
+
+## 7 pin test case
 The follwing code-snippet can now be run to explore the capabilities of Assembly/step_to_h5m. We supply a couple of example .step-files in the examples directory. In this example we'll be using a geometry with a set of 7 pin-cells.
 
 ```python
