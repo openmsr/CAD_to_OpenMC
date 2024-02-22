@@ -2,6 +2,7 @@ import pathlib
 import os
 import openmc
 import math
+import sys
 import pytest
 
 import CAD_to_OpenMC.assembly as ab
