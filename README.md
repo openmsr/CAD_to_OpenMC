@@ -57,7 +57,31 @@ This procedure has proven to work quite well, and avoid the bother of building m
 - At present the parallel meshing option is buggy - it is therefore highly recommended to set the mesher to only use 1 thread. The team is working on a solution for this. See issue [#80](https://github.com/openmsr/CAD_to_OpenMC/issues/80)
 - Geometries which lead to degenerate toroidal surfaces in the step-files, can have problems. See issue [#94](https://github.com/openmsr/CAD_to_OpenMC/issues/94)
 
-# Run a test case:
+# Use cases
+
+We will show a few very simple uses-cases below to get you started using CAD_to_OpenMC, starting with a simply utility script, and then some more examples showing a few of the options later.
+
+## Simple utility script
+This is the fastest way of getting up and running. A very basic script to process the file 'geometry.step' into a geometry useful for OpenMC in the 'geometry.h5m':
+```python
+import CAD_to_OpenMC.assembly as ab
+
+A=ab.Assembly('geometry.step')
+ab.mesher_config['threads']=1
+ab.mesher_config['tolerance']=1e-2
+ab.mesher_config['angular_tolerance']=1e-2
+A.run(h5m_filename='geometry.h5m',backend='stl2')
+```
+
+This may then be included in an openmc-geometry by this snippet e.g.:
+```python
+import openmc
+universe=openmc.DAGMCUniverse('geometry.h5m').bounded_universe(padding_distance=10)
+geometry=openmc.Geometry(universe)
+```
+Please note that you also have to define materials according to the tags in the h5m-file for openmc to run.
+
+## 7 pin test case
 The follwing code-snippet can now be run to explore the capabilities of Assembly/step_to_h5m. We supply a couple of example .step-files in the examples directory. In this example we'll be using a geometry with a set of 7 pin-cells.
 
 ```python
