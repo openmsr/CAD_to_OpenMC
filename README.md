@@ -2,16 +2,20 @@
 ![GitHub License](https://img.shields.io/github/license/openmsr/CAD_to_OpenMC)
 
 # CAD_to_OpenMC
-
-This is intended to be a python package heavily inspired by [Paramak](https://github.com/fusion-energy/paramak), and borrows a lot from [step_to_h5m]( https://github.com/fusion-energy/step_to_h5m).
-It's "raison d'etre" is to establish an open source-based link between CAD tools in general and the neutron transport code OpenMC.
+This is a python package intended to establish an open source link between CAD tools in general and the nuetron and photon transport code OpenMC. It is inspired by [Paramak](https://github.com/fusion-energy/paramak), and borrows concepts from [step_to_h5m]( https://github.com/fusion-energy/step_to_h5m).
 
 Although most CAD-tools use some other internal and/or native representation for geometry, most, if not all, will be able to export to the STEP-file format. Therefore this is the format we use
 
-CAD_to_OpenMC uses cadQuery and its links to OCCT to enable import and imprinting/merging algorithms. This is a way of solving the problem with touching surfaces.
+CAD_to_OpenMC uses cadQuery and its links to OCCT
 
 The code structure relies on a main class *Assembly*, which maintains the geometry in terms of a list of instances of the subclass Entity.
 A geometry is imported from a (set of) .step files into the entity-list. This list is passed on to a mesher-class which generates a meshed geometry.
+
+# Other options
+
+CAD_to_OpenMC is certainly not the only package that tries to solve this problem. Other options include
+- [cad_to_dagmc]( https://github.com/fusion-energy/cad_to_dagmc )
+- [stellarmesher]( https://github.com/Thea-Energy/stellarmesh )
 
 # To install/set up in a virtual python environment
 _replace \<name\> with an arbitrary name for your virtual environment_
