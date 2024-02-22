@@ -3,7 +3,7 @@ name: Python application test on many versions
 
 on:
   workflow_dispatch:
-  scheduled:
+  schedule:
   - cron: '30 3 * * 0'
 
 permissions:
