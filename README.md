@@ -13,9 +13,11 @@ A geometry is imported from a (set of) .step files into the entity-list. This li
 
 # Other options
 
-CAD_to_OpenMC is certainly not the only package that tries to solve this problem. Other options include
+CAD_to_OpenMC is certainly not the only package that tries to solve this problem. Other options include:
 - [cad_to_dagmc]( https://github.com/fusion-energy/cad_to_dagmc )
 - [stellarmesher]( https://github.com/Thea-Energy/stellarmesh )
+
+These two packages solve the same problem as CAD_to_OpenMC, and in fact in many cases are interchangeable. See for instance [benchmark-zoo] ( https://github.com/fusion-energy/model_benchmark_zoo ).
 
 # To install/set up in a virtual python environment
 _replace \<name\> with an arbitrary name for your virtual environment_
