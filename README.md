@@ -191,7 +191,7 @@ a.cleanup=True
 ## Merging a set of geometries
 If you have non-overlapping geometries, it can be convenient to mesh them separately, e.g. to save memory, only to merge them at a later stage. In CAD_to_OpenMC this is supported (since 0.3.1) through a utility function merge2h5m.
 Imagine you have two step-files: one.step and two.step which you know to not overlap, but you would like them to belong to the same geometry/scene. In this case you may create a single h5m-file containing them both by means of the follwing procedure.
-````python
+```python
 import CAD_to_OpenMC.assembly as ab
 One = ab.Assembly(['one.step])
 One.run(backend='stl2', merge=True, h5m_filename='one.h5m')
