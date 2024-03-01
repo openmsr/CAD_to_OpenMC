@@ -14,7 +14,6 @@ import math
 from datetime import datetime
 
 from pymoab import core, types
-
 import CAD_to_OpenMC.assemblymesher as am
 from CAD_to_OpenMC.datadirectory import mesher_datadir
 
@@ -122,10 +121,15 @@ class Entity:
         vol_close = np.abs(self.volume - volume) / volume < tolerance
         return cms_close and bb_close and vol_close
 
-    def export_stp(self):
-        """export the entity to a step-file using its tag as filename through cadquery export"""
-        pass
-
+    def shared_surface_count(self,e = None):
+        if e is None:
+            return 0
+        count=0
+        ef=e.solid.Faces()
+        for f in self.solid.Faces():
+            if f in ef:
+                count=count+1
+        return count
 
 def idx_similar(entity_list, center, bounding_box, volume):
     """returns the index in the solid_list for which a solid is similar in terms of bounding box, cms, and volume
@@ -725,7 +729,6 @@ class Assembly:
         mbcore.add_parent_child(volume_set, surface_set)
 
         # Set surface sense
-        # This should be fixed - we should know which volume comes next, instead of just setting it to be 0
         sense_data = [volume_set, np.uint64(0)]
         mbcore.tag_set_data(mbtags["surf_sense"], surface_set, sense_data)
 
@@ -882,6 +885,7 @@ class Assembly:
                     merged_centers.pop(i_small)
                     tmp_ents.append(ent)
             self.entities = tmp_ents
+        self.order_entities_by_most_connected()
 
     def imprint_all(self):
         if len(self.entities) > 0:
@@ -1078,6 +1082,17 @@ class Assembly:
     def get_unique_tags(self):
         # extract a set of unique tags
         return {self.get_all_tags()}
+
+    def order_entities_by_most_connected(self):
+        if len(self.entities)==0:
+            return
+        for e in self.entities:
+            e.connections=sum([e.shared_surface_count(ee) for ee in self.entities if ee!=e])
+        print([e.connections for e in self.entities])
+        self.entities.sort(key= lambda e: e.connections, reverse=True)
+        print([e.connections for e in self.entities])
+        import time
+        time.sleep(3)
 
 def merge2h5m(assemblies =[], h5m_file: str ="dagmc.h5m", vtk: bool = True, verbose: int = 1):
     """
