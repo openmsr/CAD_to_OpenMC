@@ -56,7 +56,8 @@ This procedure has proven to work quite well, and avoid the bother of building m
 # Known problems 
 - At present the parallel meshing option is buggy - it is therefore highly recommended to set the mesher to only use 1 thread. The team is working on a solution for this. See issue [#80](https://github.com/openmsr/CAD_to_OpenMC/issues/80)
 - Geometries which lead to degenerate toroidal surfaces in the step-files, can have problems. See issue [#94](https://github.com/openmsr/CAD_to_OpenMC/issues/94)
-
+- As is reported in [#98](https://github.com/openmsr/CAD_to_OpenMC/issues/98) on Ubuntu 22.04 there's a problem with python 3.12. Specifically with installing "nlopt", which is used by one of the dependencies of CAD_to_OpenMC. We recommend to stay with python < 3.11 until this has been fixed upstream.
+ 
 # Use cases
 
 We will show a few very simple uses-cases below to get you started using CAD_to_OpenMC, starting with a simply utility script, and then some more examples showing a few of the options later.
