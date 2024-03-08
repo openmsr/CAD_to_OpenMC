@@ -1,5 +1,6 @@
 [![Python application](https://github.com/openmsr/CAD_to_OpenMC/actions/workflows/python-app.yml/badge.svg)](https://github.com/openmsr/CAD_to_OpenMC/actions/workflows/python-app.yml)
 ![GitHub License](https://img.shields.io/github/license/openmsr/CAD_to_OpenMC)
+[![Python 3.9](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/downloads/release/python-390/)
 
 # CAD_to_OpenMC
 This is a python package intended to establish an open source link between CAD tools in general and the nuetron and photon transport code OpenMC. It is inspired by [Paramak](https://github.com/fusion-energy/paramak), and borrows concepts from [step_to_h5m]( https://github.com/fusion-energy/step_to_h5m).
