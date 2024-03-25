@@ -4,7 +4,8 @@ import subprocess as sp
 import sys
 import h5py
 import numpy as np
-
+import matplotlib.colors as mcolors
+import itertools as it
 import openmc
 
 class h5mF(h5py.File):
@@ -17,7 +18,7 @@ class h5mF(h5py.File):
         cat_ids=taggroup['CATEGORY']['id_list']
 
 class MeshPlot():
-    def __init__(self,stepf='cad.step', init_openmc=True, pxl=2048, cyl=False, vol=False, origin=[0.0,0.0,0.0], width=[0.0,0.0,0.0], particles=100000, **kwargs):
+    def __init__(self,stepf='cad.step', init_openmc=True, pxl=2048, cyl=False, vol=False, origin=[0.0,0.0,0.0], width=[0.0,0.0,0.0], particles=100000, verbose=False,**kwargs):
         self.stepf=stepf
         self.h5mf=pl.Path(stepf).with_suffix('.h5m')
         self.pixels=pxl
@@ -26,6 +27,7 @@ class MeshPlot():
         self.origin=np.array(origin)
         self.width=np.array(width)
         self.particles=int(float(particles))
+        self.verbose=verbose
         if (init_openmc):
             self.init_openmc()
 
@@ -108,7 +110,7 @@ class MeshPlot():
 
         matlist=openmc.Materials()
         for matraw in mats:
-            mat=matraw.replace("mat:","")
+            mat=matraw.replace("mat:","").lower()
             if mat.endswith('_comp'):
                 mat=mat.replace('_comp','')
             if mat in [n.name for n in matlist]:
@@ -120,8 +122,11 @@ class MeshPlot():
         self.matlist=matlist
 
     def bld_plots(self):
-        colors=['blue','green','magenta','red','cyan','steelblue']
-        colordict={m:c for m,c in zip(self.matlist,colors)}
+        colordict={m:c for m,c in zip(self.matlist,it.cycle(mcolors.CSS4_COLORS.keys()))}
+        if (self.verbose):
+          for k,v in colordict.items():
+            print(k.name,v)
+
         bb=self.bb
         p1=openmc.Plot().from_geometry(self.geometry)
         p1.basis='xy'
@@ -153,8 +158,7 @@ class MeshPlot():
         plts.export_to_xml()
 
     def bld_plot3d(self):
-        colors=['blue','green','magenta','red','cyan','steelblue']
-        colordict={m:c for m,c in zip(self.matlist,colors)}
+        colordict={m:c for m,c in zip(self.matlist,it.cycle(mcolors.CSS4_COLORS.keys()))}
         pp=openmc.Plot().from_geometry(self.geometry)
         pp.type='voxel'
         pp.width=self.width
@@ -193,6 +197,7 @@ if __name__=='__main__':
     prs.add_argument('--vol', action='store_true')
     prs.add_argument('--origin',nargs=3,type=float, default=[0.0,0.0,0.0])
     prs.add_argument('--width',nargs=3,type=float, default=[0.0,0.0,0.0])
+    prs.add_argument('--verbose','-v',action='store_true')
     args=prs.parse_args()
     try:
         mp=MeshPlot(args.stepfile, True, **vars(args))
