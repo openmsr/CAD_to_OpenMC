@@ -11,15 +11,15 @@ import trimesh
 import re
 import os
 import math
+import sys
+
 from datetime import datetime
 
 from pymoab import core, types
 
 import CAD_to_OpenMC.assemblymesher as am
 from CAD_to_OpenMC.datadirectory import mesher_datadir
-
-import pdb
-#pdb.set_trace()
+from CAD_to_OpenMC.check_step import has_degenerate_toroids
 
 try:
     import gmsh
@@ -273,6 +273,10 @@ class Assembly:
           translate: Translation vector to apply to all parts in the step-file.
           rotate: Rotation angles to apply to the parts in the step-file.
         """
+        for stp in self.stp_files:
+          warn, ct = has_degenerate_toroids(stp,True)
+          if warn:
+            print(f'WARNING: Step file {stp} has {ct} degenerate toroid surfaces. These are known to cause problems in some cases',file=sys.stderr)
 
         tags_set = 0
         # clear list to avoid double-import
