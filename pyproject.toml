@@ -1,6 +1,6 @@
 [project]
 name="CAD_to_OpenMC"
-version="0.3.2"
+version="0.3.3a0"
 authors = [
   { name="Erik B Knudsen", email="erik.knudsen@copenhagenatomics.com" },
 ]
@@ -20,10 +20,7 @@ dependencies=[
         'cadquery>=2',
         'cadquery-ocp>=7',
         'numpy',
-        'meshio',
         'trimesh',
-        'networkx',
-        'Cython'
 ]
 
 [project.urls]
