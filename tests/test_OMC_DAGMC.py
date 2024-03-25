@@ -1,9 +1,10 @@
 import pathlib
 import os
-import openmc
 import math
 import sys
 import pytest
+#if openmc cannot be imported - skip these tests
+openmc = pytest.importorskip("openmc")
 
 import CAD_to_OpenMC.assembly as ab
 
