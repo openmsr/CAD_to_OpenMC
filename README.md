@@ -43,16 +43,14 @@ _replace \<name\> with an arbitrary name for your virtual environment_
 Should you wish to install the development version of this package you may do so by cloning this repository and replace the last command by: ```pip install <path/to/repo>```. This procedure will build and install the python package locally directly from source.
 
 5. Optionally install the msh refinement tool mmg (https://www.mmgtools.org), which may be run in conjunction with the cq/stl-mesher backend to avoid the high aspect ratio triangles that this backend tends to produce. Arch-linux users may install this from the AUR, otherwise get the source (and build from that) or binary builds from the mmg-site.
+
 # To install in a conda environment
 _replace \<name\> with an arbitrary name for your virtual environment_
 
-If instead you prefer to use a conda-environment, this can also be done. There's no native conda-package for CAD_to_OpenMC yet, but we've had good mileage from using pip within a conda-environment. First install conda, mamba, or micromamba.
+If instead you prefer to use a conda-environment, this is now as simple as:
 1. create an environment, e.g. ```conda create -n <name>```
 2. activate it: ```conda activate <name>```
-3. install moab (and a supportng library for gmsh) using native conda packaging: ```conda install moab libglu -c conda_forge```
-4. pip-install the main package along with dependencies: ```pip install CAD_to_OpenMC```
-
-This procedure has proven to work quite well, and avoid the bother of building moab from source. The team is working on getting a native conda-package up and running.
+3. install CAD_to_OpenMC: ```conda install cad-to-openmc```
 
 # Known problems 
 - At present the parallel meshing option is buggy - it is therefore highly recommended to set the mesher to only use 1 thread. The team is working on a solution for this. See issue [#80](https://github.com/openmsr/CAD_to_OpenMC/issues/80)
@@ -204,7 +202,6 @@ Two.run(backend='stl2', merge=True, h5m_filename='two.h5m')
 ab.merge2h5m([One,Two],h5m_file='three.h5')
 ```
 This will run the normal triangulization procedure for one and two separately, but also create a single h5m-file: three.h5m which contains both of the geometries.
-
 
 # Advanced example
 For a more advanced example of the use of CAD_to_OpenMC and OpenMC we may turn to the Zero Power Reactor Experiment. This was a full-scale reactor experiment that was carried out at Oak Rodge TN in the 1960's. Copenhagen Atomics provides a CAD-drawn model of this experiment, extracted from the original reports and drawings from the original experiment, in the form of a step-file. To get access simply clone the zpre github repository and run the scripts:
