@@ -18,8 +18,5 @@ class HarnessGmsh(HarnessRun):
     #self.cleanup()
 
 def testgmsh():
-  print("here I am")
-  print(pl.Path('.').resolve())
-
   t = HarnessGmsh()
   t.run()
