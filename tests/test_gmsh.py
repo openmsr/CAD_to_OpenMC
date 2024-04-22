@@ -3,9 +3,6 @@ import CAD_to_OpenMC.assembly as ab
 from tests.harnessRun import HarnessRun
 import pathlib as pl
 
-print("here I am")
-print(pl.Path('.').resolve())
-
 class HarnessGmsh(HarnessRun):
   def __init__(self):
     super().__init__()
@@ -21,5 +18,8 @@ class HarnessGmsh(HarnessRun):
     #self.cleanup()
 
 def testgmsh():
+  print("here I am")
+  print(pl.Path('.').resolve())
+
   t = HarnessGmsh()
   t.run()
