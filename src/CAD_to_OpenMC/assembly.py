@@ -40,7 +40,7 @@ mesher_config = {
     "max_mesh_size": 10,
     "curve_samples": 20,
     "mesh_algorithm": 1,
-    "threads": 4,
+    "threads": 1,
     "radial_threshold": 0,
     "refine": 0,
     "verbose": 0,
