@@ -27,23 +27,23 @@ class OMC_DAGMC_harness(HarnessRun):
     self.tt.cleanup()
     self.cleanup()
 
-@pytest.mark.skipif(sys.version_info > (3, 10), reason="requires python3.10 or lower")
+@pytest.mark.skipif(sys.version_info >= (3, 11), reason="requires python3.10 or lower")
 def test_h5m_neutronics_p1():
-  o = OMC_DAGMC_harness('../examples/step_files/pincell1.step')
+  o = OMC_DAGMC_harness('tests/examples/step_files/pincell1.step')
   openmc.config['cross_sections']=str(o.nuclear_lib)
   o.tt.results={'keff':(0.07944,0.00070)}
   o.run()
 
-@pytest.mark.skipif(sys.version_info > (3, 10), reason="requires python3.10 or lower")
+@pytest.mark.skipif(sys.version_info >= (3, 11), reason="requires python3.10 or lower")
 def test_h5m_neutronics_p2():
-  o = OMC_DAGMC_harness('../examples/step_files/pincell2.step')
+  o = OMC_DAGMC_harness('tests/examples/step_files/pincell2.step')
   openmc.config['cross_sections']=str(o.nuclear_lib)
   o.tt.results={'keff':(0.07786,0.0008)}
   o.run()
 
-@pytest.mark.skipif(sys.version_info > (3, 10), reason="requires python3.10 or lower")
+@pytest.mark.skipif(sys.version_info >= (3, 11), reason="requires python3.10 or lower")
 def test_h5m_neutronics_tors():
-  o = OMC_DAGMC_harness('../examples/step_files/toroids.step')
+  o = OMC_DAGMC_harness('tests/examples/step_files/toroids.step')
   # override source spatial distribution
   o.tt.settings.source.space=openmc.stats.CylindricalIndependent(
     openmc.stats.Discrete([100,85,77.5],[1.0/3.0,1.0/3.0, 1.0/3.0]), openmc.stats.Uniform(0.0,2.0*math.pi), openmc.stats.Discrete([0.0],[1.0])
@@ -52,16 +52,16 @@ def test_h5m_neutronics_tors():
   o.tt.results={'keff':(1.61936,0.08562)}
   o.run()
 
-@pytest.mark.skipif(sys.version_info > (3, 10), reason="requires python3.10 or lower")
+@pytest.mark.skipif(sys.version_info >= (3, 11), reason="requires python3.10 or lower")
 def test_h5m_neutronics_spheroids():
-  o = OMC_DAGMC_harness('../examples/step_files/spheroids.step')
+  o = OMC_DAGMC_harness('tests/examples/step_files/spheroids.step')
   openmc.config['cross_sections']=str(o.nuclear_lib)
   o.tt.results={'keff':(1.39082,0.01622)}
   o.run()
 
-@pytest.mark.skipif(sys.version_info > (3, 10), reason="requires python3.10 or lower")
+@pytest.mark.skipif(sys.version_info >= (3, 10), reason="requires python3.10 or lower")
 def test_h5m_neutronics_ellipsoids():
-  o = OMC_DAGMC_harness('../examples/step_files/oblate_ellipsoids.step')
+  o = OMC_DAGMC_harness('tests/examples/step_files/oblate_ellipsoids.step')
   openmc.config['cross_sections']=str(o.nuclear_lib)
   o.tt.results={'keff':(1.05396,0.01514)}
   o.run()
