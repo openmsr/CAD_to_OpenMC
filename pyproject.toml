@@ -20,6 +20,7 @@ dependencies=[
         'cadquery>=2',
         'cadquery-ocp>=7',
         'numpy',
+        'networkx',
         'trimesh',
 ]
 
