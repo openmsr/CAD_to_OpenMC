@@ -5,7 +5,7 @@ import pathlib as pl
 
 class HarnessTrans(HarnessRun):
   def __init__(self):
-    self.infile = '7pin.step'
+    self.infile = 'tests/7pin.step'
     self.a = ab.Assembly(verbose=2)
 
   def run(self,merge=False, **kwargs):
