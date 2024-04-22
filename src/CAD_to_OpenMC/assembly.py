@@ -23,7 +23,6 @@ from CAD_to_OpenMC.check_step import has_degenerate_toroids
 
 try:
     import gmsh
-
     nogmsh = False
 except ImportError as e:
     print(f"Warning: import gmsh failed ({e})- material tag-list, must be supplied.")
@@ -325,36 +324,35 @@ class Assembly:
                     e.tag = tag
                     tags_set = tags_set + 1
                 gmsh.finalize()
-            elif tags:
+
+            if tags:
                 # tag objects according to the tags dictionary.
                 gmsh.initialize()
                 vols = gmsh.model.occ.importShapes(stp)
                 gmsh.model.occ.synchronize()
                 for e, v in zip(ents, vols):
                     vid = v[1]
-                    try:
-                        s = gmsh.model.getEntityName(3, vid)
-                        part = s.split("/")[-1]
-                        tag = None
-                        for k in tags.keys():
-                            if match_anywhere:
-                                g = re.search(k, part)
-                            else:
-                                g = re.match(k, part)
-                            if g:
-                                tag = tags[k]
-                                break
-                        if tag is None:
-                            tag = self.default_tag
+                    s = gmsh.model.getEntityName(3, vid)
+                    part = s.split("/")[-1]
+                    tag = None
+                    for k in tags.keys():
+                        if match_anywhere:
+                            g = re.search(k, part)
                         else:
-                            tags_set = tags_set + 1
-                        if self.verbose > 1:
-                            print(
-                                f"INFO: Tagging volume #{vid} label:{s} with material {tag}"
-                            )
-                    except Exception as _e:
-                        tag = default_tag
-                    e.tag = tag
+                            g = re.match(k, part)
+                        if g is not None:
+                            tag = tags[k]
+                            break
+                    #if tag is still not set at this point we will either leave it or set it to the default.
+                    if tag is None:
+                        if e.tag is None or self.noextract_tags:
+                            tag = self.default_tag
+                    else:
+                        tag = tag
+                    if self.verbose > 1:
+                        print(
+                            f"INFO: Tagging volume #{vid} label:{s} with material {tag}"
+                        )
                 gmsh.finalize()
             elif sequential_tags:
                 for e, t in zip_longest(
