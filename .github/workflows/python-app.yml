@@ -66,11 +66,12 @@ jobs:
       shell: micromamba-shell {0}
     - name: Build, pip-install, and test-import CAD_to_OpenMC with dependencies.
       run: |
-        python -m build
-        pip install dist/CAD_to_OpenMC*.tar.gz
+        python -m build --sdist .
+        pip install dist/cad_to_openmc*.tar.gz
         python -c 'import CAD_to_OpenMC.assembly'
       shell: micromamba-shell {0}
     - name: Run Tests
       run: |
+        pwd
         pytest -v --debug=debuglog.log tests
       shell: micromamba-shell {0}

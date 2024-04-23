@@ -11,19 +11,18 @@ import trimesh
 import re
 import os
 import math
+import sys
+
 from datetime import datetime
 
 from pymoab import core, types
 
 import CAD_to_OpenMC.assemblymesher as am
 from CAD_to_OpenMC.datadirectory import mesher_datadir
-
-import pdb
-#pdb.set_trace()
+from CAD_to_OpenMC.check_step import has_degenerate_toroids
 
 try:
     import gmsh
-
     nogmsh = False
 except ImportError as e:
     print(f"Warning: import gmsh failed ({e})- material tag-list, must be supplied.")
@@ -41,7 +40,7 @@ mesher_config = {
     "max_mesh_size": 10,
     "curve_samples": 20,
     "mesh_algorithm": 1,
-    "threads": 4,
+    "threads": 1,
     "radial_threshold": 0,
     "refine": 0,
     "verbose": 0,
@@ -273,6 +272,10 @@ class Assembly:
           translate: Translation vector to apply to all parts in the step-file.
           rotate: Rotation angles to apply to the parts in the step-file.
         """
+        for stp in self.stp_files:
+          warn, ct = has_degenerate_toroids(stp,True)
+          if warn:
+            print(f'WARNING: Step file {stp} has {ct} degenerate toroid surfaces. These are known to cause problems in some cases',file=sys.stderr)
 
         tags_set = 0
         # clear list to avoid double-import
@@ -321,36 +324,35 @@ class Assembly:
                     e.tag = tag
                     tags_set = tags_set + 1
                 gmsh.finalize()
-            elif tags:
+
+            if tags:
                 # tag objects according to the tags dictionary.
                 gmsh.initialize()
                 vols = gmsh.model.occ.importShapes(stp)
                 gmsh.model.occ.synchronize()
                 for e, v in zip(ents, vols):
                     vid = v[1]
-                    try:
-                        s = gmsh.model.getEntityName(3, vid)
-                        part = s.split("/")[-1]
-                        tag = None
-                        for k in tags.keys():
-                            if match_anywhere:
-                                g = re.search(k, part)
-                            else:
-                                g = re.match(k, part)
-                            if g:
-                                tag = tags[k]
-                                break
-                        if tag is None:
-                            tag = self.default_tag
+                    s = gmsh.model.getEntityName(3, vid)
+                    part = s.split("/")[-1]
+                    tag = None
+                    for k in tags.keys():
+                        if match_anywhere:
+                            g = re.search(k, part)
                         else:
-                            tags_set = tags_set + 1
-                        if self.verbose > 1:
-                            print(
-                                f"INFO: Tagging volume #{vid} label:{s} with material {tag}"
-                            )
-                    except Exception as _e:
-                        tag = default_tag
-                    e.tag = tag
+                            g = re.match(k, part)
+                        if g is not None:
+                            tag = tags[k]
+                            break
+                    #if tag is still not set at this point we will either leave it or set it to the default.
+                    if tag is None:
+                        if e.tag is None or self.noextract_tags:
+                            tag = self.default_tag
+                    else:
+                        tag = tag
+                    if self.verbose > 1:
+                        print(
+                            f"INFO: Tagging volume #{vid} label:{s} with material {tag}"
+                        )
                 gmsh.finalize()
             elif sequential_tags:
                 for e, t in zip_longest(

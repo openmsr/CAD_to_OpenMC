@@ -4,7 +4,7 @@ import pathlib as pl
 
 class HarnessRun:
   def __init__(self):
-    infile = 'examples/7pin.step'
+    infile = 'tests/7pin.step'
     self.a = ab.Assembly(verbose=2)
     self.a.stp_files = [infile]
     self.a.import_stp_files()
