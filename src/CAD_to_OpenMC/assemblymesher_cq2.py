@@ -112,7 +112,6 @@ class MesherCQSTL2(assemblymesher):
                     # this face is part of this volume
                     face_stls.append([v[0],v[1:]])
             stls.append(face_stls)
-            print(face_stls)
         return stls
 
     def _triangulate_solid(self, solid, tol: float = 1e-3, atol: float = 1e-1):
@@ -128,6 +127,7 @@ class MesherCQSTL2(assemblymesher):
     def _mesh_single(cls, global_fid, fid, vid, refine, hh, faceHash):
         f = cls.cq_mesher_entities[vid].solid.Faces()[fid]
         if hh in faceHash.keys():
+            # surface is in table - simply add the vid to the hash-table
             done=True
             ffn=faceHash[hh][0]
             previd=faceHash[hh][1]
@@ -135,7 +135,6 @@ class MesherCQSTL2(assemblymesher):
         else:
             done=False
 
-        # surface is in table - simply add the vid to the hash-table
         if done:
             if cls.verbosity_level:
                 print(f"INFO: mesher reusing {hh} ({faceHash[hh][0]},{faceHash[hh][1:]})")
@@ -144,7 +143,6 @@ class MesherCQSTL2(assemblymesher):
             facefilename = f"vol_{vid+1}_face{global_fid:04}.stl"
             faceHash[hh] = [facefilename, vid, -1]
             status=cls.wr.Write(f.wrapped,facefilename)
-            print(status, f.wrapped,f)
             if cls.verbosity_level > 1:
                 print(f"INFO: cq export to file {facefilename}")
             if refine:
