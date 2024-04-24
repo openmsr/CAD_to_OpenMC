@@ -84,6 +84,8 @@ class MesherCQSTL2(assemblymesher):
         # loop over all surfaces in all entities
         # and generate meshes (refined or otherwise)
         mpargs = []
+        face_hash_table={}
+
         k = 0
         for i, e in enumerate(self.cq_mesher_entities):
             if self.verbosity_level:
