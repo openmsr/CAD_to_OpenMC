@@ -3,15 +3,7 @@ import subprocess as sp
 import pathlib as pl
 import OCP
 from .assemblymesher_base import assemblymesher
-
-single_thread_override = False
-try:
-    import multiprocessing as mp
-
-    manager = mp.Manager()
-    lock = manager.Lock()
-except:
-    single_thread_override = True
+import os
 
 from .stl_utils import *
 from . import meshutils
@@ -25,6 +17,10 @@ class MesherCQSTL2(assemblymesher):
     cq_mesher_max_mesh_size = None
 
     cq_mesher_faceHash = {}
+
+    #writer object from OCP
+    wr=OCP.StlAPI.StlAPI_Writer()
+    wr.ASCIIMode=True
 
     def __init__(
         self,
@@ -88,11 +84,6 @@ class MesherCQSTL2(assemblymesher):
         # loop over all surfaces in all entities
         # and generate meshes (refined or otherwise)
         mpargs = []
-        if single_thread_override or self.threads == 1:
-            face_hash_table = {}
-        else:
-            # manager=mp.Manager()
-            face_hash_table = manager.dict()
         k = 0
         for i, e in enumerate(self.cq_mesher_entities):
             if self.verbosity_level:
@@ -100,94 +91,63 @@ class MesherCQSTL2(assemblymesher):
             e.solid=self._triangulate_solid(e.solid,self.cq_mesher_tolerance,self.cq_mesher_ang_tolerance)
             mpargs.extend(
                 [
-                    (k + j, j, i, self.refine, self.surface_hash(f), face_hash_table)
+                    [k + j, j, i, self.refine, self.surface_hash(f), face_hash_table]
                     for j, f in enumerate(e.solid.Faces())
                 ]
             )
 
         # we have a set of mesh jobs - scatter those
-        if single_thread_override or self.threads == 1:
-            output = []
-            for args in mpargs:
-                output.append(self._mesh_single_nothread(*args))
-        else:
-            pool = mp.Pool(processes=self.threads)
-            output = pool.starmap(self._mesh_single, mpargs)
+        for args in mpargs:
+            self._mesh_single(*args)
 
         # process the list of meshed faces.
         stls = []
         for i, e in enumerate(self.cq_mesher_entities):
             face_stls = []
             for k, v in face_hash_table.items():
-                vids = v[1]  # the volumes that this face belongs to
+                vids = v[1:]  # the volumes that this face belongs to
                 if i in vids:
                     # this face is part of this volume
-                    face_stls.append(v)
+                    face_stls.append([v[0],v[1:]])
             stls.append(face_stls)
+            print(face_stls)
         return stls
 
     def _triangulate_solid(self, solid, tol: float = 1e-3, atol: float = 1e-1):
         """ create a mesh by means of the underlying OCCT IncrementalMesh
             on a single solid. This will later be split into surfaces.
             This has to be done since otherwise a single solid can get leaky
-            when surfaces do not connect
+            when its surfaces do not connect properly
         """
         solid.mesh(tol,atol)
         return solid
 
     @classmethod
-    def _mesh_single_nothread(cls, global_fid, fid, vid, refine, hh, faceHash):
-        f = cls.cq_mesher_entities[vid].solid.Faces()[fid]
-        if hh in faceHash.keys():
-            # surface is in table - simply add the vid to the hash-table
-            faceHash[hh][1].append(vid)
-            if cls.verbosity_level:
-                print(f"INFO: mesher reusing {hh} ({faceHash[hh][0]},{faceHash[hh][1]})")
-            return (hh, faceHash[hh])
-        else:
-            facefilename = f"vol_{vid+1}_face{global_fid:04}.stl"
-            wr=OCP.StlAPI.StlAPI_Writer()
-            wr.ASCIIMode=True
-            status=False
-            status=wr.Write(f.wrapped,facefilename)
-            k=0
-            while (not status):
-                print(f'WARNING: failed to write file {facefilename}, retrying (iter{k})')
-                status=wr.Write(f.wrapped,facefilename)
-                k=k+1
-                if(k>8):
-                    print(f'ERROR: could not write  file {facefilename}, volume {vid+1} will likely be leaking')
-                    return None
-            faceHash[hh] = [facefilename, manager.list([vid])]
-            if cls.verbosity_level > 1:
-                print(f"INFO: cq export to file {facefilename}")
-            if refine:
-                cls._refine_stls(facefilename, refine)
-            return (hh, faceHash[hh])
-
-    @classmethod
     def _mesh_single(cls, global_fid, fid, vid, refine, hh, faceHash):
         f = cls.cq_mesher_entities[vid].solid.Faces()[fid]
         if hh in faceHash.keys():
-            # surface is in table - simply add the vid to the hash-table
-            with lock:
-                faceHash[hh][1].append(vid)
+            done=True
+            ffn=faceHash[hh][0]
+            previd=faceHash[hh][1]
+            faceHash[hh]=[ffn,previd,vid]
+        else:
+            done=False
+
+        # surface is in table - simply add the vid to the hash-table
+        if done:
             if cls.verbosity_level:
-                print(f"INFO: mesher reusing {hh} {faceHash[hh][1]}")
-            return (hh, faceHash[hh])
+                print(f"INFO: mesher reusing {hh} ({faceHash[hh][0]},{faceHash[hh][1:]})")
+            return
         else:
             facefilename = f"vol_{vid+1}_face{global_fid:04}.stl"
-            with lock:
-                faceHash[hh] = [facefilename, manager.list([vid])]
-            wr=OCP.StlAPI.StlAPI_Writer()
-            wr.ASCIIMode=True
-            wr.Write(f.wrapped,facefilename)
+            faceHash[hh] = [facefilename, vid, -1]
+            status=cls.wr.Write(f.wrapped,facefilename)
+            print(status, f.wrapped,f)
             if cls.verbosity_level > 1:
                 print(f"INFO: cq export to file {facefilename}")
             if refine:
                 cls._refine_stls(facefilename, refine)
-            return (hh, faceHash[hh])
-
+            return
 
 class MesherCQSTL2Builder:
     def __init__(self):
