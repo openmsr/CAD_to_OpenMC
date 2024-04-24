@@ -630,7 +630,7 @@ class Assembly:
                     mbcore.tag_set_data(mbtags["category"], fset, "Surface")
 
                     mbcore.add_parent_child(vsets[i], fset)
-                    if len(sense) == 2:
+                    if len(sense) == 2 and sense[1]!=-1:
                         mbcore.tag_set_data(
                             mbtags["surf_sense"],
                             fset,
