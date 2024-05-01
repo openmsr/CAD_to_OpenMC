@@ -207,6 +207,7 @@ class Assembly:
         self.tags = None
         self.sequential_tags = None
         self.implicit_complement = implicit_complement
+        self.noextract_tags = True
 
     @classmethod
     def hdf5_in_moab(cls):
@@ -271,6 +272,7 @@ class Assembly:
           scale: overall scaling factor applied to all parts
           translate: Translation vector to apply to all parts in the step-file.
           rotate: Rotation angles to apply to the parts in the step-file.
+          vol_skip: list of volumes to skip meshing.
         """
         for stp in self.stp_files:
           warn, ct = has_degenerate_toroids(stp,True)
@@ -324,8 +326,7 @@ class Assembly:
                     e.tag = tag
                     tags_set = tags_set + 1
                 gmsh.finalize()
-
-            if tags:
+            elif tags:
                 # tag objects according to the tags dictionary.
                 gmsh.initialize()
                 vols = gmsh.model.occ.importShapes(stp)
@@ -342,11 +343,17 @@ class Assembly:
                             g = re.match(k, part)
                         if g is not None:
                             tag = tags[k]
+                            tags_set = tags_set + 1
                             break
                     #if tag is still not set at this point we will either leave it or set it to the default.
                     if tag is None:
                         if e.tag is None or self.noextract_tags:
                             tag = self.default_tag
+                        else:
+                            #use tag from stepfile
+                            g = re.match(r"^([^\s_@]+)", part)
+                            tags_set = tags_set + 1
+                            tag=g[0]
                     else:
                         tag = tag
                     if self.verbose > 1:
