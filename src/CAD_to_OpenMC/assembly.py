@@ -13,6 +13,7 @@ import os
 import math
 import sys
 
+from unidecode import unidecode
 from datetime import datetime
 
 from pymoab import core, types
@@ -315,7 +316,7 @@ class Assembly:
                         s = gmsh.model.getEntityName(3, vid)
                         part = s.split("/")[-1]
                         g = re.match(r"^([^\s_@]+)", part)
-                        tag = g[0]
+                        tag = unidecode(g[0])
                         if self.verbose > 1:
                             print(
                                 f"INFO: Tagging volume #{vid} label:{s} with material {tag}"
