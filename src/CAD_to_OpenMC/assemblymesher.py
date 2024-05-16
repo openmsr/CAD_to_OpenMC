@@ -20,7 +20,13 @@ try:
 except (ImportError,OSError) as e:
   npcq2=e
 
-if (nogmsh and nocq and nocq2):
+nodb=False
+try:
+  from .assemblymesher_db import MesherDBBuilder
+except (ImportError,OSError) as e:
+  nodb=e
+
+if (nogmsh and nocq and nocq2 and nodb):
   raise ImportError("Could not import any of the mesher backends")
 
 class MesherFactory(ObjectFactory):
@@ -34,3 +40,5 @@ if(not nocq):
   meshers.register_builder('stl',MesherCQSTLBuilder())
 if(not nocq2):
   meshers.register_builder('stl2',MesherCQSTL2Builder())
+if(not nodb):
+  meshers.register_builder('db',MesherDBBuilder())
