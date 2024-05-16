@@ -22,7 +22,9 @@ dependencies=[
         'numpy',
         'networkx',
         'trimesh',
+        'unidecode',
 ]
+
 
 [project.urls]
 "Homepage" = "https://github.com/openmsr/CAD_to_OpenMC"
