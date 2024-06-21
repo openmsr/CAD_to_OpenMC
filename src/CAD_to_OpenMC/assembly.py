@@ -180,7 +180,6 @@ def similar_solids(solid1_vol, solid1_bb, solid1_c, solid2_vol, solid2_bb, solid
     )
     return dV + dBB + dCntr
 
-
 class Assembly:
     """This class encapsulates a set of geometries defined by step-files
     addtionally it provides access to meshing-utilities, and export to a DAGMC-enabled
@@ -516,7 +515,7 @@ class Assembly:
                 e.stl = s
             if self.verbose:
                 self.print_summary()
-            if backend == "stl2":
+            if backend in [ "stl2", "db" ] :
                 self.stl2h5m_byface(h5m_path.name, True)
             else:
                 if heal:
