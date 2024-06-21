@@ -110,8 +110,6 @@ class MesherDB(assemblymesher):
         face_hash_table={}
 
         k = 0
-        #compo = cq.Compound.makeCompound([e.solid for e in self.cq_mesher_entities])
-        #BRepMesh_IncrementalMesh(compo.wrapped,self.params)
         for i, e in enumerate(self.cq_mesher_entities):
             if self.verbosity_level:
                 print(f"INFO: triangulating solid {i} using backend db")
