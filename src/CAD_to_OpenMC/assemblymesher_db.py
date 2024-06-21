@@ -2,16 +2,16 @@ import cadquery as cq
 import subprocess as sp
 import pathlib as pl
 
-from OCC.Core.IMeshTools import (
+from OCP.IMeshTools import (
     IMeshTools_Parameters,
     IMeshTools_MeshAlgoType_Watson,
     IMeshTools_MeshAlgoType_Delabella,
 )
-from OCC.Core.TopoDS import TopoDS_Shape
-from OCC.Core.BRep import BRep_Builder
-from OCC.Core.BRepMesh import BRepMesh_IncrementalMesh
-from OCC.Core.BRepTools import breptools
-from OCC.Core.StlAPI import StlAPI_Writer
+from OCP.TopoDS import TopoDS_Shape
+from OCP.BRep import BRep_Builder
+from OCP.BRepMesh import BRepMesh_IncrementalMesh
+from OCP.BRepTools import BRepTools
+from OCP.StlAPI import StlAPI_Writer
 
 from .assemblymesher_base import assemblymesher
 import os
@@ -22,7 +22,7 @@ from . import meshutils
 class MesherDB(assemblymesher):
     # these need to be class attributes to avoid pickling when spawning a multiprocessing-pool
     # this is no longer necessary in fact
-    db_mmesher_params=None
+    db_mesher_params=None
 
     db_mesher_faceHash = {}
 
@@ -41,7 +41,7 @@ class MesherDB(assemblymesher):
         threads,
         entities,
     ):
-        self._set_meshpars(tolerance, angular_tolerance, min_mesh_size, max_mesh_size)
+        self._set_meshpars(tolerance, angular_tolerance)
         self._clear_face_hashtable()
         self.refine = refine
         self._set_entities(entities)
@@ -65,13 +65,13 @@ class MesherDB(assemblymesher):
             self._refine = False
 
     @classmethod
-    def _set_meshpars(cls, tol, ang_tol, min_sz, max_sz):
+    def _set_meshpars(cls, tolerance, angular_tolerance):
         cls.params = IMeshTools_Parameters()
         # Basic settings, CQ defaults
-        cls.params.Angle  = 1e-3
-        cls.params.Deflection  = 0.1
-        cls.params.InParallel  = True
-        cls.params.Relative  = True
+        cls.params.Angle  = angular_tolerance
+        cls.params.Deflection  = tolerance
+        cls.params.InParallel  = False
+        cls.params.Relative  = False
         # Advanced settings.
         cls.params.MeshAlgo = IMeshTools_MeshAlgoType_Delabella
         # params.AngleInterior =
@@ -110,10 +110,12 @@ class MesherDB(assemblymesher):
         face_hash_table={}
 
         k = 0
+        #compo = cq.Compound.makeCompound([e.solid for e in self.cq_mesher_entities])
+        #BRepMesh_IncrementalMesh(compo.wrapped,self.params)
         for i, e in enumerate(self.cq_mesher_entities):
             if self.verbosity_level:
-                print(f"INFO: triangulating solid {i}")
-            e.solid=self._triangulate_solid(e.solid,self.cq_mesher_tolerance,self.cq_mesher_ang_tolerance)
+                print(f"INFO: triangulating solid {i} using backend db")
+            e.solid=self._triangulate_solid(e.solid)
             mpargs.extend(
                 [
                     [k + j, j, i, self.refine, self.surface_hash(f), face_hash_table]
@@ -137,13 +139,13 @@ class MesherDB(assemblymesher):
             stls.append(face_stls)
         return stls
 
-    def _triangulate_solid(self, solid, tol: float = 1e-3, atol: float = 1e-1):
+    def _triangulate_solid(self, solid):
         """ create a mesh by means of the underlying OCCT IncrementalMesh
             on a single solid. This will later be split into surfaces.
             This has to be done since otherwise a single solid can get leaky
             when its surfaces do not connect properly
         """
-        BrepMesh_IncrementalMesh(solid,*self.params)
+        BRepMesh_IncrementalMesh(solid.wrapped,self.params)
         return solid
 
     @classmethod
@@ -202,8 +204,6 @@ class MesherDBBuilder:
         else:
             # We are reusing a mesher instance. Hence reset the parameters and clear the hashtable
             self._instance._set_entities(entities)
-            self._instance._set_meshpars(
-                tolerance, angular_tolerance, min_mesh_size, max_mesh_size
-            )
+            self._instance._set_meshpars(tolerance,angular_tolerance)
             self._instance._clear_face_hashtable()
         return self._instance
