@@ -1,25 +1,33 @@
 import cadquery as cq
 import subprocess as sp
 import pathlib as pl
-import OCP
+
+from OCP.IMeshTools import (
+    IMeshTools_Parameters,
+    IMeshTools_MeshAlgoType_Watson,
+    IMeshTools_MeshAlgoType_Delabella,
+)
+from OCP.TopoDS import TopoDS_Shape
+from OCP.BRep import BRep_Builder
+from OCP.BRepMesh import BRepMesh_IncrementalMesh
+from OCP.BRepTools import BRepTools
+from OCP.StlAPI import StlAPI_Writer
+
 from .assemblymesher_base import assemblymesher
 import os
 
 from .stl_utils import *
 from . import meshutils
 
-class MesherCQSTL2(assemblymesher):
+class MesherDB(assemblymesher):
     # these need to be class attributes to avoid pickling when spawning a multiprocessing-pool
-    cq_mesher_entities = None
-    cq_mesher_tolerance = None
-    cq_mesher_ang_tolereance = None
-    cq_mesher_min_mesh_size = None
-    cq_mesher_max_mesh_size = None
+    # this is no longer necessary in fact
+    db_mesher_params=None
 
-    cq_mesher_faceHash = {}
+    db_mesher_faceHash = {}
 
     #writer object from OCP
-    wr=OCP.StlAPI.StlAPI_Writer()
+    wr=StlAPI_Writer()
     wr.ASCIIMode=True
 
     def __init__(
@@ -33,7 +41,7 @@ class MesherCQSTL2(assemblymesher):
         threads,
         entities,
     ):
-        self._set_meshpars(tolerance, angular_tolerance, min_mesh_size, max_mesh_size)
+        self._set_meshpars(tolerance, angular_tolerance)
         self._clear_face_hashtable()
         self.refine = refine
         self._set_entities(entities)
@@ -57,11 +65,26 @@ class MesherCQSTL2(assemblymesher):
             self._refine = False
 
     @classmethod
-    def _set_meshpars(cls, tol, ang_tol, min_sz, max_sz):
-        cls.cq_mesher_tolerance = tol
-        cls.cq_mesher_ang_tolerance = ang_tol
-        cls.cq_mesher_min_mesh_size = min_sz
-        cls.cq_mesher_max_mesh_size = max_sz
+    def _set_meshpars(cls, tolerance, angular_tolerance):
+        cls.params = IMeshTools_Parameters()
+        # Basic settings, CQ defaults
+        cls.params.Angle  = angular_tolerance
+        cls.params.Deflection  = tolerance
+        cls.params.InParallel  = False
+        cls.params.Relative  = False
+        # Advanced settings.
+        cls.params.MeshAlgo = IMeshTools_MeshAlgoType_Delabella
+        # params.AngleInterior =
+        # params.DeflectionInterior =
+        # params.MinSize =
+        # params.InternalVerticesMode =
+        # params.ControlSurfaceDeflection =
+        # params.EnableControlSurfaceDeflectionAllSurfaces =
+        # params.CleanModel =
+        # params.AdjustMinSize =
+        # params.ForceFaceDeflection =
+        # params.AllowQualityDecrease =
+        # exportStl(s, 'with-occ.stl', 1e-3, 0.1, True, True)
 
     @classmethod
     def _clear_face_hashtable(cls):
@@ -89,8 +112,8 @@ class MesherCQSTL2(assemblymesher):
         k = 0
         for i, e in enumerate(self.cq_mesher_entities):
             if self.verbosity_level:
-                print(f"INFO: triangulating solid {i}")
-            e.solid=self._triangulate_solid(e.solid,self.cq_mesher_tolerance,self.cq_mesher_ang_tolerance)
+                print(f"INFO: triangulating solid {i} using backend db")
+            e.solid=self._triangulate_solid(e.solid)
             mpargs.extend(
                 [
                     [k + j, j, i, self.refine, self.surface_hash(f), face_hash_table]
@@ -114,13 +137,13 @@ class MesherCQSTL2(assemblymesher):
             stls.append(face_stls)
         return stls
 
-    def _triangulate_solid(self, solid, tol: float = 1e-3, atol: float = 1e-1):
+    def _triangulate_solid(self, solid):
         """ create a mesh by means of the underlying OCCT IncrementalMesh
             on a single solid. This will later be split into surfaces.
             This has to be done since otherwise a single solid can get leaky
             when its surfaces do not connect properly
         """
-        solid.mesh(tol,atol)
+        BRepMesh_IncrementalMesh(solid.wrapped,self.params)
         return solid
 
     @classmethod
@@ -149,7 +172,7 @@ class MesherCQSTL2(assemblymesher):
                 cls._refine_stls(facefilename, refine)
             return
 
-class MesherCQSTL2Builder:
+class MesherDBBuilder:
     def __init__(self):
         self._instance = None
 
@@ -166,7 +189,7 @@ class MesherCQSTL2Builder:
         **_ignored,
     ):
         if not self._instance:
-            self._instance = MesherCQSTL2(
+            self._instance = MesherDB(
                 tolerance,
                 angular_tolerance,
                 min_mesh_size,
@@ -179,8 +202,6 @@ class MesherCQSTL2Builder:
         else:
             # We are reusing a mesher instance. Hence reset the parameters and clear the hashtable
             self._instance._set_entities(entities)
-            self._instance._set_meshpars(
-                tolerance, angular_tolerance, min_mesh_size, max_mesh_size
-            )
+            self._instance._set_meshpars(tolerance,angular_tolerance)
             self._instance._clear_face_hashtable()
         return self._instance
