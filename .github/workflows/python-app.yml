@@ -70,7 +70,7 @@ jobs:
     - name: Build, pip-install, and test-import CAD_to_OpenMC with dependencies.
       run: |
         python -m build --sdist .
-        pip install dist/cad_to_openmc*.tar.gz
+        pip install --no-deps dist/cad_to_openmc*.tar.gz
         python -c 'import CAD_to_OpenMC.assembly'
       shell: micromamba-shell {0}
     - name: Run Tests
