@@ -75,6 +75,5 @@ jobs:
       shell: micromamba-shell {0}
     - name: Run Tests
       run: |
-        pwd
         pytest -v --debug=debuglog.log tests
       shell: micromamba-shell {0}
