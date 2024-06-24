@@ -44,7 +44,7 @@ jobs:
         environment-name: cad_to_openmc_Testing
         create-args: >-
           python=${{matrix.pyv}}
-          openmc=0.13.3=dagmc_mpi_openmpi*
+          openmc=0.14.0=dagmc_mpi_openmpi*
           ocp=7.7.2.1
           cadquery=2.4.0
         init-shell: bash
