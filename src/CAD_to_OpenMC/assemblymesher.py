@@ -18,7 +18,7 @@ nocq2=False
 try:
   from .assemblymesher_cq2 import MesherCQSTL2Builder
 except (ImportError,OSError) as e:
-  npcq2=e
+  nocq2=e
 
 nodb=False
 try:
