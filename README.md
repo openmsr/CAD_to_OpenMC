@@ -55,11 +55,11 @@ If instead you prefer to use a conda-environment, this is now as simple as:
 2. activate it: ```conda activate <name>```
 3. install CAD_to_OpenMC: ```conda install cad-to-openmc```
 
-# Known problems 
+# Known problems
 - At present the parallel meshing option is buggy - it is therefore highly recommended to set the mesher to only use 1 thread. The team is working on a solution for this. See issue [#80](https://github.com/openmsr/CAD_to_OpenMC/issues/80)
 - Geometries which lead to degenerate toroidal surfaces in the step-files, can have problems. See issue [#94](https://github.com/openmsr/CAD_to_OpenMC/issues/94)
 - As is reported in [#98](https://github.com/openmsr/CAD_to_OpenMC/issues/98) on Ubuntu 22.04 there's a problem with python 3.12. Specifically with installing "nlopt", which is used by one of the dependencies of CAD_to_OpenMC. We recommend to stay with python < 3.11 until this has been fixed upstream.
- 
+
 # Use cases
 
 We will show a few very simple uses-cases below to get you started using CAD_to_OpenMC, starting with a simply utility script, and then some more examples showing a few of the options later.
@@ -161,7 +161,7 @@ For a description of all available command line options simply run
 One noteable difference is that the default meshing backend is in this case 'stl2'
 
 ## meshing backends
-At present three different backends exist for CAD_to_OpenMC: 'gmsh', 'stl', 'stl2'. It is possible to add another backend should another meshing library become available.
+At present four different backends exist for CAD_to_OpenMC: 'gmsh', 'stl', 'stl2', and 'db'. It is possible to add another backend should another meshing library become available.
 
 ### gmsh
 The inner workings of this backend is basically a simple call to gmsh to create a 2D-mesh of the entire geometry. This has the advantage that inhenrently boundary curves are meshed only once, meaning that in theory, they can be made to account for shared surfaces without unwanted artefacts. At its present stage however there may be problems with leakage when performing transport calculation on geometries with shared surfaces. A significant drawback todoing the entire geometry all at once, is that for larger geometries memory requirements may be prohibitive.
@@ -171,6 +171,10 @@ The stl backend takes a different approach. Instead each solid object in a step 
 
 ### stl2
 As its name implies the stl2 backend builds on concepts from the stl backend. However a major difference lies in the fact that objects can now have coincident surfaces. This is achieved by splitting the tringulation operation further and instead perform it in a face-by-face manner. This way we may skip the operation is one face (or surface) is a part of two solids. Furthermore, when the surfaces are assembled into a h5m datafile, the surfaces may be appropriately flagged such that transport algorithms can handle moving from one to another. If this is important for your problem, then this is the backend you should use.
+
+## db
+This meshing backend is based on the DellaBella meshing algorithm. On our test cases it tends to produce meshes that are qualitatively similar to what the 'stl2'-backend will generate. In cases however it can be more reliable, and may be able to generate watertight models with less polygons, leading to smaller files.
+This backend is experimental in that installation can be tricky, since it requires a very new version of cadquery-ocp (7.7.2.1), not yet available through the pip-ecosystem. It may be installed using conda/mamba, but keep in mind that you actively have to avoid reinstalling cadquery-ocp thourhg pip. This can be accomplished by means of installing the dependencies manually (look to pyproject.toml) and lastly install cad_to_openmc using ```pip install --no-deps CAD_to_OpenMC```
 
 ## implicit complement
 CAD_to_OpenMC supports the notion of an implicit complement material, i.e. a material that fills all the space within the geometry which has _not_ been claimed by any part in the CAD-assembly. For instance if one wanted to submerge a pincell in in water it is possible to only define the pincell as part and set the implicit complement material to water. To do so we would use code like:
