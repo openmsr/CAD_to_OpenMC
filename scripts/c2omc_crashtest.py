@@ -68,7 +68,7 @@ class MeshPlot():
             uc=openmc.Cell(region=(-bcyl & -ztop & +zbot), fill=du)
         else:
             min_r=np.linalg.norm(0.5*(bb[1]-bb[0]))
-            bndr=openmc.Sphere(r=min_r,boundary_type='vacuum')
+            bndr=openmc.Sphere(r=min_r,x0=0.5*(bb[1]+bb[0])[0],y0=0.5*(bb[1]+bb[0])[1],z0=0.5*(bb[1]+bb[0])[2],boundary_type='vacuum')
             uc=openmc.Cell(region=-bndr, fill=du)
         root=openmc.Universe()
         root.add_cell(uc)
