@@ -23,6 +23,7 @@ dependencies=[
         'numpy',
         'networkx',
         'trimesh',
+        'unidecode',
 ]
 
 [project.urls]
