@@ -22,7 +22,7 @@ class HarnessDB(HarnessRun):
             self.cleanup()
 
 
-    def check_tags(self,extra_tags=[])
+    def check_tags(self,extra_tags=[]):
         if self.a.tags is not None:
             for tag in self.a.tags.values():
                 p1=sp.run(['grep','-qa',tag,str(h5p))
