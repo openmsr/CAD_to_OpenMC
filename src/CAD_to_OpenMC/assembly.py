@@ -355,7 +355,7 @@ class Assembly:
                             tags_set = tags_set + 1
                             tag=g[0]
                     else:
-                        tag = tag
+                        e.tag = tag
                     if self.verbose > 1:
                         print(
                             f"INFO: Tagging volume #{vid} label:{s} with material {tag}"
