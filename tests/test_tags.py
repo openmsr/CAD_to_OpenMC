@@ -6,8 +6,8 @@ import subprocess as sp
 import sys
 
 class HarnessDB(HarnessRun):
-    def __init__(self):
-        super().__init__(infile='examples/step_files/pincell1.step')
+    def __init__(self,tags=None):
+        super().__init__(infile='examples/step_files/pincell1.step', tags=tags)
         self.h5p = pl.Path('out_db.h5m')
         self.tags=None
 
@@ -40,15 +40,15 @@ class HarnessDB(HarnessRun):
             v.unlink()
 
 def testdb_wtags():
-    t = HarnessDB()
-    t.tags={'h2.*':'water','zirconium':'Zi','uo[0-9]':'uranium_oxide'}
+    tags={'h2.*':'water','zirconium':'Zi','uo[0-9]':'uranium_oxide'}
+    t = HarnessDB(tags=tags)
     t.run(merge=True, cleanup=False)
     t.check_tags()
     t.cleanup()
 
 def testdb_wpartialtags():
-    t = HarnessDB()
-    t.tags={'h2.*':'water','uo[0-9]':'uranium_oxide'}
+    tags={'h2.*':'water','uo[0-9]':'uranium_oxide'}
+    t = HarnessDB(tags=tags)
     t.run(merge=True, cleanup=False)
     t.check_tags(['zirconium'])
     t.cleanup()
