@@ -13,9 +13,9 @@ class HarnessDB(HarnessRun):
         if merge:
             self.merge()
 
-        h5p = pl.Path('out_db.h5m')
+        self.h5p = pl.Path('out_db.h5m')
 
-        self.a.solids_to_h5m(backend='db',h5m_filename=str(h5p))
+        self.a.solids_to_h5m(backend='db',h5m_filename=str(self.h5p))
         assert h5p.exists()
         assert self.is_validh5m(h5p)
 
@@ -26,11 +26,11 @@ class HarnessDB(HarnessRun):
     def check_tags(self,extra_tags=[]):
         if self.a.tags is not None:
             for tag in self.a.tags.values():
-                p1=sp.run(['grep','-qa',tag,str(h5p)])
+                p1=sp.run(['grep','-qa',tag,str(self.h5p)])
                 assert p1.returncode == 0
 
         for tag in check_tags:
-            p1=sp.run(['grep','-qa',tag,str(h5p)])
+            p1=sp.run(['grep','-qa',tag,str(self.h5p)])
             assert p1.returncode == 0
 
     def cleanup(self):
