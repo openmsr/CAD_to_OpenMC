@@ -2,6 +2,7 @@ import pytest
 import CAD_to_OpenMC.assembly as ab
 from tests.harnessRun import HarnessRun
 import pathlib as pl
+import subprocess as sp
 import sys
 
 class HarnessDB(HarnessRun):
