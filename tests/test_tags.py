@@ -7,14 +7,15 @@ import sys
 
 class HarnessDB(HarnessRun):
     def __init__(self):
-        super().__init__()
+        super().__init__(infile='examples/step_files/pincell1.step')
         self.h5p = pl.Path('out_db.h5m')
+        self.tags=None
 
     def run(self,merge=False, cleanup=True):
         if merge:
             self.merge()
 
-        self.a.solids_to_h5m(backend='db',h5m_filename=str(self.h5p))
+        self.a.solids_to_h5m(backend='db',h5m_filename=str(self.h5p), tags=self.tags)
         assert self.h5p.exists()
         assert self.is_validh5m(self.h5p)
 
@@ -23,7 +24,7 @@ class HarnessDB(HarnessRun):
 
 
     def check_tags(self,extra_tags=[]):
-        if self.a.tags is not None:
+        if self.tags is not None:
             for tag in self.a.tags.values():
                 p1=sp.run(['grep','-qa',tag,str(self.h5p)])
                 assert p1.returncode == 0
@@ -40,14 +41,14 @@ class HarnessDB(HarnessRun):
 
 def testdb_wtags():
     t = HarnessDB()
-    t.a.tags={'h2.*':'water','zirconium':'Zi','u[0-9]o':'uranium_oxide'}
+    t.tags={'h2.*':'water','zirconium':'Zi','uo[0-9]':'uranium_oxide'}
     t.run(merge=True, cleanup=False)
     t.check_tags()
     t.cleanup()
 
 def testdb_wpartialtags():
     t = HarnessDB()
-    t.a.tags={'h2.*':'water','u[0-9]o':'uranium_oxide'}
+    t.tags={'h2.*':'water','uo[0-9]':'uranium_oxide'}
     t.run(merge=True, cleanup=False)
     t.check_tags(['zirconium'])
     t.cleanup()

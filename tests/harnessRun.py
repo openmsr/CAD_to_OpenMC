@@ -3,8 +3,7 @@ import CAD_to_OpenMC.assembly as ab
 import pathlib as pl
 
 class HarnessRun:
-  def __init__(self):
-    infile = 'tests/7pin.step'
+  def __init__(self,infile='tests/7pin.step'):
     self.a = ab.Assembly(verbose=2)
     self.a.stp_files = [infile]
     self.a.import_stp_files()
