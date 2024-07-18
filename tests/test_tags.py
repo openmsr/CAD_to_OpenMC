@@ -17,7 +17,7 @@ class HarnessDB(HarnessRun):
 
         self.a.solids_to_h5m(backend='db',h5m_filename=str(self.h5p))
         assert h5p.exists()
-        assert self.is_validh5m(h5p)
+        assert self.is_validh5m(self.h5p)
 
         if cleanup:
             self.cleanup()
