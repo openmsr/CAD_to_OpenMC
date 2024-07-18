@@ -40,14 +40,14 @@ class HarnessDB(HarnessRun):
 
 def testdb_wtags():
     t = HarnessDB()
-    t.a.tags={'h2.*':'water','zirconium':'Zi','u[0-9]o','uranium_oxide'}
+    t.a.tags={'h2.*':'water','zirconium':'Zi','u[0-9]o':'uranium_oxide'}
     t.run(merge=True, cleanup=False)
     t.check_tags()
     t.cleanup()
 
 def testdb_wpartialtags():
     t = HarnessDB()
-    t.a.tags={'h2.*':'water','u[0-9]o','uranium_oxide'}
+    t.a.tags={'h2.*':'water','u[0-9]o':'uranium_oxide'}
     t.run(merge=True, cleanup=False)
     t.check_tags(['zirconium'])
     t.cleanup()
