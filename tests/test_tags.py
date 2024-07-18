@@ -8,15 +8,14 @@ import sys
 class HarnessDB(HarnessRun):
     def __init__(self):
         super().__init__()
+        self.h5p = pl.Path('out_db.h5m')
 
     def run(self,merge=False, cleanup=True):
         if merge:
             self.merge()
 
-        self.h5p = pl.Path('out_db.h5m')
-
         self.a.solids_to_h5m(backend='db',h5m_filename=str(self.h5p))
-        assert h5p.exists()
+        assert self.h5p.exists()
         assert self.is_validh5m(self.h5p)
 
         if cleanup:
