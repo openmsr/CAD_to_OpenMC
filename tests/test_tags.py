@@ -29,7 +29,7 @@ class HarnessDB(HarnessRun):
                 p1=sp.run(['grep','-qa',tag,str(self.h5p)])
                 assert p1.returncode == 0
 
-        for tag in check_tags:
+        for tag in extra_tags:
             p1=sp.run(['grep','-qa',tag,str(self.h5p)])
             assert p1.returncode == 0
 
