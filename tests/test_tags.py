@@ -53,6 +53,13 @@ def testdb_wpartialtags():
     t.check_tags(['zirconium'])
     t.cleanup()
 
+def testdb_switch_delims():
+    t = HarnessDB(tags=tags)
+    t.a.set_tag_delim('o')
+    t.run(merge=True, cleanup=False)
+    t.check_tags(['h2','zirc','u'])
+    t.cleanup()
+
 if __name__=='__main__':
     testdb()
     testdb_wmerge()
