@@ -54,7 +54,7 @@ def testdb_wpartialtags():
     t.cleanup()
 
 def testdb_switch_delims():
-    t = HarnessDB(tags=tags)
+    t = HarnessDB()
     t.a.set_tag_delim('o')
     t.run(merge=True, cleanup=False)
     t.check_tags(['h2','zirc','u'])
