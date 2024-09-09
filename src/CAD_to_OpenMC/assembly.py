@@ -208,6 +208,8 @@ class Assembly:
         self.sequential_tags = None
         self.implicit_complement = implicit_complement
         self.noextract_tags = True
+        self.tag_delim_pattern=r"^([^\s_@]+)"
+
 
     @classmethod
     def hdf5_in_moab(cls):
@@ -221,6 +223,9 @@ class Assembly:
                 f"{e}"
             )
         return True
+
+    def set_tag_delim(delimiters: String)
+        self.tag_delim_pattern=r"⁽[" + delimiters + r"+)"
 
     def dummy_h5m(self):
         mbc, mbt = self.init_moab()
@@ -315,7 +320,7 @@ class Assembly:
                     try:
                         s = gmsh.model.getEntityName(3, vid)
                         part = s.split("/")[-1]
-                        g = re.match(r"^([^\s_@]+)", part)
+                        g = re.match(self.tag_delim_pattern, part)
                         tag = unidecode(g[0])
                         if self.verbose > 1:
                             print(
@@ -351,7 +356,7 @@ class Assembly:
                             tag = self.default_tag
                         else:
                             #use tag from stepfile
-                            g = re.match(r"^([^\s_@]+)", part)
+                            g = re.match(self.tag_delim_pattern, part)
                             tags_set = tags_set + 1
                             tag=g[0]
                     else:
