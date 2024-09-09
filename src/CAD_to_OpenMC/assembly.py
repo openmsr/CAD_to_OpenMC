@@ -224,7 +224,7 @@ class Assembly:
             )
         return True
 
-    def set_tag_delim(delimiters: String)
+    def set_tag_delim(delimiters: String):
         self.tag_delim_pattern=r"⁽[" + delimiters + r"+)"
 
     def dummy_h5m(self):
