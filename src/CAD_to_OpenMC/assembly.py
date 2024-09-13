@@ -352,15 +352,19 @@ class Assembly:
                             break
                     #if tag is still not set at this point we will either leave it or set it to the default.
                     if tag is None:
-                        if e.tag is None or self.noextract_tags:
+                        if self.noextract_tags:
                             tag = self.default_tag
                         else:
                             #use tag from stepfile
-                            g = re.match(self.tag_delim_pattern, part)
-                            tags_set = tags_set + 1
-                            tag=g[0]
-                    else:
-                        e.tag = tag
+                            try:
+                                g = re.match(self.tag_delim_pattern, part)
+                                tags_set = tags_set + 1
+                                tag=g[0]
+                            except:
+                                #this e.g. happens when there is no tag in the step-file
+                                tag=self.default_tag
+                    #apply the selected tag to the entity
+                    e.tag = tag
                     if self.verbose > 1:
                         print(
                             f"INFO: Tagging volume #{vid} label:{s} with material {tag}"
