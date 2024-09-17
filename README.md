@@ -176,6 +176,14 @@ As its name implies the stl2 backend builds on concepts from the stl backend. Ho
 This meshing backend is based on the DellaBella meshing algorithm. On our test cases it tends to produce meshes that are qualitatively similar to what the 'stl2'-backend will generate. In cases however it can be more reliable, and may be able to generate watertight models with less polygons, leading to smaller files.
 This backend is experimental in that installation can be tricky, since it requires a very new version of cadquery-ocp (7.7.2.1), not yet available through the pip-ecosystem. It may be installed using conda/mamba, but keep in mind that you actively have to avoid reinstalling cadquery-ocp thourhg pip. This can be accomplished by means of installing the dependencies manually (look to pyproject.toml) and lastly install cad_to_openmc using ```pip install --no-deps CAD_to_OpenMC```
 
+## tag delimiter
+As of 0.3.6 it is possible to manipulate the delimiter used when extracting material tags from part names. By default the regexp used is "\s_@" meaning to split on whitespace, underscores and @. E.g. this will make parts "dr_bunsen" and "dr_beaker" be tagged with "dr". If however the method "set_tag_delim" is called on an assembly object with an argument "\s@" this results in the parts being tagged "dr_bunsen" and "dr_beaker".
+```python
+import CAD_to_OpenMC.assembly as ab
+a=ab.Assembly()
+a.set_tag_delim("\s@")
+```
+
 ## implicit complement
 CAD_to_OpenMC supports the notion of an implicit complement material, i.e. a material that fills all the space within the geometry which has _not_ been claimed by any part in the CAD-assembly. For instance if one wanted to submerge a pincell in in water it is possible to only define the pincell as part and set the implicit complement material to water. To do so we would use code like:
 ```python
