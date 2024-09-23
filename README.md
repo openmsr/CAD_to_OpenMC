@@ -55,6 +55,8 @@ If instead you prefer to use a conda-environment, this is now as simple as:
 2. activate it: ```conda activate <name>```
 3. install CAD_to_OpenMC: ```conda install cad-to-openmc```
 
+you may replace conda with mamba or indeed micromamba, should you prefer to do so.
+
 # Known problems
 - At present the parallel meshing option is buggy - it is therefore highly recommended to set the mesher to only use 1 thread. The team is working on a solution for this. See issue [#80](https://github.com/openmsr/CAD_to_OpenMC/issues/80)
 - Geometries which lead to degenerate toroidal surfaces in the step-files, can have problems. See issue [#94](https://github.com/openmsr/CAD_to_OpenMC/issues/94)
