@@ -50,12 +50,12 @@ Should you wish to install the development version of this package you may do so
 # To install in a conda environment
 _replace \<name\> with an arbitrary name for your virtual environment_
 
-If instead you prefer to use a conda-environment, this is now as simple as:
+If instead you prefer to use a [conda-environment](https://docs.conda.io/projects/conda/en/stable/), this is now as simple as:
 1. create an environment, e.g. ```conda create -n <name>```
 2. activate it: ```conda activate <name>```
 3. install CAD_to_OpenMC: ```conda install cad-to-openmc```
 
-you may replace conda with mamba or indeed micromamba, should you prefer to do so.
+You may of course replace conda with [mamba/micromamba](https://mamba.readthedocs.io/en/latest/), should you prefer to do so.
 
 # Known problems
 - At present the parallel meshing option is buggy - it is therefore highly recommended to set the mesher to only use 1 thread. The team is working on a solution for this. See issue [#80](https://github.com/openmsr/CAD_to_OpenMC/issues/80)
