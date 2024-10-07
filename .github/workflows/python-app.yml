@@ -39,7 +39,7 @@ jobs:
         echo 'debconf debconf/frontend select Noninteractive' | sudo debconf-set-selections
         sudo apt-get -y install libhdf5-103 xserver-xorg-core xserver-xorg-dev libx11-6 libgl1 libxcursor1 libglu1-mesa libxinerama1 libxft2
     - name: setup a micromamba environment to get at openmc etc.
-      uses: mamba-org/setup-micromamba@v1
+      uses: mamba-org/setup-micromamba@v2
       with:
         environment-name: cad_to_openmc_Testing
         create-args: >-
