@@ -174,7 +174,7 @@ The stl backend takes a different approach. Instead each solid object in a step 
 ### stl2
 As its name implies the stl2 backend builds on concepts from the stl backend. However a major difference lies in the fact that objects can now have coincident surfaces. This is achieved by splitting the tringulation operation further and instead perform it in a face-by-face manner. This way we may skip the operation is one face (or surface) is a part of two solids. Furthermore, when the surfaces are assembled into a h5m datafile, the surfaces may be appropriately flagged such that transport algorithms can handle moving from one to another. If this is important for your problem, then this is the backend you should use.
 
-## db
+### db
 This meshing backend is based on the DellaBella meshing algorithm. On our test cases it tends to produce meshes that are qualitatively similar to what the 'stl2'-backend will generate. In cases however it can be more reliable, and may be able to generate watertight models with less polygons, leading to smaller files.
 This backend is experimental in that installation can be tricky, since it requires a very new version of cadquery-ocp (7.7.2.1), not yet available through the pip-ecosystem. It may be installed using conda/mamba, but keep in mind that you actively have to avoid reinstalling cadquery-ocp thourhg pip. This can be accomplished by means of installing the dependencies manually (look to pyproject.toml) and lastly install cad_to_openmc using ```pip install --no-deps CAD_to_OpenMC```
 
