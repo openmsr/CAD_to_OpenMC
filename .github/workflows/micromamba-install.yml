@@ -1,5 +1,5 @@
 # This action is intended to run weekly on also testing versions of python
-name: Python application test on many versions using micromamba only
+name: Micromamba install tests
 
 on:
   workflow_dispatch:
