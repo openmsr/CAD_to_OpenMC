@@ -22,6 +22,8 @@ jobs:
       fail-fast: false
       matrix:
         pyv: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        omcv: ["0.13.3", "0.14.0", "0.15.0"]
+        mpi: ["nompi", "mpi_mpich", "mpi_openmpi"]
 
     steps:
     - uses: actions/checkout@v4
@@ -40,9 +42,9 @@ jobs:
         environment-name: cad_to_openmc_Testing
         create-args: >-
           python=${{matrix.pyv}}
-          openmc=0.15.0=dagmc_mpi_openmpi*
-          ocp=7.7.2.1
-          cadquery=2.4.0
+          openmc=${{matrix.omcv}}=dagmc_${{mpi}*
+          ocp>=7.7.2.1
+          cadquery>=2.4.0
         init-shell: bash
     - name: Test OpenMC
       run: openmc --version
