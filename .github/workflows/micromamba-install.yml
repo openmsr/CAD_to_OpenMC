@@ -1,5 +1,5 @@
 # This action is intended to run weekly on also testing versions of python
-name: Micromamba install tests
+name: Micromamba install tests (inc. OpenMC and MPI)
 
 on:
   workflow_dispatch:
