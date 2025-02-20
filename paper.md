@@ -131,7 +131,7 @@ practical models.
 
 ### Material tags
 <!-- The way material tags are extracted here -->
-If wanted C2O is able to use the CAD-generated part names, as material tags.
+If wanted CAD_to_OpenMC is able to use the CAD-generated part names, as material tags.
 The default behavior is to use the first part of the part name as material
 tag. This may be changed by supplying a hash-table, i.e. python dictionary, as
 the tags-argument. Here the keys to the table are interpreted as regular
