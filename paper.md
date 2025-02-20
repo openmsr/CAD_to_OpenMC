@@ -201,7 +201,7 @@ Corresponding to \autoref{fig:GIV_CAD}, \autoref{fig:GIV_meshed} show the discre
 Figure \ref{fig:voldiff} shows
 differences in volumes between the discretized models and the exact CAD-model
 for the various objects making up the parts. Volumes have been calculated using
-a built-in of our CAD-package, whereas volumes from the discretized models have
+a built-in feature of our CAD-package, whereas volumes from the discretized models have
 been computed using the stochastic volume computation feature of OpenMC
 [@openmc_2013]. In the latter case volumes are being computed by sampling a
 number of points within a set boundary, while recording volume each point falls
