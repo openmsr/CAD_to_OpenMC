@@ -185,8 +185,8 @@ fuel elements.
 The benchmark includes 5 cases, which differ in terms of control- and burst-rod positions.
 Also there are 3 geometries described:
 1. detailed model which includes as built things (curved clamp etc.),
-2. simplified model, where all surfaces are along principal axis, all corners 90 deg. etc.
-3. cylindrical symmetric model, to allow 2D-computations
+2. simplified model, where all surfaces are along principal axis, all corners 90 deg. etc., and
+3. cylindrical symmetric model, to allow 2D-computations.
 The benchmark reports only experimental results for the 2 first ones, but contains MCNP-geometries for
 all 3 in [@icsbep_2020]. The 3rd model is created in order to use some legacy analysis tool which are purely 1D/2D.
 
