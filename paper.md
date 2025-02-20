@@ -292,7 +292,7 @@ literature,$k_{eff,lit}$ [@cottrell_are_operation_1955; @robertson_msre_1965].
 
 
 # Discussion and Conclusion
-We submit that have shown that the tool presented in this paper is a convenient tool for making CAD geometries available for particle transport. By utilizing the DAGMC-layer the resulting geometries are not restricted to OpenMC, but in fact may be used also in MCNP, fluka, etc. Experience has shown that a particularly useful feature is to extract tags from CAD-defined parts and interpret them as material tags for transport. This enables a consistent material naming scheme throughout the entire modeling procedure.
+We submit that have shown that the tool presented in this paper is a convenient tool for making CAD geometries available for Monte Carlo particle transport. By utilizing the DAGMC-layer the resulting geometries are not restricted to OpenMC, but in fact may be used also in MCNP, fluka, etc. Experience has shown that a particularly useful feature is to extract tags from CAD-defined parts and interpret them as material tags for transport. This enables a consistent material naming scheme throughout the entire modeling procedure.
 
 
 
