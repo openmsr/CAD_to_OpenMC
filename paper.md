@@ -159,7 +159,7 @@ I am now going to refer to the equation: \autoref{eq:integral}.
 
 
 ## Implicit complement
-C2O can add an implicit complement to the output file. That is the material tag
+CAD_to_OpenMC can add an implicit complement to the output file. That is, the material tag
 that will be applied to any part of the geometry which is *not* claimed by any
 CAD part. This is done by simply assigning the name of the material as a string
 to the implicit complement attribute of the base Assembly object.
