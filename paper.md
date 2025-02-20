@@ -260,7 +260,7 @@ We assume the errors are mere misprints in the drawings.
 
 It is clear from tables \ref{tab_bm_giv_rod_pos} and \ref{tab_det_giv_rod_pos} that the agreement between model and
 experiment is not perfect, yet the difference between CAD-based and CSG-based
-models is small (generally on the order of). We take this as proof that the geometry generation
+models is small (generally on the order of 5e-3). We take this as proof that the geometry generation
 works as intended.
 
 
