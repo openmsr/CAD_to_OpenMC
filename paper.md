@@ -125,9 +125,11 @@ discretization is to be used for other types of application care should be
 taken.
 
 In some cases, the simple algorithm fails to create a watertight model. In such
-cases we recommend using the 'db' back-end if available. The "gmsh" back-end often
-has the problem that it is memory hungry, but otherwise consistently produces
-practical models.
+cases we recommend using the 'db' back-end if available. The 'gmsh'-backend consistently
+produces practical model, but often has the problem that it is memory hungry. E.g.
+neither the ARE, nor the MSRE (see below) models could be run this way on our
+available hardware (64GB workstation).
+
 
 ### Material tags
 <!-- The way material tags are extracted here -->
