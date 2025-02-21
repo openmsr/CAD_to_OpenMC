@@ -6,8 +6,6 @@ from typing import List, Optional, Union
 
 from itertools import zip_longest
 
-import trimesh
-
 import re
 import os
 import math
@@ -1073,9 +1071,14 @@ class Assembly:
         return cq.Compound(bldr.Shape())
 
     def heal_stls(self, stls):
+        #simply return early if trimesh is not available
+        try:
+            import trimesh
+        except ImportError:
+            return
+
         if self.verbose > 0:
             print("INFO: checking surfaces and reparing normals")
-
         for e in self.entities:
             stl = e.stl
             mesh = trimesh.load_mesh(stl)
