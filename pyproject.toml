@@ -16,13 +16,12 @@ classifiers = [
 ]
 dependencies=[
         'gmsh',
-        'numpy<2.0a0',
+        'numpy',
         'pyparsing',
         'cadquery>=2',
         'cadquery-ocp>=7',
         'numpy',
         'networkx',
-        'trimesh',
         'unidecode',
 ]
 
