@@ -51,6 +51,7 @@ def testdb_wtags():
 def testdb_wpartialtags():
     tags={'h2.*':'water','uo[0-9]':'uranium_oxide'}
     t = HarnessDB()
+    t.a.noextract_tags=False
     t.run(merge=True, cleanup=False, tags=tags)
     t.check_tags(['zirconium'])
     t.cleanup()
