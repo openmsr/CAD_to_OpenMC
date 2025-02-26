@@ -6,16 +6,15 @@ import subprocess as sp
 import sys
 
 class HarnessDB(HarnessRun):
-    def __init__(self, tags=None, sequential_tags=None):
-        super().__init__(infile='examples/step_files/pincell1.step', tags=tags, sequential_tags=sequential_tags)
+    def __init__(self):
+        super().__init__(infile='examples/step_files/pincell1.step')
         self.h5p = pl.Path('out_db.h5m')
-        self.tags=None
 
-    def run(self,merge=False, cleanup=True):
+    def run(self,merge=False, cleanup=True, tags=None, sequential_tags=None):
         if merge:
             self.merge()
 
-        self.a.solids_to_h5m(backend='db',h5m_filename=str(self.h5p), tags=self.tags)
+        self.a.solids_to_h5m(backend='db',h5m_filename=str(self.h5p), tags=tags, sequential_tags=sequential_tags)
         assert self.h5p.exists()
         assert self.is_validh5m(self.h5p)
 
@@ -38,24 +37,25 @@ class HarnessDB(HarnessRun):
         pwd=pl.Path('.')
         for v in pwd.glob("vol*_face*"):
             v.unlink()
+
 def testdb_seqtags():
     stags=['mat0','mat1','mat2','mat3']
-    t = HarnessDB(sequential_tags=stags)
-    t.run(merge=True, cleanup=False)
+    t = HarnessDB()
+    t.run(merge=True, cleanup=False, sequential_tags=stags)
     t.check_tags(['mat0','mat3'])
     t.cleanup()
 
 def testdb_wtags():
     tags={'h2.*':'water','zirconium':'Zi','uo[0-9]':'uranium_oxide'}
-    t = HarnessDB(tags=tags)
-    t.run(merge=True, cleanup=False)
+    t = HarnessDB()
+    t.run(merge=True, cleanup=False, tags=tags)
     t.check_tags()
     t.cleanup()
 
 def testdb_wpartialtags():
     tags={'h2.*':'water','uo[0-9]':'uranium_oxide'}
-    t = HarnessDB(tags=tags)
-    t.run(merge=True, cleanup=False)
+    t = HarnessDB()
+    t.run(merge=True, cleanup=False, tags=tags)
     t.check_tags(['zirconium'])
     t.cleanup()
 
