@@ -4,13 +4,9 @@ from tests.harnessRun import HarnessRun
 import pathlib as pl
 
 class HarnessCqSTL(HarnessRun):
-  def __init__(self):
-    super().__init__()
-
   def run(self,merge=False):
-    print(f'stl: {self.a.stp_files})')
-    print(self.h5m)
 
+    self.a.import_stp_files()
     if merge:
       self.merge()
 

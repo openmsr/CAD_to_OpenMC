@@ -6,16 +6,16 @@ import subprocess as sp
 import sys
 
 class HarnessDB(HarnessRun):
-    def __init__(self,tags=None):
-        super().__init__(infile='examples/step_files/pincell1.step', tags=tags)
+    def __init__(self):
+        super().__init__(infile='examples/step_files/pincell1.step')
         self.h5p = pl.Path('out_db.h5m')
-        self.tags=None
 
-    def run(self,merge=False, cleanup=True):
+    def run(self,merge=False, cleanup=True, tags=None, sequential_tags=None):
+        self.a.import_stp_files(tags=tags,sequential_tags=sequential_tags)
         if merge:
             self.merge()
 
-        self.a.solids_to_h5m(backend='db',h5m_filename=str(self.h5p), tags=self.tags)
+        self.a.solids_to_h5m(backend='db',h5m_filename=str(self.h5p))
         assert self.h5p.exists()
         assert self.is_validh5m(self.h5p)
 
@@ -23,13 +23,8 @@ class HarnessDB(HarnessRun):
             self.cleanup()
 
 
-    def check_tags(self,extra_tags=[]):
-        if self.tags is not None:
-            for tag in self.tags.values():
-                p1=sp.run(['grep','-qa',tag,str(self.h5p)])
-                assert p1.returncode == 0
-
-        for tag in extra_tags:
+    def check_tags(self,tags_to_check=[]):
+        for tag in tags_to_check:
             p1=sp.run(['grep','-qa',tag,str(self.h5p)])
             assert p1.returncode == 0
 
@@ -39,17 +34,25 @@ class HarnessDB(HarnessRun):
         for v in pwd.glob("vol*_face*"):
             v.unlink()
 
+def testdb_seqtags():
+    stags=['mat0','mat1','mat2']
+    t = HarnessDB()
+    t.run(merge=True, cleanup=False, sequential_tags=stags)
+    t.check_tags(['mat0','mat2'])
+    t.cleanup()
+
 def testdb_wtags():
     tags={'h2.*':'water','zirconium':'Zi','uo[0-9]':'uranium_oxide'}
-    t = HarnessDB(tags=tags)
-    t.run(merge=True, cleanup=False)
-    t.check_tags()
+    t = HarnessDB()
+    t.run(merge=True, cleanup=False, tags=tags)
+    t.check_tags(tags.values())
     t.cleanup()
 
 def testdb_wpartialtags():
     tags={'h2.*':'water','uo[0-9]':'uranium_oxide'}
-    t = HarnessDB(tags=tags)
-    t.run(merge=True, cleanup=False)
+    t = HarnessDB()
+    t.a.noextract_tags=False
+    t.run(merge=True, cleanup=False, tags=tags)
     t.check_tags(['zirconium'])
     t.cleanup()
 
