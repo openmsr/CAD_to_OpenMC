@@ -6,8 +6,8 @@ import subprocess as sp
 import sys
 
 class HarnessDB(HarnessRun):
-    def __init__(self,tags=None):
-        super().__init__(infile='examples/step_files/pincell1.step', tags=tags)
+    def __init__(self, tags=None, sequential_tags=None):
+        super().__init__(infile='examples/step_files/pincell1.step', tags=tags, sequential_tags=sequential_tags)
         self.h5p = pl.Path('out_db.h5m')
         self.tags=None
 
@@ -38,6 +38,12 @@ class HarnessDB(HarnessRun):
         pwd=pl.Path('.')
         for v in pwd.glob("vol*_face*"):
             v.unlink()
+def testdb_seqtags():
+    stags=['mat0','mat1','mat2','mat3']
+    t = HarnessDB(sequential_tags=stags)
+    t.run(merge=True, cleanup=False)
+    t.check_tags(['mat0','mat3'])
+    t.cleanup()
 
 def testdb_wtags():
     tags={'h2.*':'water','zirconium':'Zi','uo[0-9]':'uranium_oxide'}
