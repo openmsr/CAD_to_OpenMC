@@ -11,10 +11,11 @@ class HarnessDB(HarnessRun):
         self.h5p = pl.Path('out_db.h5m')
 
     def run(self,merge=False, cleanup=True, tags=None, sequential_tags=None):
+        self.a.import_stp_files(tags=tags,sequential_tags=sequential_tags)
         if merge:
             self.merge()
 
-        self.a.solids_to_h5m(backend='db',h5m_filename=str(self.h5p), tags=tags, sequential_tags=sequential_tags)
+        self.a.solids_to_h5m(backend='db',h5m_filename=str(self.h5p))
         assert self.h5p.exists()
         assert self.is_validh5m(self.h5p)
 
@@ -34,10 +35,10 @@ class HarnessDB(HarnessRun):
             v.unlink()
 
 def testdb_seqtags():
-    stags=['mat0','mat1','mat2','mat3']
+    stags=['mat0','mat1','mat2']
     t = HarnessDB()
     t.run(merge=True, cleanup=False, sequential_tags=stags)
-    t.check_tags(['mat0','mat3'])
+    t.check_tags(['mat0','mat2'])
     t.cleanup()
 
 def testdb_wtags():

@@ -4,9 +4,6 @@ from tests.harnessRun import HarnessRun
 import pathlib as pl
 
 class HarnessGmsh(HarnessRun):
-  def __init__(self):
-    super().__init__()
-
   def run(self):
     print(f'gmsh: {self.a.stp_files})')
     self.a.merge_all()
