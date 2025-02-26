@@ -22,13 +22,8 @@ class HarnessDB(HarnessRun):
             self.cleanup()
 
 
-    def check_tags(self,extra_tags=[]):
-        if self.tags is not None:
-            for tag in self.tags.values():
-                p1=sp.run(['grep','-qa',tag,str(self.h5p)])
-                assert p1.returncode == 0
-
-        for tag in extra_tags:
+    def check_tags(self,tags_to_check=[]):
+        for tag in tags_to_check:
             p1=sp.run(['grep','-qa',tag,str(self.h5p)])
             assert p1.returncode == 0
 
@@ -49,7 +44,7 @@ def testdb_wtags():
     tags={'h2.*':'water','zirconium':'Zi','uo[0-9]':'uranium_oxide'}
     t = HarnessDB()
     t.run(merge=True, cleanup=False, tags=tags)
-    t.check_tags()
+    t.check_tags(tags.values())
     t.cleanup()
 
 def testdb_wpartialtags():
