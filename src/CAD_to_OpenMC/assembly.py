@@ -6,8 +6,6 @@ from typing import List, Optional, Union
 
 from itertools import zip_longest
 
-import trimesh
-
 import re
 import os
 import math
@@ -496,10 +494,12 @@ class Assembly:
     def _datadir_name(self,h5m_filename=""):
         h5mf=pl.Path(h5m_filename)
         if self.datadir==".":
-            self.datadir=datetime.now().strftime(f"{h5mf.stem}_%Y%m%d_%H%M%S.%f")
+            datadir = datetime.now().strftime(f"{h5mf.stem}_%Y%m%d_%H%M%S.%f")
+        else:
+            datadir = self.datadir
         if (self.verbose):
-            print(f"INFO: storing temporary data in directory: {self.datadir}")
-        return self.datadir
+            print(f"INFO: storing temporary data in directory: {datadir}")
+        return datadir
 
     def solids_to_h5m(
         self,
@@ -1071,9 +1071,14 @@ class Assembly:
         return cq.Compound(bldr.Shape())
 
     def heal_stls(self, stls):
+        #simply return early if trimesh is not available
+        try:
+            import trimesh
+        except ImportError:
+            return
+
         if self.verbose > 0:
             print("INFO: checking surfaces and reparing normals")
-
         for e in self.entities:
             stl = e.stl
             mesh = trimesh.load_mesh(stl)

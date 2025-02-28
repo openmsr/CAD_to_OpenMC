@@ -9,6 +9,7 @@ class HarnessCqSTL2(HarnessRun):
         super().__init__()
 
     def run(self,merge=False):
+        self.a.import_stp_files()
         if merge:
             self.merge()
 

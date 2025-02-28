@@ -1,10 +1,10 @@
 # This action is intended to run weekly on also testing versions of python
-name: Python application test on many versions
+name: Micromamba install tests (inc. OpenMC and MPI)
 
 on:
   workflow_dispatch:
   schedule:
-  - cron: '30 3 * * 0'
+  - cron: '30 3 * * 0'  
 
 permissions:
   contents: read
@@ -21,7 +21,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pyv: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+        pyv: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+        omcv: ["0.13.3", "0.14.0", "0.15.0"]
+        mpi: ["nompi", "mpi_mpich", "mpi_openmpi"]
 
     steps:
     - uses: actions/checkout@v4
@@ -40,29 +42,13 @@ jobs:
         environment-name: cad_to_openmc_Testing
         create-args: >-
           python=${{matrix.pyv}}
-          openmc=0.14.0=dagmc_mpi_openmpi*
-          ocp=7.7.2.1
-          cadquery=2.4.0
+          openmc=${{matrix.omcv}}=dagmc_${{matrix.mpi}}*
+          ocp>=7.7.2.1
+          cadquery>=2.4.0
         init-shell: bash
     - name: Test OpenMC
       run: openmc --version
       shell: micromamba-shell {0}
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 build pytest
-        grep -v cadq requirements.txt > reqs_cleaned.txt
-        pip install -r reqs_cleaned.txt
-        micromamba list
-        python -c "import gmsh"
-      shell: micromamba-shell {0}
-    - name: Build, pip-install, and test-import CAD_to_OpenMC with dependencies.
-      run: |
-        python -m build --sdist .
-        pip install --no-deps dist/cad_to_openmc*.tar.gz
-        python -c 'import CAD_to_OpenMC.assembly'
-      shell: micromamba-shell {0}
-    - name: Run Tests
-      run: |
-        pytest -v --debug=debuglog.log tests
-      shell: micromamba-shell {0}
+    - name: Install CAD_to_OpenMC using micromamba
+      run: micromamba install -y cad-to-openmc
+      shell: micromamba-shell {0} 
