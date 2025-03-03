@@ -90,7 +90,7 @@ This is the fastest way of getting up and running. A very basic script to proces
 ```python
 import CAD_to_OpenMC.assembly as ab
 
-A=ab.Assembly('geometry.step')
+A=ab.Assembly(['geometry.step'])
 ab.mesher_config['threads']=1
 ab.mesher_config['tolerance']=1e-2
 ab.mesher_config['angular_tolerance']=1e-2
