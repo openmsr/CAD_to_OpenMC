@@ -78,6 +78,9 @@ You may of course replace conda with [mamba/micromamba](https://mamba.readthedoc
 - Geometries which lead to degenerate toroidal surfaces in the step-files, can have problems. See issue [#94](https://github.com/openmsr/CAD_to_OpenMC/issues/94)
 - As is reported in [#98](https://github.com/openmsr/CAD_to_OpenMC/issues/98) on Ubuntu 22.04 there's a problem with python 3.12. Specifically with installing "nlopt", which is used by one of the dependencies of CAD_to_OpenMC. We recommend to stay with python < 3.11 until this has been fixed upstream.
 
+# Contributing / Reporting
+CAD_to_OpenMC lives its life in the open on github. As such, please report issues of the code issue tracker at (https://github.com/united-neux/CAD_to_OpenMC/issues). Contributions are always welcome. We expect contribution to be in the form of pull-requests. Given the relatively small code-base of CAD_to_OoenMC we will also be happy to include your edit manually if you make it known to us through another channel.
+
 # Use cases
 
 We will show a few very simple uses-cases below to get you started using CAD_to_OpenMC, starting with a simply utility script, and then some more examples showing a few of the options later.
