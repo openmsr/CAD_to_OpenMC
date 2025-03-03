@@ -23,7 +23,23 @@ CAD_to_OpenMC is certainly not the only package that tries to solve this problem
 
 These two packages solve the same problem as CAD_to_OpenMC, and in fact in many cases are interchangeable. See for instance [benchmark-zoo] ( https://github.com/fusion-energy/model_benchmark_zoo ).
 
-# To install/set up in a virtual python environment
+# Installation
+The following are the strict dependencies for CAD_to_OpenMC, as seen by PYPI/pip. In addition, it is practical to have trimesh installed.
+```
+gmsh
+pyparsing
+cadquery>=2.2.0
+cadquery-ocp>=7.7.0
+numpy
+networkx
+unidecode
+Cython
+```
+Note, it is possible to run CAD_to_OpenMC without gmsh installed. In this case the material-tag extraction feature is disabled, and you will have to supply a list of tags to be applied sequentially.
+Also note, if you follow the conda-route below, caquery-ocp is called ocp.
+
+## To install/set up in a virtual python environment
+
 _replace \<name\> with an arbitrary name for your virtual environment_
 1. In the directory where you want your environment to reside do: ```python -m venv <name>```
 2. Activate the environment: ```source <name>/bin/activate```
@@ -47,7 +63,7 @@ Should you wish to install the development version of this package you may do so
 
 5. Optionally install the msh refinement tool mmg (https://www.mmgtools.org), which may be run in conjunction with the cq/stl-mesher backend to avoid the high aspect ratio triangles that this backend tends to produce. Arch-linux users may install this from the AUR, otherwise get the source (and build from that) or binary builds from the mmg-site.
 
-# To install in a conda environment
+## To install in a conda environment
 _replace \<name\> with an arbitrary name for your virtual environment_
 
 If instead you prefer to use a [conda-environment](https://docs.conda.io/projects/conda/en/stable/), this is now as simple as:
