@@ -82,6 +82,18 @@ and its' handling of step-files. Once the geometry has been imported, one of
 several meshing back-ends may be called to create a discretized version of the
 geometry. In the end the so generated geometry is exported into the DAGMC-expected format.
 
+Similarly to most CAD-systems, OCCT uses a hierarchical boundary representation model (BREP).
+In a simplfied picture, ojects consist of a set of bounded surfaces (faces), formed by a set of boundaries (edges),
+which themselves consist of line segments connecting points or simply  mathematical descriptions of curves.
+More specifically, the BREP-description used in OCCT, also includes notions of shells (the boundary of a volume), loops (a circular set of edges) etc.
+The BREP concept is subtly but fundamentally different from CSG, where objects are formed by
+boolean operations on halfspaces. E.g. the OCCT BREP-description allows several more types of operations for forming a geometry,
+such as extrusions and rotations.
+
+Thus, a need for conversion always exists, regardless
+of whether one discretizes the geometry or not.
+
+
 ## Triangularization / Surface Meshing
 <!-- Describe the imprinting and why it is very important especially for this case -->
 When a curved geometry is to be discretized the result is an approximation.
@@ -98,10 +110,8 @@ surfaces.
 In terms of case b, the discretization process must take care not to
 re-evaluate any surface that is shared. Instead it must reuse the triangles of
 the former instance. This means that objects cannot be independently processed.
-The whole process is generally handled by the underlying geometry engine [@occt3d] through a
-hierarchical model, in which objects consist of a set of surfaces,
-formed by a set of curves, which themselves consist of line segments connecting points.
-Object simply store links to surfaces
+The whole process is generally handled by the underlying geometry engine [@occt3d] through
+its hierarchical model. Objects simply store links to surfaces
 and their triangularizations (similar for curves --- line segments).
 CAD_to_OpenMC handles this by generating a hash-code for each surface upon
 processing. Each time a surface is encountered, it is examined, and if the
@@ -168,7 +178,7 @@ to the last part handled. That material tag gets picked up by the DAGMC-system a
 
 # Results
 We have chosen 3 reactor models as test systems. A table-top reactor and two full-scale molten salt reactors. The former
-(GODIVA IV) model is included in the ICSBEP-benchmark project [@icsbep_2020] as case HEU-MET-FAST-086, the latter two were part of the motel salt reactor program at ORNL.
+(GODIVA IV) model is included in the ICSBEP-benchmark project [@icsbep_2022] as case HEU-MET-FAST-086, the latter two were part of the motel salt reactor program at ORNL.
 
 ## GODIVA IV
 This model was chosen since it exhibits moderate complexity and has a generous set of experimental data to benchmark against.
@@ -188,7 +198,7 @@ Also there are 3 geometries described:
 2. simplified model, where all surfaces are along principal axis, all corners 90 deg. etc., and
 3. cylindrical symmetric model, to allow 2D-computations.
 The benchmark reports only experimental results for the 2 first ones, but contains MCNP-geometries for
-all 3 in [@icsbep_2020]. The 3rd model is created in order to use some legacy analysis tool which are purely 1D/2D.
+all 3 in [@icsbep_2022]. The 3rd model is created in order to use some legacy analysis tool which are purely 1D/2D.
 
 Corresponding to \autoref{fig:GIV_CAD}, \autoref{fig:GIV_meshed} show the discretized version of the two reactor models used for our further analysis.
 
@@ -227,7 +237,7 @@ burst-rods (see tables \ref{tab_bm_giv_rod_pos} and \ref{tab_det_giv_rod_pos}).
 | 4   | -0.469   | -0.447   | -2.970| 0.98446       | 0.98745       | 0.98359       | 0.9883        |
 | 5   | -0.319   | -0.656   | 0.0   | 0.98980       | 0.98706       | 0.98844       | 0.9933        |
 Table: Control rod (CR) and burst rod (BR) positions for the 5 cases of the Godiva-IV benchmark/simplified model from HEU-MET-FAST-086
-[@icsbep_2020; @hagopian2018updating]\label{tab_bm_giv_rod_pos}. Measures in inches
+[@icsbep_2022; @hagopian2018updating]\label{tab_bm_giv_rod_pos}. Measures in inches
 withdrawn from fully inserted position. The two rightmost columns contain
 criticality numbers for the device. MC refers to simulated Monte Carlo estimates, whereas Lit. refers
 to numbers drawn from the benchmark report. CAD0 is a single-mesh model whereas CAD refers to a model where core, control rods, and burst rods have been discretized separately, then put together as separate universes in OpenMC.
@@ -240,7 +250,7 @@ to numbers drawn from the benchmark report. CAD0 is a single-mesh model whereas 
 | 4   | -0.469   | -0.447   | -2.970| 0.98352      | 0.98426       | 0.9897        |
 | 5   | -0.319   | -0.656   | 0.0   | 0.98390      | 0.98969       | 0.9945        |
 Table: Control rod (CR) and burst rod (BR) positions for the 5 cases of the detailed Godiva-IV model from HEU-MET-FAST-086
-[@icsbep_2020; @hagopian2018updating]\label{tab_det_giv_rod_pos}. Measures in inches
+[@icsbep_2022; @hagopian2018updating]\label{tab_det_giv_rod_pos}. Measures in inches
 withdrawn from fully inserted position. The two rightmost columns contain
 criticality numbers for the device. MC refers to simulated Monte Carlo estimates, whereas Lit. refers
 to numbers drawn from the benchmark report. In the detailed case, for simplicity, only a separately discretized model was run.
