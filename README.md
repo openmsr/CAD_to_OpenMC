@@ -28,7 +28,7 @@ _replace \<name\> with an arbitrary name for your virtual environment_
 1. In the directory where you want your environment to reside do: ```python -m venv <name>```
 2. Activate the environment: ```source <name>/bin/activate```
 3. Build and install moab (if not already installed). The moab team relies on conda for standard installation but are working on a pip-based solution. Once that is done moab would simply be added to the requirements-file instead.
-    1. Clone the moab code-repository: e.g. ```git clone git@bitbucket.org:fathomteam/moab.git```
+    1. Clone the moab code-repository: e.g. ```git clone https://bitbucket.org/fathomteam/moab.git```
     2. Configure and build the code:
     ```bash
       mkdir build;
