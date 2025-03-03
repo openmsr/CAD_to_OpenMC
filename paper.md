@@ -293,9 +293,9 @@ It should be noticed though that the calculated keff for the MSRE case has bette
 | ARE  :| 1.07      | 1.0   |
 |MSRE   | 1.00549  | 1.0|
 
-Table: Criticality numbers, $k_{eff}$, for a set of three molten salt reactors
+Table: Criticality numbers, $k_{eff}$, for a two molten salt reactors
 as computed by the combination of CAD-model, CAD_to_OpenMC, and OpenMC, using
-ENDF v8.0 cross-sections. Also tabled are corresponding values found in
+ENDF v8.0 cross-sections. Also tabled are corresponding (albeit trivial) experimental values found in
 literature,$k_{eff,lit}$ [@cottrell_are_operation_1955; @robertson_msre_1965].
 
 <!-- meshing timings?-->
