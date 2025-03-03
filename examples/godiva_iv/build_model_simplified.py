@@ -459,7 +459,6 @@ if __name__=='__main__':
     ap.add_argument('--particles','-p',default=1000,help='number of particles per batch')
     ap.add_argument('--batches','-b',default=10,type=int,help='number of batches')
     ap.add_argument('--inactive','-i',default=2,type=int,help='inactive batches')
-    ap.add_argument('--type',choices={'full','in_parts'},default='in_parts',help='which type of model are we doing here: full=including rods, in_parts=rods are separate h5ms that can be moved independently')
     ap.add_argument('--vol',action='store_true', help='if given perform a volume calculation.')
     ap.add_argument('--volprec', nargs='?',type=float, const=0.01, help='the wanted precision for volume calculations')
     args = ap.parse_args()
