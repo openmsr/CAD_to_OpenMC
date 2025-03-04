@@ -209,20 +209,7 @@ class Assembly:
         self.tag_delim_pattern=r"^([^\s_@]+)"
 
         #check if we can write a moab-detabase.
-        self.hdf5_in_moab()
-
-    @classmethod
-    def hdf5_in_moab(cls):
-        a = Assembly()
-        try:
-            a.dummy_h5m()
-        except RuntimeError as e:
-            print(
-                "Warning: Can't write a hdf-file. Did you compile moab with hdf5 support?"
-                "The resulting meshed file will actually be a vtk-file."
-                f"{e}"
-            )
-        return True
+        self.dummy_h5m()
 
     def dummy_h5m(self):
         mbc, mbt = self.init_moab()
@@ -1144,3 +1131,22 @@ def merge2h5m(assemblies =[], h5m_file: str ="dagmc.h5m", vtk: bool = True, verb
         if verbose > 0:
             print(f'INFO: writing geometry to vtk: ' + str(h5m_p.with_suffix(".vtk")) )
         mbcore.write_file(str(h5m_p.with_suffix(".vtk")))
+    
+def hdf5_in_moab(cls):
+    """
+    function to perform a check on whether the written h5m-name file is actually hdf5
+
+    Usage:
+        a=CAD_to_OpenMC.assembly.hdf5_in_moab()
+    """
+    a = Assembly()
+    try:
+        a.dummy_h5m()
+    except RuntimeError as e:
+        print(
+            "Warning: Can't write a hdf-file. Did you compile moab with hdf5 support?"
+            "The resulting meshed file will actually be a vtk-file."
+            f"{e}"
+        )
+    return True
+
