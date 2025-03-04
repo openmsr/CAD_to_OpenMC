@@ -73,6 +73,9 @@ If instead you prefer to use a [conda-environment](https://docs.conda.io/project
 
 You may of course replace conda with [mamba/micromamba](https://mamba.readthedocs.io/en/latest/), should you prefer to do so.
 
+## Verifying your installation
+Should you wish to do so - you may verifgy your installation of CAD_to_OpenMC by running the script `self_cotained_test.py`-script located in the tests directory. This writes a step-file, converts it to triangles, and checks that the created triangles have vertices as expected.
+
 # Known problems
 - At present the parallel meshing option is buggy - it is therefore highly recommended to set the mesher to only use 1 thread. The team is working on a solution for this. See issue [#80](https://github.com/openmsr/CAD_to_OpenMC/issues/80)
 - Geometries which lead to degenerate toroidal surfaces in the step-files, can have problems. See issue [#94](https://github.com/openmsr/CAD_to_OpenMC/issues/94)
