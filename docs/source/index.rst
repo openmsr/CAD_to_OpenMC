@@ -5,7 +5,7 @@ creating OpenMC-ready surface meshes from a CAD-generated representation in the 
 of a .step (or .stp)-file.
 
 Check out the :doc:`usage` section for further information, including
-how to :ref:`installation` the project.
+:doc:`install`.
 
 .. note::
 
@@ -16,5 +16,7 @@ Contents
 
 .. toctree::
 
-   usage.rst
-   examples.rst
+   install.md
+   usage.md
+   api.rst
+
