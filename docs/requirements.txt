@@ -1,0 +1,8 @@
+gmsh
+pyparsing
+cadquery>=2.2.0
+cadquery-ocp>=7.7.0
+numpy
+networkx
+unidecode
+Cython
