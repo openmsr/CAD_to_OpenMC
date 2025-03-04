@@ -208,6 +208,8 @@ class Assembly:
         self.noextract_tags = True
         self.tag_delim_pattern=r"^([^\s_@]+)"
 
+        #check if we can write a moab-detabase.
+        self.hdf5_in_moab()
 
     @classmethod
     def hdf5_in_moab(cls):
@@ -222,9 +224,6 @@ class Assembly:
             )
         return True
 
-    def set_tag_delim(self,delimiters: str):
-        self.tag_delim_pattern=r"^([^" + delimiters + r"]+)"
-
     def dummy_h5m(self):
         mbc, mbt = self.init_moab()
         mbc.write_file("dummy.h5m")
@@ -234,6 +233,9 @@ class Assembly:
             raise e
         os.unlink("dummy.h5m")
         return True
+
+    def set_tag_delim(self,delimiters: str):
+        self.tag_delim_pattern=r"^([^" + delimiters + r"]+)"
 
     def run(
         self,
