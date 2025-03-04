@@ -1,3 +1,4 @@
+myst_parser
 gmsh
 pyparsing
 cadquery>=2.2.0
