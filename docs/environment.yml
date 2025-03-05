@@ -1,7 +1,11 @@
 name: test2
 channels:
-  - conda-forge
+   - conda-forge
 dependencies:
-  - cad-to-openmc
-  - python=3.10
-
+   - python=3.10
+   - libglu 
+   - cad-to-openmc
+   - sphinx
+   - pip
+   - pip:
+      - myst_parser
