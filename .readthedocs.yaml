@@ -26,7 +26,6 @@ sphinx:
 
 conda:
    file: docs/environment.yml
-      environment: test2
 
 # Optionally declare the Python requirements required to build your docs
 ##python:
