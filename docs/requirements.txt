@@ -8,3 +8,4 @@ networkx
 unidecode
 Cython
 moab @ https://github.com/shimwell/wheels/raw/refs/heads/main/moab/moab-wheels-ubuntu-latest/moab-5.5.1-cp310-cp310-manylinux_2_28_x86_64.whl
+PyOpenGL
