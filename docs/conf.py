@@ -6,7 +6,7 @@ project = "CAD_to_OpenMC Project"
 copyright = "2025, CAD_to_OpenMC-team"
 author = "ebknudsen the Docs core team"
 
-master_doc = 'source/index'
+master_doc = 'index'
 
 extensions = [
     "sphinx.ext.duration",
