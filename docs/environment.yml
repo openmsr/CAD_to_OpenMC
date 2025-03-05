@@ -1,0 +1,7 @@
+name: test2
+channels:
+- conda-forge
+dependencies:
+- cad-to-openmc
+- python=3.10
+
