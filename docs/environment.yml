@@ -1,0 +1,12 @@
+name: test2
+channels:
+   - conda-forge
+dependencies:
+   - python=3.10
+   - libglu 
+   - cad-to-openmc
+   - sphinx
+   - sphinx_rtd_theme
+   - pip
+   - pip:
+      - myst_parser

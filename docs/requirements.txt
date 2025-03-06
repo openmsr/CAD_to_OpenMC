@@ -1,0 +1,11 @@
+myst_parser
+gmsh
+pyparsing
+cadquery>=2.2.0
+cadquery-ocp>=7.7.0
+numpy
+networkx
+unidecode
+Cython
+moab @ https://github.com/shimwell/wheels/raw/refs/heads/main/moab/moab-wheels-ubuntu-latest/moab-5.5.1-cp310-cp310-manylinux_2_28_x86_64.whl
+PyOpenGL
