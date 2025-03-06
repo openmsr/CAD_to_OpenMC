@@ -8,6 +8,8 @@
 # CAD_to_OpenMC
 This is a python package intended to establish an open source link between CAD tools in general and the neutron and photon transport code OpenMC. It is inspired by [Paramak](https://github.com/fusion-energy/paramak), and borrows concepts from [step_to_h5m]( https://github.com/fusion-energy/step_to_h5m).
 
+This documentation is now also available on: [](https://cad-to-openmc.readthedocs.io)
+
 Although most CAD-tools use some other internal and/or native representation for geometry, most, if not all, will be able to export to the STEP-file format. Therefore this is the format we use
 
 CAD_to_OpenMC uses cadQuery and its links to OCCT
