@@ -6,6 +6,7 @@ dependencies:
    - libglu 
    - cad-to-openmc
    - sphinx
+   - sphinx_rtd_theme
    - pip
    - pip:
       - myst_parser
