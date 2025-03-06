@@ -17,6 +17,8 @@ extensions = [
     "myst_parser",
 ]
 
+myst_heading_anchors = 3
+
 intersphinx_mapping = {
     "rtd": ("https://docs.readthedocs.io/en/stable/", None),
     "python": ("https://docs.python.org/3/", None),
