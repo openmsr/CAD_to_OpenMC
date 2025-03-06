@@ -23,7 +23,7 @@ CAD_to_OpenMC is certainly not the only package that tries to solve this problem
 - [cad_to_dagmc]( https://github.com/fusion-energy/cad_to_dagmc )
 - [stellarmesher]( https://github.com/Thea-Energy/stellarmesh )
 
-These two packages solve the same problem as CAD_to_OpenMC, and in fact in many cases are interchangeable. See for instance [benchmark-zoo] ( https://github.com/fusion-energy/model_benchmark_zoo ).
+These two packages address the same problem as CAD_to_OpenMC, and in fact in many cases are interchangeable, but with different timelines and different design philosophy. See for instance [benchmark-zoo] ( https://github.com/fusion-energy/model_benchmark_zoo ).
 
 # Installation
 The following are the strict dependencies for CAD_to_OpenMC, as seen by PYPI/pip. In addition, it is practical to have trimesh installed.
