@@ -77,6 +77,14 @@ The CAD_to_OpenMC tool eases the process of generating a meshed description
 of a CAD-generated geometry (in the form of a step-file) ready for inclusion in
 transport codes through DAGMC.
 
+While other active projects exist that target similar problems (e.g. cad_to_dagmc[@cadtodagmc], and stellarmesh[@stellarmesh]),
+CAD_to_OpenMC is designed with generality in mind. This is defined as:
+First, it is aimed at
+working for all step-geometries, with no assumptions on geometry. Second, it must be relatively easy
+to add code for a new backend should one wish to do so. From this requirement stems the code-structure as it is,
+ with one frontend and several backend-classes. This may be seen as a measure to enhance the longevity of the project.
+Last, it must be easy to extract, generate, and manipulate material tags from the underlying step-model. As models become large and complex, maintaining a separate list of materials, in sequence, is seen as cumbersome and error prone.
+
 # Method
 CAD_to_OpenMC uses OCCT [@occt3d] to interact with CAD-geometries
 and its' handling of step-files. Once the geometry has been imported, one of
@@ -93,6 +101,7 @@ such as extrusions and rotations.
 
 Thus, a need for conversion always exists, regardless
 of whether one discretizes the geometry or not.
+
 
 
 ## Triangularization / Surface Meshing
@@ -281,7 +290,7 @@ works as intended.
 
 \autoref{fig:msreAre} (left) shows pictures of the meshed MSRE and ARE geometries, including reactor enclosure control rods etc.
 The Aircraft Reactor Experiment (ARE) and Molten Salt Reactor Experiment (MSRE) were two molten salt reactor experiments carried out at Oak Ridge National laboratory; ARE in November '59 and MSRE was run between '65 and 70.
-In the confines of this article, this pair serves as examples of complex reactor geometries that can be handled by CAD_to_OpenMC. Very detailed CAD-models are available for the set which we have used as inputs.
+In the confines of this article, thihttps://github.com/stellarmesh/stellarmeshs pair serves as examples of complex reactor geometries that can be handled by CAD_to_OpenMC. Very detailed CAD-models are available for the set which we have used as inputs.
 \autoref{tab_bmark} tabulates the $k_{eff}$-values computed using a materials composition set to mimic the reported values as closely as possible.
 It is clear that, similar to the case for the GODIVA IV-device the modelled
 values are not in complete agreement with the reported ones, yet this may be
@@ -305,6 +314,7 @@ literature,$k_{eff,lit}$ [@cottrell_are_operation_1955; @robertson_msre_1965].
 # Discussion and Conclusion
 We submit that have shown that the tool presented in this paper is a convenient tool for making CAD geometries available for Monte Carlo particle transport. By utilizing the DAGMC-layer the resulting geometries are not restricted to OpenMC, but in fact may be used also in MCNP, fluka, etc. Experience has shown that a particularly useful feature is to extract tags from CAD-defined parts and interpret them as material tags for transport. This enables a consistent material naming scheme throughout the entire modeling procedure.
 
+Finally, as noted, other active projects exist targeting the problem. In the interest of efficiency and resource management, there are active efforts aimed unification, which may bear fruit in coming releases.
 
 
 # References
