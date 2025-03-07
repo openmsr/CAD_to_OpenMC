@@ -231,12 +231,12 @@ calculation can be run to an arbitrary set target tolerance.
 
 Generally, differences in volume has a much bigger influence on the neutronics
 of a reactor than do small boundary changes (with constant volume). Hence, this
-is a useful measure for performance. Notably the errors found (fig. \ref{fig:voldiff}) are dominated by
+is a useful measure for performance. Note that the errors found (fig. \ref{fig:voldiff}) are dominated by
 the error in the stochastic volume estimator, not the volume error itself. This
 is evidenced by the very small error in burst- and control-rod volume for the
 detailed model, which were run with smaller tolerances. Additionally, we have used the benchmark CSG-model
 to verify a few volumes in the detailed model. A CSG-model generally yields shorter runtimes, which allows tighter
-tolerance while also remaining practical. Notably, the CSG-benchmark deviates slightly from the CAD-model constructed
+tolerance while also remaining practical. We find that the CSG-benchmark deviates slightly from the CAD-model constructed
 from drawings, suggesting there is an underlying discrepancy internally in the benchmark, which may have to be addressed.
 
 The 5 cases considered, each have different settings for the control- and
