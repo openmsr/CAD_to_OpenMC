@@ -202,7 +202,7 @@ at 120 deg. offset. Additionally the core has three vertical holes (similarly
 by vertical actuators. The rods themselves are similar in composition to the
 fuel elements.
 
-The benchmark includes 5 cases, which differ in terms of control- and burst-rod positions.
+The benchmark includes 5 experimental cases, which differ in terms of control- and burst-rod positions.
 Also there are 3 geometries described:
 1. detailed model which includes as built things (curved clamp etc.),
 2. simplified model, where all surfaces are along principal axis, all corners 90 deg. etc., and
@@ -216,15 +216,15 @@ Corresponding to \autoref{fig:GIV_CAD}, \autoref{fig:GIV_meshed} show the discre
 
 ![Discretized Godiva IV-models, detailed (left) and simplified (right) versions.\label{fig:GIV_meshed}](figs/both_meshed.pdf){#GIV_meshed width=50%}
 
-![Part-by-part comparison between volume calculations using stochastic volume estimation in OpenMC compared with direct volume calculations reported by CAD-software for the detailed model (green) and simplified benchmark model (magneta). The indictated intervals are the compuational error margins, almost exclusively stemming from the estimated error in the stochastic volume computation.\label{fig:voldiff}](figs/both_rel_voldiff.png)
+![Part-by-part comparison between volume calculations using stochastic volume estimation in OpenMC compared with direct volume calculations reported by CAD-software for the detailed model (green) and simplified benchmark model (magneta). The indicated intervals are the compuational error margins, almost exclusively stemming from the estimated error in the stochastic volume computation. The additional black circles denote the relative difference between the extracted benchmark CSG-model (as computed by stochastic volume-runs in OpenMC) and the CAD-model.\label{fig:voldiff}](figs/both_rel_voldiff.png)
 
 Figure \ref{fig:voldiff} shows
 differences in volumes between the discretized models and the exact CAD-model
 for the various objects making up the parts. Volumes have been calculated using
 a built-in feature of our CAD-package, whereas volumes from the discretized models have
 been computed using the stochastic volume computation feature of OpenMC
-[@openmc_2013]. In the latter case volumes are being computed by sampling a
-number of points within a set boundary, while recording volume each point falls
+[@openmc_2013]. In the latter case volumes are being computed by sampling a (large)
+number of points within a set boundary, while recording which volume each point falls
 within. The precision of the algorithm is directly governed by the number of
 points sampled, meaning a direct dependence on run time. In practice, the
 calculation can be run to an arbitrary set target tolerance.
@@ -234,7 +234,10 @@ of a reactor than do small boundary changes (with constant volume). Hence, this
 is a useful measure for performance. Notably the errors found (fig. \ref{fig:voldiff}) are dominated by
 the error in the stochastic volume estimator, not the volume error itself. This
 is evidenced by the very small error in burst- and control-rod volume for the
-detailed model, which were run with smaller tolerances.
+detailed model, which were run with smaller tolerances. Additionally, we have used the benchmark CSG-model
+to verify a few volumes in the detailed model. A CSG-model generally yields shorter runtimes, which allows tighter
+tolerance while also remaining practical. Notably, the CSG-benchmark deviates slightly from the CAD-model constructed
+from drawings, suggesting there is an underlying discrepancy internally in the benchmark, which may have to be addressed.
 
 The 5 cases considered, each have different settings for the control- and
 burst-rods (see tables \ref{tab_bm_giv_rod_pos} and \ref{tab_det_giv_rod_pos}).
