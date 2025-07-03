@@ -6,6 +6,8 @@
 [![Python 3.9](https://img.shields.io/badge/python-3.9%2B-blue)](https://www.python.org/downloads/release/python-390/)
 
 # CAD_to_OpenMC
+*N.b. Development of CAD_to_OpenMC has moved to a new [organization/repository](https://github.com/united-neux/CAD_to_OpenMC). Please head there for updates - this repository will no longer receive updates past version 1.0.0-1*
+
 This is a python package intended to establish an open source link between CAD tools in general and the nuetron and photon transport code OpenMC. It is inspired by [Paramak](https://github.com/fusion-energy/paramak), and borrows concepts from [step_to_h5m]( https://github.com/fusion-energy/step_to_h5m).
 
 Although most CAD-tools use some other internal and/or native representation for geometry, most, if not all, will be able to export to the STEP-file format. Therefore this is the format we use
